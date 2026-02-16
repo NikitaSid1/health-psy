@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* В v4 плагины импортируются через @plugin, но typography часто идет в комплекте или настраивается иначе. 
+Если @plugin ругается, убедись, что пакет установлен: npm install @tailwindcss/typography */
+@plugin "@tailwindcss/typography";
+
+/* Настройка темы в v4 теперь делается через @theme */
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #111827;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #f3f4f6;
+}
+
+/* Вместо @custom-variant в v4 используем стандартный селектор или настройки темы */
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    @apply transition-colors duration-500 ease-in-out antialiased;
+  }
+}
+
+@layer components {
+  /* Твои стили кнопок и карточек ниже... */
+  .btn-primary { @apply inline-flex items-center justify-center px-[32px] py-[16px] bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all duration-300 shadow-sm active:scale-95; }
+  .btn-secondary { @apply inline-flex items-center justify-center px-[32px] py-[16px] bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white font-bold rounded-2xl transition-all duration-300 active:scale-95 hover:bg-gray-200 dark:hover:bg-zinc-700; }
+  .tag-pill { @apply inline-flex items-center justify-center px-[24px] py-[12px] bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 text-sm font-bold rounded-full border border-gray-200 dark:border-zinc-800 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 active:scale-95 shadow-sm; }
+  .input-base { @apply w-full px-[28px] py-[16px] bg-gray-50 dark:bg-zinc-900 border-none ring-1 ring-gray-200 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 rounded-[24px] text-gray-900 dark:text-white placeholder-gray-500 transition-all duration-300 outline-none; }
+  .card-editorial { @apply p-[24px] bg-white dark:bg-zinc-900 rounded-[24px] border border-gray-100 dark:border-zinc-800 shadow-sm dark:shadow-none transition-all duration-300; }
+  .layout-container { @apply max-w-3xl mx-auto px-4 sm:px-6 w-full; }
+}
