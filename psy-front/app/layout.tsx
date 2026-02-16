@@ -1,5 +1,5 @@
 // === НАЧАЛО БЛОКА: Root Layout ===
-import type { Metadata, Viewport } from "next"; // Импортируем Viewport
+import type { Metadata, Viewport } from "next"; 
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
@@ -8,7 +8,6 @@ import Header from "@/components/ui/Header";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
-// Настройка Viewport для правильной работы Mobile-First (Safe Area, запрет зума)
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -32,15 +31,14 @@ export default function RootLayout({
       <body id="root-body" className={`${inter.className} bg-background text-foreground antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           
-          {/* Обертка для правильного позиционирования контента */}
           <div id="app-wrapper" className="relative flex min-h-screen flex-col">
             
             <Header />
             
-            {/* main занимает все свободное пространство, чтобы футер не съедал контент */}
-            <main id="main-content" className="flex-1">
+            {/* Глобальная обертка отступов: защищает от наложения Header и BottomBar */}
+            <div id="main-content" className="flex-1 pt-20 md:pt-28 pb-24 md:pb-12">
               {children}
-            </main>
+            </div>
             
             <BottomBar />
             

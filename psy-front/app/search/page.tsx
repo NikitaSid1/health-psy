@@ -1,7 +1,27 @@
-export default function SearchPage() {
+// === НАЧАЛО БЛОКА: Страница Поиска (Server + Client) ===
+import { client } from "@/sanity/client";
+import { articlesQuery } from "@/lib/queries";
+import SearchClient from "@/components/search/SearchClient"; 
+
+export const revalidate = 0; 
+
+export default async function SearchPage() {
+  const allArticles = await client.fetch(articlesQuery);
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-24 pt-8 px-4 transition-colors duration-500">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white pl-2">Поиск</h1>
-    </div>
+    <main id="search-page">
+      <div className="layout-container">
+        <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-zinc-50 tracking-tight mb-8">
+          Поиск
+        </h1>
+        
+        <div id="search-client" className="space-y-8">
+          <div className="relative w-full max-w-2xl mx-auto">
+            {/* Input и т.д. */}
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }
+// === КОНЕЦ БЛОКА ===

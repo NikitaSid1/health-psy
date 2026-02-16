@@ -3,12 +3,13 @@ import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { PortableText } from "@portabletext/react";
 import Link from "next/link";
-import Image from "next/image"; // Оптимизация по п.28
-import ProgressBar from "@/components/ui/ProgressBar"; // Индикатор чтения
-import ArticleActions from "@/components/article/ArticleActions"; // Интерактив
+import Image from "next/image"; 
+import ProgressBar from "@/components/ui/ProgressBar"; 
+import ArticleActions from "@/components/article/ArticleActions"; 
+import BookmarkButton from "@/components/ui/BookmarkButton";
 
-// Запрос. Добавили plainText для передачи в аудио-читалку
 const postQuery = groq`*[_type == "post" && slug.current == $slug][0] {
+  _id,
   title,
   body,
   publishedAt,
@@ -62,7 +63,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
   if (!post) {
     return (
-      <main id="post-not-found" className="min-h-screen flex items-center justify-center">
+      <main id="post-not-found" className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4 font-sans">Статья не найдена</h1>
           <Link href="/" className="text-blue-600 hover:underline">Вернуться на главную</Link>
@@ -71,14 +72,13 @@ export default async function PostPage({ params }: PostPageProps) {
     );
   }
 
-  // Текст для озвучки
   const textForAudio = post.plainText || post.title;
 
   return (
     <>
       <ProgressBar />
       
-      <main id="post-main-content" className="min-h-screen pb-24 pt-8 md:pt-24 font-sans">
+      <main id="post-main-content" className="font-sans">
         <article id="post-article" className="layout-container max-w-3xl mx-auto">
           
           <nav id="post-navigation" className="mb-8">
@@ -95,21 +95,27 @@ export default async function PostPage({ params }: PostPageProps) {
               {post.title}
             </h1>
 
-            <div id="post-meta" className="flex flex-wrap items-center gap-4 mb-10 text-sm font-medium">
-              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                {post.category || "Психология"}
-              </span>
-              <span className="text-gray-400 dark:text-zinc-500">
-                {post.readTime || 5} мин чтения
-              </span>
-              <time className="text-gray-400 dark:text-zinc-500">
-                {new Date(post.publishedAt).toLocaleDateString("ru-RU")}
-              </time>
-              {post.expert && (
-                <span className="text-green-600 dark:text-green-400 font-bold flex items-center gap-1">
-                  ✓ Проверено экспертом
+            <div className="flex items-center justify-between mb-10">
+              <div id="post-meta" className="flex flex-wrap items-center gap-4 text-sm font-medium">
+                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                  {post.category || "Психология"}
                 </span>
-              )}
+                <span className="text-gray-400 dark:text-zinc-500">
+                  {post.readTime || 5} мин чтения
+                </span>
+                <time className="text-gray-400 dark:text-zinc-500 hidden sm:inline-block">
+                  {new Date(post.publishedAt).toLocaleDateString("ru-RU")}
+                </time>
+                {post.expert && (
+                  <span className="text-green-600 dark:text-green-400 font-bold flex items-center gap-1">
+                    ✓ <span className="hidden sm:inline-block">Проверено экспертом</span>
+                  </span>
+                )}
+              </div>
+
+              <div className="shrink-0 pl-4">
+                <BookmarkButton articleId={post._id} />
+              </div>
             </div>
           </header>
 
@@ -126,7 +132,6 @@ export default async function PostPage({ params }: PostPageProps) {
             </div>
           )}
 
-          {/* Интерактивный блок: Слушать и Поделиться */}
           <ArticleActions title={post.title} textToRead={textForAudio} />
 
           <div id="post-body" className="prose prose-zinc dark:prose-invert max-w-none 

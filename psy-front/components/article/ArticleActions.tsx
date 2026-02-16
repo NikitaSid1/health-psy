@@ -43,7 +43,24 @@ export default function ArticleActions({ title, textToRead }: ArticleActionsProp
     } 
     // 3. Фолбэк для локального тестирования по HTTP (IP-адрес)
     else {
-      alert(`Скопируйте ссылку вручную (небезопасное соединение):\n\n${url}`);
+      try {
+        // Создаем невидимый элемент для копирования текста (работает без HTTPS)
+        const textArea = document.createElement("textarea");
+        textArea.value = url;
+        textArea.style.position = "absolute";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        document.execCommand('copy');
+        
+        textArea.remove();
+        alert("Ссылка скопирована в буфер обмена!");
+      } catch (error) {
+        console.error("Fallback copy failed", error);
+        alert(`Скопируйте ссылку вручную (небезопасное соединение):\n\n${url}`);
+      }
     }
   };
 
