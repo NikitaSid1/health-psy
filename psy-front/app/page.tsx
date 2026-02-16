@@ -38,16 +38,21 @@ export default async function HomePage() {
           <div className="relative">
              <input type="text" placeholder="Что вас беспокоит?" className="input-base pl-14" />
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+          <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory scroll-smooth">
             {mockTags.map((tag) => (
-              <button key={tag} className="tag-pill whitespace-nowrap">#{tag}</button>
+              <button 
+                key={tag} 
+                className="tag-pill whitespace-nowrap snap-center"
+              >
+                #{tag}
+              </button>
             ))}
           </div>
         </section>
 
         {/* Статьи */}
         <section className="space-y-8">
-          <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">Свежие материалы</h2>
+          <h2 className="text-2xl font-extrabold text-gray-900 dark:text-zinc-50">Свежие материалы</h2>
           
           {errorOccurred ? (
             <div className="p-10 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl text-center">

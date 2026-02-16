@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import BottomBar from "@/components/ui/BottomBar"; // 👈 Импортируем наше меню
+import Header from "@/components/ui/Header"; // 1. Импорт шапки
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -21,9 +22,12 @@ export default function RootLayout({
       <body className={`${inter.className} bg-background text-foreground antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           
+          {/* 2. Выводим шапку для ПК (она скрыта на мобилках благодаря классам) */}
+          <Header />
+          
           {children}
           
-          {/* 👈 Вставляем меню сюда. Оно появится поверх контента на мобилках */}
+          {/* Вставляем меню сюда. Оно появится поверх контента на мобилках */}
           <BottomBar />
           
         </ThemeProvider>

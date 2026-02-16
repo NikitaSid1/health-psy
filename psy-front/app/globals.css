@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* В v4 плагины импортируются через @plugin, но typography часто идет в комплекте или настраивается иначе. 
 Если @plugin ругается, убедись, что пакет установлен: npm install @tailwindcss/typography */
 @plugin "@tailwindcss/typography";
@@ -38,31 +40,44 @@
   .input-base { @apply w-full px-[28px] py-[16px] bg-gray-50 dark:bg-zinc-900 border-none ring-1 ring-gray-200 dark:ring-zinc-800 focus:ring-2 focus:ring-blue-500 rounded-[24px] text-gray-900 dark:text-white placeholder-gray-500 transition-all duration-300 outline-none; }
   .card-editorial { @apply p-[24px] bg-white dark:bg-zinc-900 rounded-[24px] border border-gray-100 dark:border-zinc-800 shadow-sm dark:shadow-none transition-all duration-300; }
   .layout-container { @apply max-w-3xl mx-auto px-4 sm:px-6 w-full; }
-}
+  }
 
-/* Кастомный красивый скроллбар */
-.custom-scrollbar::-webkit-scrollbar {
-  height: 6px; /* Делаем её тонкой и аккуратной */
-}
+/* Кастомный скроллбар */
+@layer utilities {
+  /* Скрываем стандартный скроллбар для Firefox */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #d4d4d8 transparent;
+  }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent; /* Прозрачный фон под полоской */
-}
+  .dark .custom-scrollbar {
+    scrollbar-color: #3f3f46 transparent;
+  }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #d4d4d8; /* Светло-серый (zinc-300) для светлой темы */
-  border-radius: 10px; /* Круглые края */
-}
+  /* Кастомный скроллбар для Chrome, Safari, Edge */
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 4px; /* Делаем его еще тоньше */
+  }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #a1a1aa; /* Чуть темнее при наведении */
-}
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-/* Для темной темы */
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #3f3f46; /* Темно-серый (zinc-700) */
-}
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #e4e4e7; /* Очень светлый серый (zinc-200) */
+    border-radius: 9999px; /* Идеально круглый */
+  }
 
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #52525b; /* Светлее при наведении */
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #a1a1aa; /* Чуть темнее при наведении (zinc-400) */
+  }
+
+  /* Стили скроллбара для темной темы в WebKit */
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #27272a; /* Темно-серый (zinc-800) */
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #52525b; /* Светлее при наведении (zinc-600) */
+  }
 }
