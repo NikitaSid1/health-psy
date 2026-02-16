@@ -1,19 +1,18 @@
 // === НАЧАЛО БЛОКА: Sanity Studio Config ===
 import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';
+import { postSchema } from './sanity/schema'; // 👈 1. Импортируем нашу схему статьи
 
 export default defineConfig({
-  basePath: '/studio', // Путь, по которому будет доступна админка
+  basePath: '/studio',
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
   title: 'Health Psy CMS',
   
-  // Подключаем стандартный интерфейс студии
   plugins: [structureTool()],
   
   schema: {
-    // Сюда мы чуть позже добавим нашу схему статьи
-    types: [], 
+    types: [postSchema], // 👈 2. Регистрируем схему в админке
   },
 });
 // === КОНЕЦ БЛОКА ===
