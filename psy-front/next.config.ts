@@ -1,12 +1,16 @@
+// === НАЧАЛО БЛОКА: Next Config ===
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  logging: {
-    fetches: {
-      fullUrl: true,
-    },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.sanity.io", // Разрешаем картинки из Sanity
+      },
+    ],
   },
 };
 
 export default nextConfig;
+// === КОНЕЦ БЛОКА ===
