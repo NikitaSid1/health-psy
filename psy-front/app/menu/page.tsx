@@ -1,33 +1,30 @@
+// === НАЧАЛО БЛОКА: Страница Меню ===
 "use client";
 
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { triggerHaptic } from "@/lib/haptic"; // Используем глобальную утилиту
 
-// === НАЧАЛО БЛОКА: Страница Меню ===
 export default function MenuPage() {
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, systemTheme } = useTheme();
 
   // Защита от Hydration Mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Функция виброотклика (Haptic Feedback)
-  const triggerHaptic = () => {
-    if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
-      window.navigator.vibrate(50); // 50мс - легкий тап
-    }
-  };
+  // Определяем реальную тему (учитывая системную)
+  const currentTheme = theme === "system" ? systemTheme : theme;
 
   const toggleTheme = () => {
-    triggerHaptic();
-    setTheme(theme === "dark" ? "light" : "dark");
+    triggerHaptic('light');
+    setTheme(currentTheme === "dark" ? "light" : "dark");
   };
 
   return (
-    <main className="min-h-screen py-16 md:py-32">
+    <main id="menu-page" className="min-h-screen py-16 md:py-32">
       <div className="layout-container space-y-8">
         
         <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight px-2">
@@ -35,7 +32,7 @@ export default function MenuPage() {
         </h1>
 
         {/* Секция Настроек (в карточке Editorial) */}
-        <section className="card-editorial space-y-6">
+        <section id="menu-settings" className="card-editorial space-y-6">
           <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
             Настройки
           </h2>
@@ -45,18 +42,26 @@ export default function MenuPage() {
             <span className="text-lg font-medium text-gray-900 dark:text-white">
               Темная тема
             </span>
-            <button
-              onClick={toggleTheme}
-              disabled={!mounted}
-              className="w-14 h-8 bg-gray-200 dark:bg-zinc-700 rounded-full relative transition-colors duration-300 focus:outline-none"
-              aria-label="Переключить тему"
-            >
-              <span
-                className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-sm transition-transform duration-300 ${
-                  mounted && theme === "dark" ? "translate-x-6" : "translate-x-0"
+            
+            {!mounted ? (
+              // Скелетон переключателя до загрузки клиента (предотвращает прыжок)
+              <div className="w-14 h-8 bg-gray-200 dark:bg-zinc-700 rounded-full animate-pulse" />
+            ) : (
+              // Реальный переключатель
+              <button
+                onClick={toggleTheme}
+                className={`w-14 h-8 rounded-full relative transition-colors duration-300 focus:outline-none ${
+                  currentTheme === "dark" ? "bg-blue-600" : "bg-gray-300 dark:bg-zinc-600"
                 }`}
-              />
-            </button>
+                aria-label="Переключить тему"
+              >
+                <span
+                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-sm transition-transform duration-300 ${
+                    currentTheme === "dark" ? "translate-x-6" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            )}
           </div>
 
           <div className="h-px bg-gray-100 dark:bg-zinc-800 w-full" />
@@ -67,7 +72,7 @@ export default function MenuPage() {
               Язык
             </span>
             <select
-              onChange={triggerHaptic}
+              onChange={() => triggerHaptic('light')}
               className="bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 font-medium appearance-none cursor-pointer"
               defaultValue="RU"
             >
@@ -79,7 +84,7 @@ export default function MenuPage() {
         </section>
 
         {/* Секция Навигации (Категории) */}
-        <section className="card-editorial space-y-4">
+        <section id="menu-categories" className="card-editorial space-y-4">
           <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">
             Категории
           </h2>
@@ -89,7 +94,7 @@ export default function MenuPage() {
                 key={item}
                 href={`/category/${item.toLowerCase()}`}
                 className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                onClick={triggerHaptic}
+                onClick={() => triggerHaptic('light')}
               >
                 {item}
               </Link>
