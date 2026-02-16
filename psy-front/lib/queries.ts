@@ -1,3 +1,4 @@
+// === НАЧАЛО БЛОКА: Sanity Queries ===
 import { groq } from "next-sanity";
 
 export const articlesQuery = groq`*[_type == "post"] | order(publishedAt desc) {
@@ -9,3 +10,4 @@ export const articlesQuery = groq`*[_type == "post"] | order(publishedAt desc) {
   "expert": expertReview,
   "mainImage": mainImage.asset->url
 }`;
+// === КОНЕЦ БЛОКА ===
