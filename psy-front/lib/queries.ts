@@ -5,9 +5,9 @@ export const articlesQuery = groq`*[_type == "post"] | order(publishedAt desc) {
   _id,
   title,
   "slug": slug.current,
-  "category": categories[0]->title,
-  "readTime": readingTime,
-  "expert": expertReview,
+  category,
+  "readTime": readTime,
+  "expert": expert,
   "mainImage": mainImage.asset->url
 }`;
 // === КОНЕЦ БЛОКА ===

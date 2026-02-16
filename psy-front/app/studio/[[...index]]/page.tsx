@@ -2,7 +2,7 @@
 "use client";
 
 import { NextStudio } from "next-sanity/studio";
-import config from "../../../sanity.config"; // Путь до нашего конфига в корне
+import config from "@/sanity.config";
 
 export default function StudioPage() {
   return (

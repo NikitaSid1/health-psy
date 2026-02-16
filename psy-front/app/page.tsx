@@ -57,20 +57,24 @@ export default async function HomePage() {
           {errorOccurred ? (
             <div className="p-10 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl text-center">
               <p className="text-red-500 font-bold mb-2">Упс! База данных недоступна</p>
-              <p className="text-sm text-gray-500">Проверь интернет-соединение или DNS (8.8.8.8)</p>
+              <p className="text-sm text-gray-500">Проверь настройки Sanity или соединение.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {articles.map((article) => (
                 <Link key={article._id} href={`/post/${article.slug}`} className="group block outline-none">
-                  <article className="card-editorial h-full flex flex-col hover:border-blue-500/30">
+                  <article className="card-editorial h-full flex flex-col hover:border-blue-500/30 transition-all border border-transparent">
                     
                     {/* Изображение */}
                     <div className="relative w-full h-48 rounded-xl bg-gray-100 dark:bg-zinc-800 mb-5 overflow-hidden">
                       {article.mainImage ? (
-                        <img src={article.mainImage} alt={article.title} className="object-cover w-full h-full" />
+                        <img 
+                          src={article.mainImage} 
+                          alt={article.title} 
+                          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" 
+                        />
                       ) : (
-                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-700 animate-pulse" />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-700" />
                       )}
                     </div>
 

@@ -58,7 +58,22 @@ export const postSchema = {
       name: 'body',
       title: 'Текст статьи',
       type: 'array',
-      of: [{ type: 'block' }],
+      of: [
+        { type: 'block' }, // Обычный текст с форматированием
+        {
+          type: 'object',
+          name: 'youtube',
+          title: 'YouTube Video / Shorts',
+          fields: [
+            {
+              name: 'url',
+              type: 'url',
+              title: 'Ссылка на видео',
+              description: 'Вставьте ссылку на обычное видео или Shorts'
+            }
+          ]
+        }
+      ],
     },
   ],
 };
