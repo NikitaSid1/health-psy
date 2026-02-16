@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useBookmarks } from "@/hooks/useBookmarks";
-import { client } from "@/sanity/client"; // Убедись, что путь к sanity/client правильный
+import { client } from "@/sanity/client"; 
 import { bookmarkedArticlesQuery } from "@/lib/queries";
 import Link from "next/link";
 import BookmarkButton from "@/components/ui/BookmarkButton";
@@ -24,7 +24,6 @@ export default function BookmarksPage() {
       }
 
       try {
-        // Передаем массив ID в наш GROQ запрос
         const data = await client.fetch(bookmarkedArticlesQuery, { ids: bookmarks });
         setArticles(data);
       } catch (error) {
@@ -37,12 +36,12 @@ export default function BookmarksPage() {
     fetchBookmarks();
   }, [bookmarks, mounted]);
 
-  if (!mounted) return null; // Избегаем прыжков интерфейса
+  if (!mounted) return null;
 
   return (
-    <main id="bookmarks-page" className="min-h-screen py-8 md:py-16">
+    <main id="bookmarks-page">
       <div className="layout-container">
-        <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight mb-8">
+        <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-zinc-50 tracking-tight mb-8">
           Закладки
         </h1>
 
@@ -76,7 +75,6 @@ export default function BookmarksPage() {
                 
                 <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800">
                   <span className="text-sm font-medium text-gray-500">{article.readTime || "5 мин"} чтения</span>
-                  {/* Кнопка закладок поверх ссылки */}
                   <div className="z-10" onClick={(e) => e.preventDefault()}>
                     <BookmarkButton articleId={article._id} />
                   </div>

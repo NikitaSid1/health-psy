@@ -4,18 +4,16 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { triggerHaptic } from "@/lib/haptic"; // Используем глобальную утилиту
+import { triggerHaptic } from "@/lib/haptic";
 
 export default function MenuPage() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme, systemTheme } = useTheme();
 
-  // Защита от Hydration Mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Определяем реальную тему (учитывая системную)
   const currentTheme = theme === "system" ? systemTheme : theme;
 
   const toggleTheme = () => {
@@ -24,30 +22,26 @@ export default function MenuPage() {
   };
 
   return (
-    <main id="menu-page" className="min-h-screen py-16 md:py-32">
+    <main id="menu-page">
       <div className="layout-container space-y-8">
         
-        <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight px-2">
+        <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-zinc-50 tracking-tight px-2">
           Меню
         </h1>
 
-        {/* Секция Настроек (в карточке Editorial) */}
         <section id="menu-settings" className="card-editorial space-y-6">
           <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
             Настройки
           </h2>
 
-          {/* Переключатель темы */}
           <div className="flex items-center justify-between">
             <span className="text-lg font-medium text-gray-900 dark:text-white">
               Темная тема
             </span>
             
             {!mounted ? (
-              // Скелетон переключателя до загрузки клиента (предотвращает прыжок)
               <div className="w-14 h-8 bg-gray-200 dark:bg-zinc-700 rounded-full animate-pulse" />
             ) : (
-              // Реальный переключатель
               <button
                 onClick={toggleTheme}
                 className={`w-14 h-8 rounded-full relative transition-colors duration-300 focus:outline-none ${
@@ -66,7 +60,6 @@ export default function MenuPage() {
 
           <div className="h-px bg-gray-100 dark:bg-zinc-800 w-full" />
 
-          {/* Переключатель языка */}
           <div className="flex items-center justify-between">
             <span className="text-lg font-medium text-gray-900 dark:text-white">
               Язык
@@ -83,7 +76,6 @@ export default function MenuPage() {
           </div>
         </section>
 
-        {/* Секция Навигации (Категории) */}
         <section id="menu-categories" className="card-editorial space-y-4">
           <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">
             Категории

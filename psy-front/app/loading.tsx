@@ -1,7 +1,7 @@
 // === НАЧАЛО БЛОКА: Home Page Loading Skeleton ===
 export default function Loading() {
   return (
-    <main id="home-skeleton" className="min-h-screen pb-24 pt-8 md:pt-16 animate-pulse">
+    <main id="home-skeleton" className="animate-pulse">
       <div className="layout-container space-y-10">
         
         {/* Шапка и поиск */}

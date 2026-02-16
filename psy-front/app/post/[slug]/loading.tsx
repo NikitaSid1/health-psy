@@ -1,7 +1,7 @@
 // === НАЧАЛО БЛОКА: Post Page Loading Skeleton ===
 export default function Loading() {
   return (
-    <main id="post-skeleton" className="min-h-screen pb-32 pt-8 md:pt-24 animate-pulse">
+    <main id="post-skeleton" className="animate-pulse">
       <article className="layout-container max-w-3xl mx-auto space-y-8">
         
         {/* Хлебные крошки */}

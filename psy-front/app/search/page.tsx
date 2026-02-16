@@ -17,7 +17,7 @@ export default async function SearchPage() {
         
         <div id="search-client" className="space-y-8">
           <div className="relative w-full max-w-2xl mx-auto">
-            {/* Input и т.д. */}
+            {/* Твой клиентский компонент поиска */}
           </div>
         </div>
       </div>

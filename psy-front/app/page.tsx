@@ -20,7 +20,6 @@ export default async function HomePage() {
     <main id="home-main">
       <div id="home-container" className="layout-container space-y-10">
         
-        {/* === НАЧАЛО БЛОКА: Hero Section === */}
         <section id="hero-section" className="space-y-6">
           <div className="space-y-2">
             <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900 dark:text-zinc-50">
@@ -31,7 +30,6 @@ export default async function HomePage() {
             </p>
           </div>
         </section>
-        {/* === КОНЕЦ БЛОКА === */}
 
         {errorOccurred ? (
           <div id="error-state" className="p-10 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl text-center">
