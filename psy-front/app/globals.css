@@ -39,3 +39,15 @@
   .card-editorial { @apply p-[24px] bg-white dark:bg-zinc-900 rounded-[24px] border border-gray-100 dark:border-zinc-800 shadow-sm dark:shadow-none transition-all duration-300; }
   .layout-container { @apply max-w-3xl mx-auto px-4 sm:px-6 w-full; }
 }
+
+@layer utilities {
+  /* Скрываем скроллбар для Chrome, Safari и Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Скрываем для IE, Edge и Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}

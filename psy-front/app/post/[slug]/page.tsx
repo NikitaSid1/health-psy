@@ -10,30 +10,32 @@ export default async function PostPage({ params }: PostPageProps) {
   const resolvedParams = await params;
 
   return (
-    <main className="min-h-screen pb-24 pt-8 md:pt-16 bg-background">
+    <main className="min-h-screen pb-24 pt-8 md:pt-16 bg-white dark:bg-black">
       <ProgressBar />
-      <article className="layout-container">
-        
+      
+      <article className="max-w-4xl mx-auto px-4">
         <nav className="mb-8">
-          <Link href="/" className="inline-flex items-center text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Назад к статьям
+          <Link 
+            href="/" 
+            className="text-sm font-bold text-zinc-500 hover:text-blue-600 transition-colors flex items-center gap-2"
+          >
+            ← Назад к статьям
           </Link>
         </nav>
 
-        <header className="space-y-6 mb-12">
-          <h1 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight leading-tight">
-            Статья: {resolvedParams.slug}
-          </h1>
-        </header>
+        {/* Заголовок: черный на белом, белый на черном */}
+        <h1 className="text-3xl md:text-5xl font-black text-zinc-900 dark:text-white mb-6 leading-tight">
+          Статья: {resolvedParams.slug}
+        </h1>
 
-        <div className="prose prose-lg dark:prose-invert prose-blue max-w-none">
-          <p className="lead">Это тестовая страница статьи.</p>
-          <p>Когда мы подключим Sanity CMS, здесь будет выводиться реальный контент и YouTube Shorts!</p>
+        <div className="prose prose-zinc dark:prose-invert max-w-none">
+          <p className="text-xl text-zinc-600 dark:text-zinc-300 leading-relaxed mb-6 font-medium">
+            Это тестовая страница статьи. В темной теме этот текст теперь будет светлым.
+          </p>
+          <p className="text-zinc-500 dark:text-zinc-400">
+            Когда мы подключим Sanity CMS, здесь будет выводиться реальный контент и YouTube Shorts!
+          </p>
         </div>
-
       </article>
     </main>
   );
