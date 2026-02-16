@@ -40,14 +40,29 @@
   .layout-container { @apply max-w-3xl mx-auto px-4 sm:px-6 w-full; }
 }
 
-@layer utilities {
-  /* Скрываем скроллбар для Chrome, Safari и Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  /* Скрываем для IE, Edge и Firefox */
-  .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
+/* Кастомный красивый скроллбар */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px; /* Делаем её тонкой и аккуратной */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Прозрачный фон под полоской */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #d4d4d8; /* Светло-серый (zinc-300) для светлой темы */
+  border-radius: 10px; /* Круглые края */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #a1a1aa; /* Чуть темнее при наведении */
+}
+
+/* Для темной темы */
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #3f3f46; /* Темно-серый (zinc-700) */
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #52525b; /* Светлее при наведении */
 }

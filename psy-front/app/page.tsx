@@ -38,7 +38,7 @@ export default async function HomePage() {
           <div className="relative">
              <input type="text" placeholder="Что вас беспокоит?" className="input-base pl-14" />
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+          <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
             {mockTags.map((tag) => (
               <button key={tag} className="tag-pill whitespace-nowrap">#{tag}</button>
             ))}
