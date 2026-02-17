@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useBookmarks } from "@/hooks/useBookmarks";
-import { client } from "@/sanity/client"; 
+import { client } from "@/lib/sanity"
 import { bookmarkedArticlesQuery } from "@/lib/queries";
 import Link from "next/link";
 import BookmarkButton from "@/components/ui/BookmarkButton";
