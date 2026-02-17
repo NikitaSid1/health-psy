@@ -9,7 +9,8 @@ import ArticleActions from "@/components/article/ArticleActions";
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { Metadata } from "next";
 
-const postQuery = groq`*[_type == "post" && slug.current == $slug][0] {
+// 1. Добавили проверку по language == $lang
+const postQuery = groq`*[_type == "post" && slug.current == $slug && language == $lang][0] {
   _id,
   title,
   body,
@@ -21,10 +22,10 @@ const postQuery = groq`*[_type == "post" && slug.current == $slug][0] {
   "plainText": pt::text(body)
 }`;
 
-// Генерация метаданных для SEO и соцсетей (п. 8 ТЗ)
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
-  const post = await client.fetch(postQuery, { slug });
+// 2. Обновили генерацию метаданных: теперь ждем и lang, и slug
+export async function generateMetadata({ params }: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
+  const { lang, slug } = await params;
+  const post = await client.fetch(postQuery, { lang, slug });
 
   if (!post) return { title: "Статья не найдена" };
 
@@ -75,20 +76,25 @@ const portableTextComponents = {
   },
 };
 
+// 3. Обновили пропсы для страницы статьи
 interface PostPageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ lang: string; slug: string }>;
 }
 
 export default async function PostPage({ params }: PostPageProps) {
-  const { slug } = await params;
-  const post = await client.fetch(postQuery, { slug });
+  // 4. Обязательный await для Next.js 15+
+  const { lang, slug } = await params;
+  
+  // 5. Передаем lang и slug в Sanity
+  const post = await client.fetch(postQuery, { lang, slug });
 
   if (!post) {
     return (
       <main id="post-not-found" className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4 font-sans">Статья не найдена</h1>
-          <Link href="/" className="text-blue-600 hover:underline">Вернуться на главную</Link>
+          {/* Ссылка возврата теперь учитывает текущий язык */}
+          <Link href={`/${lang}`} className="text-blue-600 hover:underline">Вернуться на главную</Link>
         </div>
       </main>
     );
@@ -124,8 +130,9 @@ export default async function PostPage({ params }: PostPageProps) {
         <article id="post-article" className="layout-container max-w-3xl mx-auto">
           
           <nav id="post-navigation" className="mb-8">
+            {/* Кнопка "Назад" теперь ведет на ленту нужного языка */}
             <Link
-              href="/"
+              href={`/${lang}`}
               className="text-sm font-bold text-zinc-500 hover:text-blue-600 transition-colors flex items-center gap-2"
             >
               ← Назад к статьям

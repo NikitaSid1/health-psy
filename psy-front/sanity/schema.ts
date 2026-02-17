@@ -5,18 +5,61 @@ export const postSchema = {
   type: 'document',
   fields: [
     {
+      // 👈 Новое поле: Видимый индикатор языка для редактора
+      name: 'language',
+      title: '🌐 Язык статьи (Language)',
+      type: 'string',
+      description: 'Устанавливается автоматически при создании перевода',
+      options: {
+        list: [
+          { title: '🇷🇺 Русский', value: 'ru' },
+          { title: '🇬🇧 English', value: 'en' },
+          { title: '🇺🇦 Українська', value: 'ua' },
+          { title: '🇵🇱 Polski', value: 'pl' },
+          { title: '🇩🇪 Deutsch', value: 'de' },
+        ],
+        layout: 'dropdown',
+      },
+      initialValue: 'ru', // Для новых "базовых" статей всегда ставим русский
+      validation: (Rule: any) => Rule.required(),
+    },
+    {
       name: 'title',
       title: 'Заголовок',
       type: 'string',
       validation: (Rule: any) => Rule.required().error('Заголовок обязателен'),
     },
+// === НАЧАЛО БЛОКА: Sanity Post Schema (Обновленный Slug) ===
     {
       name: 'slug',
       title: 'URL статьи (Slug)',
       type: 'slug',
-      options: { source: 'title', maxLength: 96 },
+      options: { 
+        source: 'title', 
+        maxLength: 96,
+        // Учим Sanity проверять уникальность слага ТОЛЬКО внутри текущего языка
+        isUnique: async (value: string, context: any) => {
+          const { document, getClient } = context;
+          const client = getClient({ apiVersion: '2024-01-01' });
+          const id = document?._id.replace(/^drafts\./, '');
+          const language = document?.language || 'ru';
+
+          const params = {
+            draft: `drafts.${id}`,
+            published: id,
+            slug: value, // 👈 ИСПРАВЛЕНИЕ ЗДЕСЬ: просто value, а не value.current
+            language: language,
+          };
+
+          // Ищем дубли с таким же слагом и ТАКИМ ЖЕ языком (кроме самой себя)
+          const query = `!defined(*[!(_id in [$draft, $published]) && slug.current == $slug && language == $language][0]._id)`;
+          
+          return await client.fetch(query, params);
+        }
+      },
       validation: (Rule: any) => Rule.required(),
     },
+// === КОНЕЦ БЛОКА ===
     {
       name: 'publishedAt',
       title: 'Дата публикации',

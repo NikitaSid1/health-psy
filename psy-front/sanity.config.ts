@@ -1,7 +1,8 @@
 // === НАЧАЛО БЛОКА: Sanity Studio Config ===
 import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';
-import { postSchema } from './sanity/schema'; // 👈 1. Импортируем нашу схему статьи
+import { documentInternationalization } from '@sanity/document-internationalization';
+import { postSchema } from './sanity/schema'; 
 
 export default defineConfig({
   basePath: '/studio',
@@ -9,10 +10,27 @@ export default defineConfig({
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
   title: 'Health Psy CMS',
   
-  plugins: [structureTool()],
+  plugins: [
+    structureTool(),
+    // Подключаем мультиязычность на уровне документов
+    documentInternationalization({
+      // Базовые языки проекта
+      supportedLanguages: [
+        { id: 'ru', title: 'Русский' },
+        { id: 'en', title: 'English' },
+        { id: 'ua', title: 'Українська' },
+        { id: 'pl', title: 'Polski' },
+        { id: 'de', title: 'Deutsch' },
+      ],
+      // Указываем, какие схемы будут мультиязычными
+      schemaTypes: ['post'],
+      // Язык по умолчанию, чтобы не было пустых полей
+      languageField: 'language',
+    })
+  ],
   
   schema: {
-    types: [postSchema], // 👈 2. Регистрируем схему в админке
+    types: [postSchema], 
   },
 });
 // === КОНЕЦ БЛОКА ===

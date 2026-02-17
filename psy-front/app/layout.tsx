@@ -17,8 +17,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Mental Health App",
+  title: "HealthPsy", // Можно заодно обновить название
   description: "Твой проводник в ментальном мире",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico", // Для иконок на iPhone
+  },
 };
 
 export default function RootLayout({

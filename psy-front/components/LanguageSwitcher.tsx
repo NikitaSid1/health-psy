@@ -1,15 +1,10 @@
-"use client"; // Это клиентский компонент, так как в нем есть onClick
+"use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
-// === НАЧАЛО БЛОКА: КОМПОНЕНТ ПЕРЕКЛЮЧАТЕЛЯ ЯЗЫКОВ ===
 export default function LanguageSwitcher() {
+  const pathname = usePathname();
   const router = useRouter();
-  const [currentLang, setCurrentLang] = useState("ru");
-  
-  // 1. Состояние для отслеживания загрузки на клиенте
-  const [mounted, setMounted] = useState(false);
 
   const languages = [
     { code: "ru", label: "RU" },
@@ -19,44 +14,40 @@ export default function LanguageSwitcher() {
     { code: "de", label: "DE" },
   ];
 
-  useEffect(() => {
-    // Читаем куки при первой загрузке страницы, чтобы подсветить активный язык
-    const match = document.cookie.match(new RegExp('(^| )NEXT_LOCALE=([^;]+)'));
-    if (match) setCurrentLang(match[2]);
-    
-    // 2. Сигнализируем, что куки прочитаны и можно безопасно рендерить UI
-    setMounted(true);
-  }, []);
-
-  const switchLanguage = (lang: string) => {
-    // Сохраняем выбор пользователя в куки на 1 год
-    document.cookie = `NEXT_LOCALE=${lang}; path=/; max-age=31536000`;
-    setCurrentLang(lang);
-    // Даем команду Next.js перерендерить серверные компоненты с новыми данными
+  const handleLanguageChange = (locale: string) => {
+    if (!pathname) {
+      router.push(`/${locale}`);
+      return;
+    }
+    const segments = pathname.split("/");
+    segments[1] = locale;
+    router.push(segments.join("/"));
     router.refresh();
   };
 
-  // 3. Защита от прыжка интерфейса (Hydration Mismatch)
-  if (!mounted) return null;
-
   return (
-    // Добавили "hidden md:flex" в самое начало классов
-    <div id="language-switcher-wrapper" className="hidden md:flex fixed top-4 right-4 z-50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md shadow-sm border border-gray-100 dark:border-gray-700 rounded-full p-1 items-center gap-1 transition-colors duration-300">
-      {languages.map((lang) => (
-        <button
-          key={lang.code}
-          id={`lang-btn-${lang.code}`}
-          onClick={() => switchLanguage(lang.code)}
-          className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all ${
-            currentLang === lang.code
-              ? "bg-blue-600 text-white shadow-md"
-              : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-          }`}
-        >
-          {lang.label}
-        </button>
-      ))}
+    // Убрали fixed и top-4. Добавили hidden md:flex (скрыт на мобилках, виден на ПК)
+    <div 
+      id="desktop-lang-switcher" 
+      className="hidden md:flex items-center bg-gray-100/80 dark:bg-zinc-800/80 rounded-full p-1 gap-1"
+    >
+      {languages.map((lang) => {
+        const isActive = pathname?.startsWith(`/${lang.code}`);
+
+        return (
+          <button
+            key={lang.code}
+            onClick={() => handleLanguageChange(lang.code)}
+            className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+              isActive
+                ? "bg-blue-600 text-white shadow-md scale-105"
+                : "text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700"
+            }`}
+          >
+            {lang.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
-// === КОНЕЦ БЛОКА ===
