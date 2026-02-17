@@ -1,5 +1,5 @@
 // === НАЧАЛО БЛОКА: Страница Поиска (Server + Client) ===
-import { client } from "@/sanity/client";
+import { client } from "@/lib/sanity"
 import { articlesQuery } from "@/lib/queries";
 import SearchClient from "@/components/search/SearchClient"; 
 
