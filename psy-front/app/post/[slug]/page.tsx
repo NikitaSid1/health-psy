@@ -7,6 +7,7 @@ import Image from "next/image";
 import ProgressBar from "@/components/ui/ProgressBar"; 
 import ArticleActions from "@/components/article/ArticleActions"; 
 import BookmarkButton from "@/components/ui/BookmarkButton";
+import { Metadata } from "next";
 
 const postQuery = groq`*[_type == "post" && slug.current == $slug][0] {
   _id,
@@ -19,6 +20,27 @@ const postQuery = groq`*[_type == "post" && slug.current == $slug][0] {
   "mainImage": mainImage.asset->url,
   "plainText": pt::text(body)
 }`;
+
+// Генерация метаданных для SEO и соцсетей (п. 8 ТЗ)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await client.fetch(postQuery, { slug });
+
+  if (!post) return { title: "Статья не найдена" };
+
+  return {
+    title: `${post.title} | Mental Health App`,
+    description: post.plainText?.substring(0, 160) + "...",
+    openGraph: {
+      title: post.title,
+      description: post.plainText?.substring(0, 160) + "...",
+      images: post.mainImage ? [post.mainImage] : [],
+      type: "article",
+      publishedTime: post.publishedAt,
+      authors: post.expert ? [post.expert] : [],
+    },
+  };
+}
 
 const portableTextComponents = {
   types: {
@@ -74,8 +96,28 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const textForAudio = post.plainText || post.title;
 
+  // Формируем микроразметку Schema.org (Article)
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    image: post.mainImage ? [post.mainImage] : [],
+    datePublished: post.publishedAt,
+    author: {
+      "@type": "Person",
+      name: post.expert || "Редакция",
+    },
+    timeRequired: `PT${post.readTime || 5}M`,
+  };
+
   return (
     <>
+      {/* Инъекция Schema.org для Google */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      
       <ProgressBar />
       
       <main id="post-main-content" className="font-sans">
