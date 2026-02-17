@@ -1399,62 +1399,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 # health-psy
 </file>
 
-<file path="psy-admin/sanity.cli.ts">
-import {defineCliConfig} from 'sanity/cli'
-
-export default defineCliConfig({
-  api: {
-    projectId: 'dp2yjc73', // Твой реальный ID
-    dataset: 'production'
-  },
-  // Сохраняем настройки деплоя для быстрого обновления в будущем
-  deployment: {
-    appId: 'njvezevwrat8kpk3ahprsimp',
-  }
-})
-// === КОНЕЦ БЛОКА ===
-</file>
-
-<file path="psy-admin/sanity.config.ts">
-// === НАЧАЛО БЛОКА: Sanity Config Admin ===
-import {defineConfig} from 'sanity'
-import {structureTool} from 'sanity/structure'
-import {visionTool} from '@sanity/vision'
-import {schemaTypes} from './schemaTypes'
-import {documentInternationalization} from '@sanity/document-internationalization'
-
-export default defineConfig({
-  name: 'default',
-  title: 'Health Psy CMS',
-  // === НАЧАЛО БЛОКА: Sanity Config Admin (Fix ID) ===
-  projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'dp2yjc73', // 👈 Заменили на реальный ID из букв и цифр
-  dataset: process.env.SANITY_STUDIO_DATASET || 'production',
-  // === КОНЕЦ БЛОКА ===
-
-  plugins: [
-    structureTool(),
-    visionTool(),
-    // Возвращаем плагин переводов!
-    documentInternationalization({
-      supportedLanguages: [
-        {id: 'ru', title: 'Русский'},
-        {id: 'en', title: 'English'},
-        {id: 'ua', title: 'Українська'},
-        {id: 'pl', title: 'Polski'},
-        {id: 'de', title: 'Deutsch'}
-      ],
-      schemaTypes: ['post'],
-      languageField: 'language',
-    })
-  ],
-
-  schema: {
-    types: schemaTypes,
-  },
-})
-// === КОНЕЦ БЛОКА ===
-</file>
-
 <file path="psy-front/app/[lang]/bookmarks/page.tsx">
 // === НАЧАЛО БЛОКА: Страница Закладок ===
 "use client";
@@ -2139,19 +2083,6 @@ export function ThemeToggle() {
 // === КОНЕЦ БЛОКА ===
 </file>
 
-<file path="psy-front/lib/sanity.ts">
-// === НАЧАЛО БЛОКА: Sanity Client Setup ===
-import { createClient } from "next-sanity";
-
-export const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
-  apiVersion: "2024-02-16", // Используем свежую версию API
-  useCdn: true, 
-});
-// === КОНЕЦ БЛОКА ===
-</file>
-
 <file path="psy-front/next.config.ts">
 // === НАЧАЛО БЛОКА: Next Config ===
 import type { NextConfig } from "next";
@@ -2212,6 +2143,62 @@ export default nextConfig;
     "singleQuote": true
   }
 }
+</file>
+
+<file path="psy-admin/sanity.cli.ts">
+// === НАЧАЛО БЛОКА: Sanity CLI Config ===
+import {defineCliConfig} from 'sanity/cli'
+
+export default defineCliConfig({
+  api: {
+    projectId: 'dp2yjc73', // 👈 Правильный Project ID
+    dataset: 'production'
+  },
+  deployment: {
+    appId: 'njvezevwrat8kpk3ahprsimp', // Оставляем тот, что выдал терминал
+  }
+})
+// === КОНЕЦ БЛОКА ===
+</file>
+
+<file path="psy-admin/sanity.config.ts">
+// === НАЧАЛО БЛОКА: Sanity Config Admin ===
+import {defineConfig} from 'sanity'
+import {structureTool} from 'sanity/structure'
+import {visionTool} from '@sanity/vision'
+import {schemaTypes} from './schemaTypes'
+import {documentInternationalization} from '@sanity/document-internationalization'
+
+export default defineConfig({
+  name: 'default',
+  title: 'Health Psy CMS',
+  // === НАЧАЛО БЛОКА: Sanity Config Admin ===
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'dp2yjc73', // 👈 Правильный Project ID
+  dataset: process.env.SANITY_STUDIO_DATASET || 'production',
+  // === КОНЕЦ БЛОКА ===
+
+  plugins: [
+    structureTool(),
+    visionTool(),
+    // Возвращаем плагин переводов!
+    documentInternationalization({
+      supportedLanguages: [
+        {id: 'ru', title: 'Русский'},
+        {id: 'en', title: 'English'},
+        {id: 'ua', title: 'Українська'},
+        {id: 'pl', title: 'Polski'},
+        {id: 'de', title: 'Deutsch'}
+      ],
+      schemaTypes: ['post'],
+      languageField: 'language',
+    })
+  ],
+
+  schema: {
+    types: schemaTypes,
+  },
+})
+// === КОНЕЦ БЛОКА ===
 </file>
 
 <file path="psy-front/app/[lang]/post/[slug]/page.tsx">
@@ -2681,6 +2668,19 @@ export default function Header() {
     </header>
   );
 }
+// === КОНЕЦ БЛОКА ===
+</file>
+
+<file path="psy-front/lib/sanity.ts">
+// === НАЧАЛО БЛОКА: Sanity Client Setup ===
+import { createClient } from "next-sanity";
+
+export const client = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  apiVersion: "2024-02-16", 
+  useCdn: false, // 👈 СТАВИМ FALSE! Отключаем кэш, чтобы посты появлялись мгновенно
+});
 // === КОНЕЦ БЛОКА ===
 </file>
 
