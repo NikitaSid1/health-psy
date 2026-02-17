@@ -8,8 +8,8 @@ import {documentInternationalization} from '@sanity/document-internationalizatio
 export default defineConfig({
   name: 'default',
   title: 'Health Psy CMS',
-  // === НАЧАЛО БЛОКА: Sanity Config Admin (Fix ID) ===
-  projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'dp2yjc73', // 👈 Заменили на реальный ID из букв и цифр
+  // === НАЧАЛО БЛОКА: Sanity Config Admin ===
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'dp2yjc73', // 👈 Правильный Project ID
   dataset: process.env.SANITY_STUDIO_DATASET || 'production',
   // === КОНЕЦ БЛОКА ===
 
