@@ -8,6 +8,7 @@ import ProgressBar from "@/components/ui/ProgressBar";
 import ArticleActions from "@/components/article/ArticleActions"; 
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { Metadata } from "next";
+import TranslationProvider from "./TranslationProvider"; // МЫ СОЗДАДИМ ЭТОТ ФАЙЛ СЛЕДУЮЩИМ ШАГОМ
 
 // Словари для локализации страницы "Не найдено" и футера статьи
 const postTranslations = {
@@ -63,6 +64,7 @@ const postTranslations = {
   },
 };
 
+// 1. ЗАПРОС ИЗМЕНЕН: Теперь мы получаем еще translationId и slugs всех переводов
 const postQuery = groq`*[_type == "post" && slug.current == $slug && language == $lang][0] {
   _id,
   title,
@@ -71,15 +73,19 @@ const postQuery = groq`*[_type == "post" && slug.current == $slug && language ==
   category,
   readTime,
   expert,
+  translationId,
   "mainImage": mainImage.asset->url,
-  "plainText": pt::text(body)
+  "plainText": pt::text(body),
+  "translations": *[_type == "post" && translationId == ^.translationId] {
+    language,
+    "slug": slug.current
+  }
 }`;
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
   const { lang, slug } = await params;
   const post = await client.fetch(postQuery, { lang, slug });
 
-  // Локализация тайтла метаданных
   const t = postTranslations[lang as keyof typeof postTranslations] || postTranslations.ru;
 
   if (!post) return { title: t.notFoundTitle };
@@ -166,6 +172,14 @@ export default async function PostPage({ params }: PostPageProps) {
     timeRequired: `PT${post.readTime || 5}M`,
   };
 
+  // Форматируем переводы в удобный объект: { en: "how-to-stop", ru: "kak-perestat" }
+  const translationMap = post.translations?.reduce((acc: any, curr: any) => {
+    if (curr.language && curr.slug) {
+      acc[curr.language] = curr.slug;
+    }
+    return acc;
+  }, {}) || {};
+
   return (
     <>
       <script
@@ -174,6 +188,9 @@ export default async function PostPage({ params }: PostPageProps) {
       />
       
       <ProgressBar />
+      
+      {/* 2. ДОБАВЛЕН ПРОВАЙДЕР ПЕРЕВОДОВ */}
+      <TranslationProvider translations={translationMap} currentLang={lang} />
       
       <main id="post-main-content" className="font-sans">
         <article id="post-article" className="layout-container max-w-3xl mx-auto">
