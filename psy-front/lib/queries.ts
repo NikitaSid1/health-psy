@@ -1,26 +1,26 @@
 // === НАЧАЛО БЛОКА: Sanity Queries ===
 import { groq } from "next-sanity";
 
-// Существующий запрос всех статей (Добавлено условие language == $lang)
-export const articlesQuery = groq`*[_type == "post" && language == $lang] | order(publishedAt desc) {
+// Существующий запрос всех статей (Обновлен для поддержки старых постов)
+export const articlesQuery = groq`*[_type == "post" && (language == $lang || (!defined(language) && $lang == 'ru'))] | order(publishedAt desc) {
   _id,
   title,
   "slug": slug.current,
   category,
-  "readTime": readTime,
-  "expert": expert,
+  "readTime": coalesce(readingTime, readTime),
+  "expert": coalesce(expertReview, expert),
   "mainImage": mainImage.asset->url,
   language
 }`;
 
-// НОВЫЙ ЗАПРОС: Получить статьи по массиву ID (Добавлено условие language == $lang)
-export const bookmarkedArticlesQuery = groq`*[_type == "post" && _id in $ids && language == $lang] | order(publishedAt desc) {
+// Запрос для закладок: Получить статьи по массиву ID (Обновлен для поддержки старых постов)
+export const bookmarkedArticlesQuery = groq`*[_type == "post" && _id in $ids && (language == $lang || (!defined(language) && $lang == 'ru'))] | order(publishedAt desc) {
   _id,
   title,
   "slug": slug.current,
   category,
-  "readTime": readTime,
-  "expert": expert,
+  "readTime": coalesce(readingTime, readTime),
+  "expert": coalesce(expertReview, expert),
   "mainImage": mainImage.asset->url,
   language
 }`;

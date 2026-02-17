@@ -1,3 +1,4 @@
+// === НАЧАЛО БЛОКА: Sanity Post Schema Fixed ===
 import {defineField, defineType} from 'sanity'
 
 export default defineType({
@@ -5,35 +6,17 @@ export default defineType({
   title: 'Статья (Post)',
   type: 'document',
   fields: [
-    // --- ОСНОВНЫЕ ПОЛЯ ---
     defineField({
       name: 'language',
-      title: '🌐 Язык статьи (Language)',
+      title: '🌐 Язык статьи',
       type: 'string',
-      options: {
-        list: [
-          { title: '🇷🇺 Русский', value: 'ru' },
-          { title: '🇬🇧 English', value: 'en' },
-          { title: '🇺🇦 Українська', value: 'ua' },
-          { title: '🇵🇱 Polski', value: 'pl' },
-          { title: '🇩🇪 Deutsch', value: 'de' }
-        ],
-        layout: 'dropdown',
-      },
-      initialValue: 'ru',
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'translationId',
-      title: '🔗 ID Перевода (Связь статей)',
-      description: 'СТРОГО: Введи одинаковое кодовое слово (на латинице без пробелов) для всех языковых версий этой статьи. Например: stop-comparing',
-      type: 'string',
+      readOnly: true, // Плагин интернационализации сам управляет этим полем
     }),
     defineField({
       name: 'title',
       title: 'Заголовок',
       type: 'string',
-      validation: (Rule) => Rule.required().error('Заголовок обязателен'),
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'slug',
@@ -42,29 +25,10 @@ export default defineType({
       options: {
         source: 'title',
         maxLength: 96,
-        // Учим Sanity проверять уникальность слага ТОЛЬКО внутри текущего языка
-        isUnique: async (value: string, context: any) => {
-          const { document, getClient } = context;
-          const client = getClient({ apiVersion: '2024-01-01' });
-          const id = document?._id.replace(/^drafts\./, '');
-          const language = document?.language || 'ru';
-
-          const params = {
-            draft: `drafts.${id}`,
-            published: id,
-            slug: value,
-            language: language,
-          };
-
-          // Ищем дубли с таким же слагом и ТАКИМ ЖЕ языком (кроме самой себя)
-          const query = `!defined(*[!(_id in [$draft, $published]) && slug.current == $slug && language == $language][0]._id)`;
-          return await client.fetch(query, params);
-        }
       },
+      // Мы убрали глючный кастомный isUnique, плагин переводов сам следит за слагами!
       validation: (Rule) => Rule.required(),
     }),
-
-    // --- МЕДИА И МЕТАДАННЫЕ ---
     defineField({
       name: 'mainImage',
       title: 'Главное изображение',
@@ -90,46 +54,46 @@ export default defineType({
         ],
       },
     }),
+    // ВОЗВРАЩАЕМ СТАРЫЕ ИМЕНА ПОЛЕЙ, ЧТОБЫ СПАСТИ СТАРЫЕ СТАТЬИ
     defineField({
-      name: 'readTime',
+      name: 'readingTime',
       title: '⏳ Время чтения (мин)',
       type: 'number',
     }),
     defineField({
-      name: 'expert',
+      name: 'expertReview',
       title: '🧠 Проверено экспертом ✅ (E-E-A-T)',
-      description: 'Показатель E-E-A-T для доверия пользователей',
       type: 'boolean',
       initialValue: false,
     }),
-
-    // --- КОНТЕНТ ---
+    defineField({
+      name: 'youtubeShorts',
+      title: 'YouTube Shorts (Мультиязычный)',
+      type: 'object',
+      fields: [
+        { name: 'ru', type: 'url', title: 'Видео (RU)' },
+        { name: 'en', type: 'url', title: 'Видео (EN)' },
+        { name: 'ua', type: 'url', title: 'Видео (UA)' },
+        { name: 'pl', type: 'url', title: 'Видео (PL)' },
+        { name: 'de', type: 'url', title: 'Видео (DE)' },
+      ]
+    }),
     defineField({
       name: 'body',
       title: 'Текст статьи',
       type: 'array',
-      // Вместо ссылки на blockContent мы прописываем блоки прямо здесь, 
-      // чтобы добавить кастомный YouTube блок из твоего старого фронтенда
       of: [
         { type: 'block' },
         { type: 'image', options: { hotspot: true } },
         {
           type: 'object',
           name: 'youtube',
-          title: 'YouTube Video / Shorts',
-          fields: [
-            {
-              name: 'url',
-              type: 'url',
-              title: 'Ссылка на видео',
-              description: 'Вставьте ссылку на обычное видео или Shorts'
-            }
-          ]
+          title: 'YouTube Video',
+          fields: [{ name: 'url', type: 'url', title: 'Ссылка' }]
         }
       ],
     }),
   ],
-
   preview: {
     select: {
       title: 'title',
@@ -138,14 +102,12 @@ export default defineType({
     },
     prepare(selection) {
       const {title, lang, media} = selection
-      const langFlags: Record<string, string> = {
-        ru: '🇷🇺', en: '🇬🇧', ua: '🇺🇦', pl: '🇵🇱', de: '🇩🇪'
-      }
       return {
         title: title,
-        subtitle: lang ? `${langFlags[lang as string] || '🌐'} ${lang.toUpperCase()}` : 'No language',
+        subtitle: lang ? `Язык: ${lang.toUpperCase()}` : 'Базовая статья',
         media: media,
       }
     },
   },
 })
+// === КОНЕЦ БЛОКА ===

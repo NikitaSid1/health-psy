@@ -2,14 +2,12 @@ import {defineCliConfig} from 'sanity/cli'
 
 export default defineCliConfig({
   api: {
-    projectId: 'dp2yjc73',
+    projectId: 'dp2yjc73', // Твой реальный ID
     dataset: 'production'
   },
+  // Сохраняем настройки деплоя для быстрого обновления в будущем
   deployment: {
-    /**
-     * Enable auto-updates for studios.
-     * Learn more at https://www.sanity.io/docs/studio/latest-version-of-sanity#k47faf43faf56
-     */
-    autoUpdates: true,
+    appId: 'njvezevwrat8kpk3ahprsimp',
   }
 })
+// === КОНЕЦ БЛОКА ===
