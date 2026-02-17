@@ -2671,19 +2671,6 @@ export default function Header() {
 // === КОНЕЦ БЛОКА ===
 </file>
 
-<file path="psy-front/lib/sanity.ts">
-// === НАЧАЛО БЛОКА: Sanity Client Setup ===
-import { createClient } from "next-sanity";
-
-export const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
-  apiVersion: "2024-02-16", 
-  useCdn: false, // 👈 СТАВИМ FALSE! Отключаем кэш, чтобы посты появлялись мгновенно
-});
-// === КОНЕЦ БЛОКА ===
-</file>
-
 <file path="psy-admin/schemaTypes/post.ts">
 // === НАЧАЛО БЛОКА: Sanity Post Schema Fixed ===
 import {defineField, defineType} from 'sanity'
@@ -2884,6 +2871,19 @@ export default defineType({
     background-color: #52525b; /* Светлее при наведении (zinc-600) */
   }
 }
+</file>
+
+<file path="psy-front/lib/sanity.ts">
+// === НАЧАЛО БЛОКА: Sanity Client Setup ===
+import { createClient } from "next-sanity";
+
+export const client = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "dp2yjc73", // 👈 Жесткая страховка
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  apiVersion: "2024-02-16", 
+  useCdn: false, // 👈 СТАВИМ FALSE! Отключаем кэш, чтобы посты появлялись мгновенно
+});
+// === КОНЕЦ БЛОКА ===
 </file>
 
 <file path="psy-front/app/layout.tsx">

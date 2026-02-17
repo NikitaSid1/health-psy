@@ -1,5 +1,5 @@
-// === НАЧАЛО БЛОКА: Sanity Post Schema Fixed ===
-import {defineField, defineType} from 'sanity'
+// === НАЧАЛО БЛОКА: Sanity Post Schema (Final) ===
+import { defineField, defineType } from 'sanity'
 
 export default defineType({
   name: 'post',
@@ -7,64 +7,94 @@ export default defineType({
   type: 'document',
   fields: [
     defineField({
-      name: 'language',
-      title: '🌐 Язык статьи',
-      type: 'string',
-      readOnly: true, // Плагин интернационализации сам управляет этим полем
-    }),
-    defineField({
       name: 'title',
-      title: 'Заголовок',
+      title: 'Title (Заголовок)',
       type: 'string',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'slug',
-      title: 'URL статьи (Slug)',
+      title: 'Slug (URL статьи)',
       type: 'slug',
       options: {
         source: 'title',
         maxLength: 96,
+        // Кастомная проверка: разрешает одинаковые слаги для РАЗНЫХ языков!
+        isUnique: async (value, context) => {
+          const { document, getClient } = context;
+          const client = getClient({ apiVersion: '2024-02-16' });
+          const id = document?._id.replace(/^drafts\./, '');
+          const lang = document?.language || 'ru';
+          
+          const params = {
+            draft: `drafts.${id}`,
+            published: id,
+            slug: value as string,
+            lang: lang,
+          };
+          
+          const query = `!defined(*[!(_id in [$draft, $published]) && slug.current == $slug && language == $lang][0]._id)`;
+          return await client.fetch(query, params);
+        },
       },
-      // Мы убрали глючный кастомный isUnique, плагин переводов сам следит за слагами!
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'language',
+      title: '🌐 Язык статьи',
+      type: 'string',
+      readOnly: true, // Поле управляется плагином document-internationalization
+    }),
+    defineField({
+      name: 'author',
+      title: 'Author',
+      type: 'reference',
+      to: { type: 'author' },
+    }),
+    defineField({
       name: 'mainImage',
-      title: 'Главное изображение',
+      title: 'Main image',
       type: 'image',
       options: { hotspot: true },
     }),
     defineField({
+      name: 'categories',
+      title: 'Categories',
+      type: 'array',
+      of: [{ type: 'reference', to: { type: 'category' } }],
+    }),
+    defineField({
       name: 'publishedAt',
-      title: 'Дата публикации',
+      title: 'Published at',
       type: 'datetime',
       initialValue: () => new Date().toISOString(),
     }),
+    
+    // --- КАСТОМНЫЕ ПОЛЯ (с защитой старых данных) ---
     defineField({
-      name: 'category',
-      title: 'Категория (Тег)',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'Тревожность', value: 'anxiety' },
-          { title: 'Отношения', value: 'relationships' },
-          { title: 'Выгорание', value: 'burnout' },
-          { title: 'Самооценка', value: 'self-esteem' },
-        ],
-      },
+      name: 'readTime',
+      title: '⏳ Время чтения (в минутах)',
+      type: 'number',
+      validation: (Rule) => Rule.min(1).max(60),
     }),
-    // ВОЗВРАЩАЕМ СТАРЫЕ ИМЕНА ПОЛЕЙ, ЧТОБЫ СПАСТИ СТАРЫЕ СТАТЬИ
     defineField({
       name: 'readingTime',
-      title: '⏳ Время чтения (мин)',
+      title: '[УСТАРЕЛО] Время чтения',
       type: 'number',
+      hidden: true, // Скрываем из админки, но сохраняем в базе
+    }),
+    defineField({
+      name: 'expert',
+      title: '🧠 Мнение психолога (E-E-A-T)',
+      description: 'Поставь галочку, если статью проверял или писал эксперт',
+      type: 'boolean',
+      initialValue: false,
     }),
     defineField({
       name: 'expertReview',
-      title: '🧠 Проверено экспертом ✅ (E-E-A-T)',
+      title: '[УСТАРЕЛО] Мнение психолога',
       type: 'boolean',
-      initialValue: false,
+      hidden: true, // Скрываем из админки, но сохраняем в базе
     }),
     defineField({
       name: 'youtubeShorts',
@@ -80,31 +110,23 @@ export default defineType({
     }),
     defineField({
       name: 'body',
-      title: 'Текст статьи',
-      type: 'array',
-      of: [
-        { type: 'block' },
-        { type: 'image', options: { hotspot: true } },
-        {
-          type: 'object',
-          name: 'youtube',
-          title: 'YouTube Video',
-          fields: [{ name: 'url', type: 'url', title: 'Ссылка' }]
-        }
-      ],
+      title: 'Body (Текст)',
+      type: 'blockContent',
     }),
   ],
+
   preview: {
     select: {
       title: 'title',
-      lang: 'language',
+      author: 'author.name',
       media: 'mainImage',
+      lang: 'language',
     },
     prepare(selection) {
-      const {title, lang, media} = selection
+      const { author, title, media, lang } = selection;
       return {
         title: title,
-        subtitle: lang ? `Язык: ${lang.toUpperCase()}` : 'Базовая статья',
+        subtitle: `${lang ? lang.toUpperCase() : 'RU'} ${author ? `| by ${author}` : ''}`,
         media: media,
       }
     },
