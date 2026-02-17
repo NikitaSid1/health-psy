@@ -44,6 +44,31 @@ export default defineType({
       title: 'Published at',
       type: 'datetime',
     }),
+    
+    // === НАЧАЛО БЛОКА: МУЛЬТИЯЗЫЧНОСТЬ ===
+    defineField({
+      name: 'language',
+      title: 'Язык статьи',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Русский', value: 'ru' },
+          { title: 'English', value: 'en' },
+          { title: 'Українська', value: 'ua' },
+          { title: 'Polski', value: 'pl' },
+          { title: 'Deutsch', value: 'de' }
+        ],
+        layout: 'radio',
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'translationId',
+      title: '🔗 ID Перевода (Связь статей)',
+      description: 'СТРОГО: Введи одинаковое кодовое слово (на латинице без пробелов) для всех языковых версий этой статьи. Например: how-to-stop-comparing',
+      type: 'string',
+    }),
+    // === КОНЕЦ БЛОКА: МУЛЬТИЯЗЫЧНОСТЬ ===
 
     // === НАЧАЛО БЛОКА: КАСТОМНЫЕ ПОЛЯ ДЛЯ ПСИХОЛОГИИ ===
     defineField({

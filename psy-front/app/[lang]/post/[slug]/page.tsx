@@ -9,7 +9,60 @@ import ArticleActions from "@/components/article/ArticleActions";
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { Metadata } from "next";
 
-// 1. Добавили проверку по language == $lang
+// Словари для локализации страницы "Не найдено" и футера статьи
+const postTranslations = {
+  ru: { 
+    notFoundTitle: "Статья не найдена", 
+    backHome: "Вернуться на главную", 
+    backBtn: "← Назад к статьям",
+    categoryDefault: "Психология",
+    minRead: "мин чтения",
+    verified: "Проверено экспертом",
+    footerTitle: "Понравился материал?",
+    footerText: "Подпишитесь на наши обновления, чтобы не пропустить новые советы экспертов."
+  },
+  en: { 
+    notFoundTitle: "Article not found", 
+    backHome: "Back to home", 
+    backBtn: "← Back to articles",
+    categoryDefault: "Psychology",
+    minRead: "min read",
+    verified: "Verified by expert",
+    footerTitle: "Did you like this article?",
+    footerText: "Subscribe to our updates so you don't miss new expert advice."
+  },
+  ua: { 
+    notFoundTitle: "Статтю не знайдено", 
+    backHome: "Повернутися на головну", 
+    backBtn: "← Назад до статей",
+    categoryDefault: "Психологія",
+    minRead: "хв читання",
+    verified: "Перевірено експертом",
+    footerTitle: "Сподобався матеріал?",
+    footerText: "Підпишіться на наші оновлення, щоб не пропустити нові поради експертів."
+  },
+  pl: { 
+    notFoundTitle: "Nie znaleziono artykułu", 
+    backHome: "Wróć do strony głównej", 
+    backBtn: "← Wróć do artykułów",
+    categoryDefault: "Psychologia",
+    minRead: "min czytania",
+    verified: "Sprawdzone przez eksperta",
+    footerTitle: "Podobał Ci się materiał?",
+    footerText: "Zapisz się na nasze aktualizacje, aby nie przegapić nowych porad ekspertów."
+  },
+  de: { 
+    notFoundTitle: "Artikel nicht gefunden", 
+    backHome: "Zurück zur Startseite", 
+    backBtn: "← Zurück zu den Artikeln",
+    categoryDefault: "Psychologie",
+    minRead: "Minuten Lesezeit",
+    verified: "Von Experten geprüft",
+    footerTitle: "Hat Ihnen der Artikel gefallen?",
+    footerText: "Abonnieren Sie unsere Updates, um keine neuen Experten-Tipps zu verpassen."
+  },
+};
+
 const postQuery = groq`*[_type == "post" && slug.current == $slug && language == $lang][0] {
   _id,
   title,
@@ -22,15 +75,17 @@ const postQuery = groq`*[_type == "post" && slug.current == $slug && language ==
   "plainText": pt::text(body)
 }`;
 
-// 2. Обновили генерацию метаданных: теперь ждем и lang, и slug
 export async function generateMetadata({ params }: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
   const { lang, slug } = await params;
   const post = await client.fetch(postQuery, { lang, slug });
 
-  if (!post) return { title: "Статья не найдена" };
+  // Локализация тайтла метаданных
+  const t = postTranslations[lang as keyof typeof postTranslations] || postTranslations.ru;
+
+  if (!post) return { title: t.notFoundTitle };
 
   return {
-    title: `${post.title} | Mental Health App`,
+    title: `${post.title} | HealthPsy`,
     description: post.plainText?.substring(0, 160) + "...",
     openGraph: {
       title: post.title,
@@ -76,25 +131,21 @@ const portableTextComponents = {
   },
 };
 
-// 3. Обновили пропсы для страницы статьи
 interface PostPageProps {
   params: Promise<{ lang: string; slug: string }>;
 }
 
 export default async function PostPage({ params }: PostPageProps) {
-  // 4. Обязательный await для Next.js 15+
   const { lang, slug } = await params;
-  
-  // 5. Передаем lang и slug в Sanity
+  const t = postTranslations[lang as keyof typeof postTranslations] || postTranslations.ru;
   const post = await client.fetch(postQuery, { lang, slug });
 
   if (!post) {
     return (
       <main id="post-not-found" className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 font-sans">Статья не найдена</h1>
-          {/* Ссылка возврата теперь учитывает текущий язык */}
-          <Link href={`/${lang}`} className="text-blue-600 hover:underline">Вернуться на главную</Link>
+          <h1 className="text-2xl font-bold mb-4 font-sans">{t.notFoundTitle}</h1>
+          <Link href={`/${lang}`} className="text-blue-600 hover:underline">{t.backHome}</Link>
         </div>
       </main>
     );
@@ -102,7 +153,6 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const textForAudio = post.plainText || post.title;
 
-  // Формируем микроразметку Schema.org (Article)
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -118,7 +168,6 @@ export default async function PostPage({ params }: PostPageProps) {
 
   return (
     <>
-      {/* Инъекция Schema.org для Google */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -130,12 +179,11 @@ export default async function PostPage({ params }: PostPageProps) {
         <article id="post-article" className="layout-container max-w-3xl mx-auto">
           
           <nav id="post-navigation" className="mb-8">
-            {/* Кнопка "Назад" теперь ведет на ленту нужного языка */}
             <Link
               href={`/${lang}`}
               className="text-sm font-bold text-zinc-500 hover:text-blue-600 transition-colors flex items-center gap-2"
             >
-              ← Назад к статьям
+              {t.backBtn}
             </Link>
           </nav>
 
@@ -147,17 +195,17 @@ export default async function PostPage({ params }: PostPageProps) {
             <div className="flex items-center justify-between mb-10">
               <div id="post-meta" className="flex flex-wrap items-center gap-4 text-sm font-medium">
                 <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                  {post.category || "Психология"}
+                  {post.category || t.categoryDefault}
                 </span>
                 <span className="text-gray-400 dark:text-zinc-500">
-                  {post.readTime || 5} мин чтения
+                  {post.readTime || 5} {t.minRead}
                 </span>
                 <time className="text-gray-400 dark:text-zinc-500 hidden sm:inline-block">
-                  {new Date(post.publishedAt).toLocaleDateString("ru-RU")}
+                  {new Date(post.publishedAt).toLocaleDateString(lang === "en" ? "en-US" : "ru-RU")}
                 </time>
                 {post.expert && (
                   <span className="text-green-600 dark:text-green-400 font-bold flex items-center gap-1">
-                    ✓ <span className="hidden sm:inline-block">Проверено экспертом</span>
+                    ✓ <span className="hidden sm:inline-block">{t.verified}</span>
                   </span>
                 )}
               </div>
@@ -198,9 +246,9 @@ export default async function PostPage({ params }: PostPageProps) {
           </div>
 
           <footer id="post-footer" className="p-8 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800 mt-16 text-center">
-             <h3 className="text-lg font-bold mb-2">Понравился материал?</h3>
+             <h3 className="text-lg font-bold mb-2">{t.footerTitle}</h3>
              <p className="text-gray-500 dark:text-zinc-400 text-sm">
-               Подпишитесь на наши обновления, чтобы не пропустить новые советы экспертов.
+               {t.footerText}
              </p>
           </footer>
 
