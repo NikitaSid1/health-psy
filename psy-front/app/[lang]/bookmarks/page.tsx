@@ -1,4 +1,4 @@
-// === НАЧАЛО БЛОКА: Bookmarks Page (Next.js 15+ Fix) ===
+// === НАЧАЛО БЛОКА: Bookmarks Page (Fix Layout Text Crop) ===
 "use client";
 
 import { useEffect, useState, use } from "react"; // Используем use для params
@@ -118,14 +118,15 @@ export default function BookmarksPage({ params }: { params: Promise<{ lang: stri
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {articles.map((post) => {
             // ЛОГИКА ОТОБРАЖЕНИЯ В ЗАКЛАДКАХ:
-            // Ссылка и язык "минут" должны соответствовать языку самой статьи
             const articleLang = post.language || lang || "ru";
             const timeLabel = TIME_LABELS[articleLang] || "min";
 
             return (
-              <div key={post._id} className="group flex flex-col h-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative">
-                 <Link href={`/${articleLang}/post/${post.slug}`} className="block h-full">
-                    <div className="relative h-48 w-full overflow-hidden bg-gray-100">
+              <div key={post._id} className="group flex flex-col h-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                 
+                 {/* ВАЖНО: flex-col flex-1 заставляет ссылку занимать всё доступное место и толкать футер вниз */}
+                 <Link href={`/${articleLang}/post/${post.slug}`} className="flex flex-col flex-1">
+                    <div className="relative h-48 w-full shrink-0 overflow-hidden bg-gray-100">
                       {post.mainImage && (
                         <Image
                           src={post.mainImage}
@@ -136,7 +137,8 @@ export default function BookmarksPage({ params }: { params: Promise<{ lang: stri
                       )}
                     </div>
                     
-                    <div className="p-5 pb-16">
+                    {/* Убрали pb-16. Текст теперь течет свободно. */}
+                    <div className="p-5">
                       <div className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">
                         {post.category || "Psychology"}
                       </div>
@@ -146,7 +148,8 @@ export default function BookmarksPage({ params }: { params: Promise<{ lang: stri
                     </div>
                  </Link>
 
-                 <div className="absolute bottom-0 left-0 right-0 p-5 flex items-center justify-between pt-4 border-t border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+                 {/* Футер: mt-auto прижимает его к низу карточки. Не absolute! */}
+                 <div className="p-5 pt-4 mt-auto flex items-center justify-between border-t border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                     <span className="text-sm font-medium text-gray-500">
                       {post.readTime || 5} {timeLabel}
                     </span>
