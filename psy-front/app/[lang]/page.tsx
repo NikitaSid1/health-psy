@@ -1,7 +1,9 @@
+// === НАЧАЛО БЛОКА: Home Page (Strict Lang) ===
 import { client } from "@/lib/sanity";
 import { articlesQuery } from "@/lib/queries";
 import SearchAndFeed from "@/components/feed/SearchAndFeed";
 
+// Кэшируем страницу на 60 секунд
 export const revalidate = 60; 
 
 const translations = {
@@ -17,7 +19,10 @@ interface Props {
 }
 
 export default async function HomePage(props: Props) {
+  // В Next.js 15 params нужно ждать (await)
   const params = await props.params;
+  
+  // Определяем язык (fallback на ru)
   const lang = (params.lang || "ru") as keyof typeof translations;
   const t = translations[lang] || translations.ru;
 
@@ -25,7 +30,7 @@ export default async function HomePage(props: Props) {
   let errorOccurred = false;
 
   try {
-    // В articlesQuery должен быть фильтр по language == $lang
+    // Получаем статьи. В запросе articlesQuery уже есть логика фильтрации по языку.
     articles = await client.fetch(articlesQuery, { lang });
   } catch (error) {
     console.error("Sanity fetch error:", error);
@@ -53,7 +58,7 @@ export default async function HomePage(props: Props) {
             <p className="text-sm text-gray-500">{t.errSub}</p>
           </div>
         ) : (
-          /* Передаем lang внутрь, чтобы фильтрация по тегам тоже знала про язык */
+          /* Передаем lang в SearchAndFeed, чтобы ссылки строились правильно */
           <SearchAndFeed initialArticles={articles} lang={lang} />
         )}
 
@@ -61,3 +66,4 @@ export default async function HomePage(props: Props) {
     </main>
   );
 }
+// === КОНЕЦ БЛОКА ===

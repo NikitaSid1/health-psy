@@ -81,6 +81,7 @@ psy-front/components/ui/BottomBar.tsx
 psy-front/components/ui/Header.tsx
 psy-front/components/ui/ProgressBar.tsx
 psy-front/components/ui/ThemeToggle.tsx
+psy-front/components/ui/ToastProvider.tsx
 psy-front/eslint.config.mjs
 psy-front/hooks/useBookmarks.ts
 psy-front/lib/haptic.ts
@@ -1158,6 +1159,72 @@ export default function BookmarkButton({ articleId, className = "" }: BookmarkBu
     </button>
   );
 }
+// === КОНЕЦ БЛОКА ===
+</file>
+
+<file path="psy-front/components/ui/ToastProvider.tsx">
+// === НАЧАЛО БЛОКА: Toast Notification System ===
+"use client";
+
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { X, Info } from "lucide-react";
+
+type ToastMessage = {
+  id: string;
+  message: string;
+  type: "info" | "error" | "success";
+};
+
+type ToastContextType = {
+  showToast: (message: string, type?: "info" | "error" | "success") => void;
+};
+
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
+
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const showToast = (message: string, type: "info" | "error" | "success" = "info") => {
+    const id = Math.random().toString(36).substring(7);
+    setToasts((prev) => [...prev, { id, message, type }]);
+
+    // Автоудаление через 4 секунды
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  return (
+    <ToastContext.Provider value={{ showToast }}>
+      {children}
+      {/* Контейнер уведомлений (Справа внизу на ПК, внизу по центру на Mobile) */}
+      <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 w-full max-w-[350px] px-4 sm:px-0">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className="flex items-center gap-3 p-4 bg-[#111827] text-white rounded-2xl shadow-lg border border-gray-800 animate-in slide-in-from-bottom-5 fade-in duration-300"
+          >
+            <Info className="w-5 h-5 text-blue-500 shrink-0" />
+            <p className="text-sm font-medium leading-tight flex-1">{toast.message}</p>
+            <button onClick={() => removeToast(toast.id)} className="text-gray-400 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </ToastContext.Provider>
+  );
+}
+
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) throw new Error("useToast must be used within a ToastProvider");
+  return context;
+};
 // === КОНЕЦ БЛОКА ===
 </file>
 
@@ -2494,75 +2561,6 @@ export default function SearchClient({ initialArticles }: any) {
 // === КОНЕЦ БЛОКА ===
 </file>
 
-<file path="psy-front/components/LanguageSwitcher.tsx">
-// === НАЧАЛО БЛОКА: LanguageSwitcher ===
-"use client";
-
-import { usePathname, useRouter } from "next/navigation";
-
-export default function LanguageSwitcher() {
-  const pathname = usePathname();
-  const router = useRouter();
-
-  const languages = [
-    { code: "ru", label: "RU" },
-    { code: "en", label: "EN" },
-    { code: "ua", label: "UA" },
-    { code: "pl", label: "PL" },
-    { code: "de", label: "DE" },
-  ];
-
-  const handleLanguageChange = (locale: string) => {
-    if (!pathname) {
-      router.push(`/${locale}`);
-      return;
-    }
-
-    const segments = pathname.split("/");
-    
-    // БЕЗОПАСНЫЙ ПЕРЕХОД: Если мы внутри статьи, при смене языка
-    // мы возвращаем пользователя на главную страницу нового языка, 
-    // чтобы избежать ошибки 404 (т.к. слаги статей на разных языках отличаются)
-    if (segments.includes("post")) {
-      router.push(`/${locale}`);
-      router.refresh();
-      return;
-    }
-
-    // Для остальных страниц (главная, закладки) просто меняем код языка
-    segments[1] = locale;
-    router.push(segments.join("/"));
-    router.refresh();
-  };
-
-  return (
-    <div 
-      id="desktop-lang-switcher" 
-      className="hidden md:flex items-center bg-gray-100/80 dark:bg-zinc-800/80 rounded-full p-1 gap-1"
-    >
-      {languages.map((lang) => {
-        const isActive = pathname?.startsWith(`/${lang.code}`);
-
-        return (
-          <button
-            key={lang.code}
-            onClick={() => handleLanguageChange(lang.code)}
-            className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all cursor-pointer ${
-              isActive
-                ? "bg-blue-600 text-white shadow-md scale-105"
-                : "text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700"
-            }`}
-          >
-            {lang.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-// === КОНЕЦ БЛОКА ===
-</file>
-
 <file path="psy-front/components/ui/BottomBar.tsx">
 "use client";
 
@@ -2770,6 +2768,125 @@ export default function Header() {
 }
 </file>
 
+<file path="psy-front/components/LanguageSwitcher.tsx">
+// === НАЧАЛО БЛОКА: Smart Language Switcher (Localized) ===
+"use client";
+
+import { usePathname, useRouter } from "next/navigation";
+import { client } from "@/lib/sanity";
+import { useToast } from "@/components/ui/ToastProvider";
+import { useState } from "react";
+
+// Словарь сообщений об отсутствии статьи на целевом языке
+const NO_ARTICLE_MESSAGES: Record<string, string> = {
+  ru: "К сожалению, эта статья недоступна на русском языке.",
+  en: "Sorry, this article is not available in English.",
+  ua: "На жаль, ця стаття недоступна українською мовою.",
+  pl: "Niestety, ten artykuł nie jest dostępny w języku polskim.",
+  de: "Leider ist dieser Artikel nicht auf Deutsch verfügbar."
+};
+
+export default function LanguageSwitcher() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { showToast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const languages = [
+    { code: "ru", label: "RU" },
+    { code: "en", label: "EN" },
+    { code: "ua", label: "UA" },
+    { code: "pl", label: "PL" },
+    { code: "de", label: "DE" },
+  ];
+
+  const handleLanguageChange = async (targetLangCode: string) => {
+    if (!pathname) return;
+    
+    // Определяем текущий язык из URL (первый сегмент пути)
+    const segments = pathname.split("/").filter(Boolean);
+    const currentLangCode = languages.some(l => l.code === segments[0]) ? segments[0] : "ru";
+
+    // Если кликнули на тот же язык — ничего не делаем
+    if (targetLangCode === currentLangCode) return;
+
+    setIsLoading(true);
+
+    try {
+      // 1. ПРОВЕРКА: Находимся ли мы внутри статьи?
+      // URL статьи выглядит как /ru/post/some-slug
+      const isPostPage = segments.length >= 2 && segments[1] === "post";
+      const currentSlug = segments[2]; 
+
+      if (isPostPage && currentSlug) {
+        // Запрос в Sanity: есть ли статья с таким slug на новом языке?
+        const query = `count(*[_type == "post" && slug.current == $slug && language == $lang])`;
+        const exists = await client.fetch(query, { slug: currentSlug, lang: targetLangCode });
+
+        if (exists > 0) {
+          // УРА: Статья есть! Переходим.
+          router.push(`/${targetLangCode}/post/${currentSlug}`);
+        } else {
+          // УВЫ: Статьи нет.
+          
+          // Получаем сообщение на ЦЕЛЕВОМ языке (куда хотели перейти)
+          const message = NO_ARTICLE_MESSAGES[targetLangCode] || NO_ARTICLE_MESSAGES.en;
+          
+          // Показываем уведомление
+          showToast(message, "info");
+          
+          // Перекидываем на главную страницу выбранного языка
+          router.push(`/${targetLangCode}`);
+        }
+      } else {
+        // 2. ОБЫЧНАЯ СТРАНИЦА (Главная, Поиск, Закладки) - просто меняем язык в URL
+        if (languages.some(l => l.code === segments[0])) {
+          segments[0] = targetLangCode;
+          router.push(`/${segments.join("/")}`);
+        } else {
+          // Если URL был корнем, добавляем язык
+          router.push(`/${targetLangCode}/${segments.join("/")}`);
+        }
+      }
+    } catch (error) {
+      console.error("Ошибка при смене языка:", error);
+      // В случае ошибки просто переходим на главную
+      router.push(`/${targetLangCode}`);
+    } finally {
+      setIsLoading(false);
+      router.refresh();
+    }
+  };
+
+  return (
+    <div 
+      id="desktop-lang-switcher" 
+      className="hidden md:flex items-center bg-gray-100/80 dark:bg-zinc-800/80 rounded-full p-1 gap-1"
+    >
+      {languages.map((lang) => {
+        const isActive = pathname?.startsWith(`/${lang.code}`);
+
+        return (
+          <button
+            key={lang.code}
+            onClick={() => handleLanguageChange(lang.code)}
+            disabled={isLoading}
+            className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+              isActive
+                ? "bg-blue-600 text-white shadow-md scale-105"
+                : "text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700"
+            } ${isLoading ? "opacity-50 cursor-wait" : ""}`}
+          >
+            {lang.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+// === КОНЕЦ БЛОКА ===
+</file>
+
 <file path="psy-front/lib/sanity.ts">
 // === НАЧАЛО БЛОКА: Sanity Client Setup ===
 import { createClient } from "next-sanity";
@@ -2921,66 +3038,6 @@ export default defineType({
 // === КОНЕЦ БЛОКА ===
 </file>
 
-<file path="psy-front/app/layout.tsx">
-// === НАЧАЛО БЛОКА: Root Layout ===
-import type { Metadata, Viewport } from "next"; 
-import { Inter } from "next/font/google";
-import { ThemeProvider } from "next-themes";
-import "./globals.css";
-import BottomBar from "@/components/ui/BottomBar"; 
-import Header from "@/components/ui/Header"; 
-
-const inter = Inter({ subsets: ["latin", "cyrillic"] });
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: "cover",
-};
-
-export const metadata: Metadata = {
-  title: "HealthPsy", // Можно заодно обновить название
-  description: "Твой проводник в ментальном мире",
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico", // Для иконок на iPhone
-  },
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="ru" suppressHydrationWarning>
-      <body id="root-body" className={`${inter.className} bg-background text-foreground antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          
-          <div id="app-wrapper" className="relative flex min-h-screen flex-col">
-            
-            <Header />
-            
-            {/* Глобальная обертка отступов: защищает от наложения Header и BottomBar */}
-            <div id="main-content" className="flex-1 pt-20 md:pt-28 pb-24 md:pb-12">
-              {children}
-            </div>
-            
-            <BottomBar />
-            
-          </div>
-          
-        </ThemeProvider>
-      </body>
-    </html>
-  );
-}
-// === КОНЕЦ БЛОКА ===
-</file>
-
 <file path="psy-front/package.json">
 {
   "name": "psy-front",
@@ -3023,11 +3080,77 @@ export default function RootLayout({
 }
 </file>
 
+<file path="psy-front/app/layout.tsx">
+// === НАЧАЛО БЛОКА: Root Layout ===
+import type { Metadata, Viewport } from "next"; 
+import { Inter } from "next/font/google";
+import { ThemeProvider } from "next-themes";
+import "./globals.css";
+import BottomBar from "@/components/ui/BottomBar"; 
+import Header from "@/components/ui/Header"; 
+// Импортируем провайдер уведомлений (не забудь создать сам файл!)
+import { ToastProvider } from "@/components/ui/ToastProvider"; 
+
+const inter = Inter({ subsets: ["latin", "cyrillic"] });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
+export const metadata: Metadata = {
+  title: "HealthPsy",
+  description: "Твой проводник в ментальном мире",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="ru" suppressHydrationWarning>
+      <body id="root-body" className={`${inter.className} bg-background text-foreground antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {/* Оборачиваем всё приложение в ToastProvider для работы уведомлений */}
+          <ToastProvider>
+            
+            <div id="app-wrapper" className="relative flex min-h-screen flex-col">
+              
+              <Header />
+              
+              {/* Глобальная обертка отступов: защищает от наложения Header и BottomBar */}
+              <div id="main-content" className="flex-1 pt-20 md:pt-28 pb-24 md:pb-12">
+                {children}
+              </div>
+              
+              <BottomBar />
+              
+            </div>
+
+          </ToastProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
+// === КОНЕЦ БЛОКА ===
+</file>
+
 <file path="psy-front/lib/queries.ts">
 // === НАЧАЛО БЛОКА: Sanity Queries ===
 import { groq } from "next-sanity";
 
-// Существующий запрос всех статей (Обновлен для поддержки старых постов)
+// Существующий запрос всех статей (Для ленты и поиска)
+// Фильтрует по языку: показывает только статьи текущего языка (или старые RU статьи)
 export const articlesQuery = groq`*[_type == "post" && (language == $lang || (!defined(language) && $lang == 'ru'))] | order(publishedAt desc) {
   _id,
   title,
@@ -3039,8 +3162,9 @@ export const articlesQuery = groq`*[_type == "post" && (language == $lang || (!d
   language
 }`;
 
-// Запрос для закладок: Получить статьи по массиву ID (Обновлен для поддержки старых постов)
-export const bookmarkedArticlesQuery = groq`*[_type == "post" && _id in $ids && (language == $lang || (!defined(language) && $lang == 'ru'))] | order(publishedAt desc) {
+// ИСПРАВЛЕННЫЙ ЗАПРОС ЗАКЛАДОК:
+// Убрали проверку language == $lang. Теперь закладки показываются ВСЕГДА, независимо от языка интерфейса.
+export const bookmarkedArticlesQuery = groq`*[_type == "post" && _id in $ids] | order(publishedAt desc) {
   _id,
   title,
   "slug": slug.current,
@@ -3049,6 +3173,23 @@ export const bookmarkedArticlesQuery = groq`*[_type == "post" && _id in $ids && 
   "expert": coalesce(expertReview, expert),
   "mainImage": mainImage.asset->url,
   language
+}`;
+
+// Запрос одного поста (для страницы поста)
+export const singlePostQuery = groq`*[_type == "post" && slug.current == $slug][0] {
+  _id,
+  title,
+  "slug": slug.current,
+  mainImage,
+  body,
+  publishedAt,
+  author->{name, image},
+  language,
+  "related": *[_type == "post" && category._ref == ^.category._ref && _id != ^._id][0..2] {
+    title,
+    "slug": slug.current,
+    "mainImage": mainImage.asset->url
+  }
 }`;
 // === КОНЕЦ БЛОКА ===
 </file>

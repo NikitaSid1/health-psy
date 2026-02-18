@@ -45,6 +45,14 @@ export default defineType({
       type: 'string',
       readOnly: true, // Поле управляется плагином document-internationalization
     }),
+    // 👇 ДОБАВЛЕНО: Это поле чинит ошибку "Unknown field... category: anxiety"
+    defineField({
+      name: 'category',
+      title: 'Category (Legacy Tag)',
+      type: 'string',
+      hidden: false, // Можно скрыть (true), если хочешь редактировать только через Categories (array)
+      description: 'Старое текстовое поле категории (для совместимости)',
+    }),
     defineField({
       name: 'author',
       title: 'Author',

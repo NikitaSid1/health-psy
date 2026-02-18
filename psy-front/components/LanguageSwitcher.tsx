@@ -1,4 +1,4 @@
-// === НАЧАЛО БЛОКА: Smart Language Switcher ===
+// === НАЧАЛО БЛОКА: Smart Language Switcher (Localized) ===
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
@@ -6,18 +6,27 @@ import { client } from "@/lib/sanity";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useState } from "react";
 
+// Словарь сообщений об отсутствии статьи на целевом языке
+const NO_ARTICLE_MESSAGES: Record<string, string> = {
+  ru: "К сожалению, эта статья недоступна на русском языке.",
+  en: "Sorry, this article is not available in English.",
+  ua: "На жаль, ця стаття недоступна українською мовою.",
+  pl: "Niestety, ten artykuł nie jest dostępny w języku polskim.",
+  de: "Leider ist dieser Artikel nicht auf Deutsch verfügbar."
+};
+
 export default function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
-  const { showToast } = useToast(); // Хук для уведомлений
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   const languages = [
-    { code: "ru", label: "RU", fullName: "Русском" },
-    { code: "en", label: "EN", fullName: "Английском" },
-    { code: "ua", label: "UA", fullName: "Украинском" },
-    { code: "pl", label: "PL", fullName: "Польском" },
-    { code: "de", label: "DE", fullName: "Немецком" },
+    { code: "ru", label: "RU" },
+    { code: "en", label: "EN" },
+    { code: "ua", label: "UA" },
+    { code: "pl", label: "PL" },
+    { code: "de", label: "DE" },
   ];
 
   const handleLanguageChange = async (targetLangCode: string) => {
@@ -30,49 +39,47 @@ export default function LanguageSwitcher() {
     // Если кликнули на тот же язык — ничего не делаем
     if (targetLangCode === currentLangCode) return;
 
-    // Включаем индикатор загрузки (блокируем кнопки)
     setIsLoading(true);
 
     try {
       // 1. ПРОВЕРКА: Находимся ли мы внутри статьи?
       // URL статьи выглядит как /ru/post/some-slug
       const isPostPage = segments.length >= 2 && segments[1] === "post";
-      const currentSlug = segments[2]; // slug статьи
+      const currentSlug = segments[2]; 
 
       if (isPostPage && currentSlug) {
-        // Делаем запрос в Sanity: есть ли статья с таким же slug, но на новом языке?
+        // Запрос в Sanity: есть ли статья с таким slug на новом языке?
         const query = `count(*[_type == "post" && slug.current == $slug && language == $lang])`;
         const exists = await client.fetch(query, { slug: currentSlug, lang: targetLangCode });
 
         if (exists > 0) {
-          // УРА: Статья есть! Переходим на неё.
+          // УРА: Статья есть! Переходим.
           router.push(`/${targetLangCode}/post/${currentSlug}`);
         } else {
           // УВЫ: Статьи нет.
-          // 1. Получаем полное название языка для красивого сообщения
-          const langName = languages.find(l => l.code === targetLangCode)?.fullName || targetLangCode;
           
-          // 2. Показываем уведомление (Toast)
-          showToast(`К сожалению, этой статьи нет на ${langName} языке.`, "info");
+          // Получаем сообщение на ЦЕЛЕВОМ языке (куда хотели перейти)
+          const message = NO_ARTICLE_MESSAGES[targetLangCode] || NO_ARTICLE_MESSAGES.en;
           
-          // 3. Перекидываем на главную страницу выбранного языка
+          // Показываем уведомление
+          showToast(message, "info");
+          
+          // Перекидываем на главную страницу выбранного языка
           router.push(`/${targetLangCode}`);
         }
       } else {
-        // 2. ОБЫЧНАЯ СТРАНИЦА (Главная, Поиск, Закладки)
-        // Просто меняем префикс языка в URL.
-        // Было: /ru/search -> Стало: /de/search
+        // 2. ОБЫЧНАЯ СТРАНИЦА (Главная, Поиск, Закладки) - просто меняем язык в URL
         if (languages.some(l => l.code === segments[0])) {
           segments[0] = targetLangCode;
           router.push(`/${segments.join("/")}`);
         } else {
-          // Если URL был без языка (корень), добавляем язык
+          // Если URL был корнем, добавляем язык
           router.push(`/${targetLangCode}/${segments.join("/")}`);
         }
       }
     } catch (error) {
       console.error("Ошибка при смене языка:", error);
-      // В случае ошибки просто кидаем на главную выбранного языка
+      // В случае ошибки просто переходим на главную
       router.push(`/${targetLangCode}`);
     } finally {
       setIsLoading(false);
@@ -92,7 +99,7 @@ export default function LanguageSwitcher() {
           <button
             key={lang.code}
             onClick={() => handleLanguageChange(lang.code)}
-            disabled={isLoading} // Блокируем пока идет проверка
+            disabled={isLoading}
             className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all cursor-pointer ${
               isActive
                 ? "bg-blue-600 text-white shadow-md scale-105"
