@@ -1,11 +1,11 @@
-// === НАЧАЛО БЛОКА: Article Card (Smart Localization) ===
+// === НАЧАЛО БЛОКА: Article Card (Fixed Layout & Lang) ===
 "use client";
 
 import Link from "next/link";
 import Image from "next/image";
 import BookmarkButton from "@/components/ui/BookmarkButton";
 
-// Словари для перевода "на лету" в зависимости от языка СТАТЬИ
+// Словари
 const TIME_LABELS: Record<string, string> = {
   ru: "мин",
   en: "min",
@@ -39,24 +39,23 @@ interface ArticleCardProps {
     readTime?: number;
     expert?: boolean;
     mainImage?: string;
-    language?: string; // Язык приходит из Sanity
+    language?: string;
   };
-  lang?: string; // Язык интерфейса (резервный)
+  lang?: string; // Язык интерфейса
 }
 
 export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
-  // 1. ОПРЕДЕЛЯЕМ ЯЗЫК:
-  // Главная фишка: Если у статьи есть свой язык (post.language), используем его.
-  // Это чинит проблему в закладках: английская статья будет с "min", даже если сайт на русском.
+  // ЛОГИКА ЯЗЫКА:
+  // 1. Если у поста явно задан язык (post.language), берем его (важно для закладок).
+  // 2. Если нет (старый пост), берем язык интерфейса (lang) (важно для главной ua).
+  // 3. Если и того нет, фолбэк на ru.
   const articleLang = post.language || lang || "ru";
 
-  // 2. Подбираем словари
   const timeLabel = TIME_LABELS[articleLang] || "min";
   const expertLabel = EXPERT_LABELS[articleLang] || "Expert";
   const defaultCategory = DEFAULT_CATEGORIES[articleLang] || "Psychology";
 
   return (
-    // Ссылка тоже строится на базе языка статьи
     <Link 
       href={`/${articleLang}/post/${post.slug}`} 
       className="group block outline-none h-full"
@@ -82,21 +81,22 @@ export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
 
         {/* Текстовая часть */}
         <div className="flex flex-col flex-1">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider">
-              {/* Категория */}
-              <span className="text-blue-600 dark:text-blue-400">
+          {/* Верхняя строка: Инфо + Кнопка */}
+          {/* justify-between + gap-3 предотвращает наезд текста на кнопку */}
+          <div className="flex items-start justify-between mb-3 gap-3">
+            
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider mt-1.5">
+              <span className="text-blue-600 dark:text-blue-400 whitespace-nowrap">
                 {post.category || defaultCategory}
               </span>
               <span className="text-gray-300 dark:text-zinc-700">•</span>
-              {/* Время чтения (мин/min/хв) */}
-              <span className="text-gray-500">
+              <span className="text-gray-500 whitespace-nowrap">
                 {post.readTime || 5} {timeLabel}
               </span>
             </div>
             
-            {/* Кнопка закладки (не нажимает ссылку карточки) */}
-            <div className="z-10 relative" onClick={(e) => e.preventDefault()}>
+            {/* Кнопка: flex-shrink-0 не дает ей сжиматься, z-10 поднимает над ссылкой */}
+            <div className="z-10 relative flex-shrink-0" onClick={(e) => e.preventDefault()}>
                 <BookmarkButton articleId={post._id} />
             </div>
           </div>
@@ -105,7 +105,6 @@ export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
             {post.title}
           </h3>
 
-          {/* Плашка эксперта */}
           {post.expert && (
             <div className="mt-auto pt-3 flex items-center gap-2">
                 <span className="text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">

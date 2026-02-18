@@ -1,8 +1,8 @@
 // === НАЧАЛО БЛОКА: Sanity Queries ===
 import { groq } from "next-sanity";
 
-// Существующий запрос всех статей (Для ленты и поиска)
-// Фильтрует по языку: показывает только статьи текущего языка (или старые RU статьи)
+// 1. Запрос для ленты и поиска (учитывает язык интерфейса)
+// Показывает посты текущего языка, либо посты без языка (старые), считая их русскими
 export const articlesQuery = groq`*[_type == "post" && (language == $lang || (!defined(language) && $lang == 'ru'))] | order(publishedAt desc) {
   _id,
   title,
@@ -14,8 +14,8 @@ export const articlesQuery = groq`*[_type == "post" && (language == $lang || (!d
   language
 }`;
 
-// ИСПРАВЛЕННЫЙ ЗАПРОС ЗАКЛАДОК:
-// Убрали проверку language == $lang. Теперь закладки показываются ВСЕГДА, независимо от языка интерфейса.
+// 2. ИСПРАВЛЕННЫЙ ЗАПРОС ЗАКЛАДОК
+// ВАЖНО: Убрана фильтрация по языку. Ищем просто по ID.
 export const bookmarkedArticlesQuery = groq`*[_type == "post" && _id in $ids] | order(publishedAt desc) {
   _id,
   title,
@@ -27,7 +27,7 @@ export const bookmarkedArticlesQuery = groq`*[_type == "post" && _id in $ids] | 
   language
 }`;
 
-// Запрос одного поста (для страницы поста)
+// 3. Запрос одного поста
 export const singlePostQuery = groq`*[_type == "post" && slug.current == $slug][0] {
   _id,
   title,

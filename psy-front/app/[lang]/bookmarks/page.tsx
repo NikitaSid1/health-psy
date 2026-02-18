@@ -1,7 +1,7 @@
 // === НАЧАЛО БЛОКА: Bookmarks Page (Next.js 15+ Fix) ===
 "use client";
 
-import { useEffect, useState, use } from "react"; // Добавили 'use'
+import { useEffect, useState, use } from "react"; // Используем use для params
 import Link from "next/link";
 import Image from "next/image";
 import { client } from "@/lib/sanity";
@@ -38,20 +38,21 @@ interface Article {
   language: string; 
 }
 
-// ВАЖНО: В Next.js 15 params — это Promise
+// Next.js 15: params это Promise
 export default function BookmarksPage({ params }: { params: Promise<{ lang: string }> }) {
-  // 1. Распаковываем params через use()
+  // 1. Распаковываем параметры
   const { lang } = use(params);
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 2. Используем распакованный lang
   const t = UI_TEXT[lang as keyof typeof UI_TEXT] || UI_TEXT.ru;
 
   useEffect(() => {
     const fetchBookmarks = async () => {
+      // 1. Получаем ID из localStorage
       const saved = localStorage.getItem("bookmarkedArticles");
+      
       if (!saved) {
         setLoading(false);
         return;
@@ -63,6 +64,7 @@ export default function BookmarksPage({ params }: { params: Promise<{ lang: stri
         return;
       }
 
+      // 2. Делаем запрос в Sanity (теперь запрос не фильтрует по языку)
       try {
         const data = await client.fetch(bookmarkedArticlesQuery, { ids });
         setArticles(data);
@@ -76,6 +78,7 @@ export default function BookmarksPage({ params }: { params: Promise<{ lang: stri
     fetchBookmarks();
   }, []);
 
+  // Синхронизация при удалении
   useEffect(() => {
     const handleStorageChange = () => {
        const saved = localStorage.getItem("bookmarkedArticles");
@@ -107,7 +110,6 @@ export default function BookmarksPage({ params }: { params: Promise<{ lang: stri
       {articles.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-dashed border-gray-200 dark:border-zinc-800">
           <p className="text-gray-500 dark:text-gray-400 text-lg mb-6">{t.empty}</p>
-          {/* Используем распакованный lang */}
           <Link href={`/${lang}`} className="btn-primary">
             {t.back}
           </Link>
@@ -115,8 +117,8 @@ export default function BookmarksPage({ params }: { params: Promise<{ lang: stri
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {articles.map((post) => {
-            // === ЛОГИКА ЯЗЫКА ===
-            // Используем распакованный lang как фолбэк
+            // ЛОГИКА ОТОБРАЖЕНИЯ В ЗАКЛАДКАХ:
+            // Ссылка и язык "минут" должны соответствовать языку самой статьи
             const articleLang = post.language || lang || "ru";
             const timeLabel = TIME_LABELS[articleLang] || "min";
 
