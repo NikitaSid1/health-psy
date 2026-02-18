@@ -205,7 +205,6 @@ export default async function PostPage({ params }: PostPageProps) {
     timeRequired: `PT${post.readTime || 5}M`,
   };
 
-  // Форматируем переводы в удобный объект: { en: "how-to-stop", ru: "kak-perestat" }
   const translationMap = post.translations?.reduce((acc: any, curr: any) => {
     if (curr.language && curr.slug) {
       acc[curr.language] = curr.slug;
@@ -222,7 +221,6 @@ export default async function PostPage({ params }: PostPageProps) {
       
       <ProgressBar />
       
-      {/* 2. ДОБАВЛЕН ПРОВАЙДЕР ПЕРЕВОДОВ */}
       <TranslationProvider translations={translationMap} currentLang={lang} />
       
       <main id="post-main-content" className="font-sans">
