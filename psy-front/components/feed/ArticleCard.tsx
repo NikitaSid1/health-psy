@@ -1,4 +1,4 @@
-// === НАЧАЛО БЛОКА: Article Card (Fixed Layout & Lang) ===
+// === НАЧАЛО БЛОКА: Article Card (Final) ===
 "use client";
 
 import Link from "next/link";
@@ -45,12 +45,8 @@ interface ArticleCardProps {
 }
 
 export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
-  // ЛОГИКА ЯЗЫКА:
-  // 1. Если у поста явно задан язык (post.language), берем его (важно для закладок).
-  // 2. Если нет (старый пост), берем язык интерфейса (lang) (важно для главной ua).
-  // 3. Если и того нет, фолбэк на ru.
+  // Логика языка
   const articleLang = post.language || lang || "ru";
-
   const timeLabel = TIME_LABELS[articleLang] || "min";
   const expertLabel = EXPERT_LABELS[articleLang] || "Expert";
   const defaultCategory = DEFAULT_CATEGORIES[articleLang] || "Psychology";
@@ -81,8 +77,9 @@ export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
 
         {/* Текстовая часть */}
         <div className="flex flex-col flex-1">
-          {/* Верхняя строка: Инфо + Кнопка */}
-          {/* justify-between + gap-3 предотвращает наезд текста на кнопку */}
+          {/* justify-between + items-start + gap-3 
+             гарантирует, что текст не наедет на кнопку 
+          */}
           <div className="flex items-start justify-between mb-3 gap-3">
             
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider mt-1.5">
@@ -95,7 +92,7 @@ export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
               </span>
             </div>
             
-            {/* Кнопка: flex-shrink-0 не дает ей сжиматься, z-10 поднимает над ссылкой */}
+            {/* z-10 поднимает кнопку над ссылкой карточки */}
             <div className="z-10 relative flex-shrink-0" onClick={(e) => e.preventDefault()}>
                 <BookmarkButton articleId={post._id} />
             </div>
