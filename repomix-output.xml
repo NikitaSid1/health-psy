@@ -70,6 +70,7 @@ psy-front/app/layout.tsx
 psy-front/app/not-found.tsx
 psy-front/components/article/ArticleActions.tsx
 psy-front/components/BottomBar.tsx
+psy-front/components/feed/ArticleCard.tsx
 psy-front/components/feed/SearchAndFeed.tsx
 psy-front/components/LanguageSwitcher.tsx
 psy-front/components/search/HomeSearchTrigger.tsx
@@ -104,6 +105,130 @@ README.md
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="psy-front/components/feed/ArticleCard.tsx">
+// === НАЧАЛО БЛОКА: Article Card (Smart Localization) ===
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import BookmarkButton from "@/components/ui/BookmarkButton";
+
+// Словари для перевода "на лету" в зависимости от языка СТАТЬИ
+const TIME_LABELS: Record<string, string> = {
+  ru: "мин",
+  en: "min",
+  ua: "хв",
+  pl: "min",
+  de: "Min",
+};
+
+const EXPERT_LABELS: Record<string, string> = {
+  ru: "Проверено экспертом",
+  en: "Verified by expert",
+  ua: "Перевірено експертом",
+  pl: "Sprawdzone przez eksperta",
+  de: "Von Experten geprüft",
+};
+
+const DEFAULT_CATEGORIES: Record<string, string> = {
+  ru: "Психология",
+  en: "Psychology",
+  ua: "Психологія",
+  pl: "Psychologia",
+  de: "Psychologie",
+};
+
+interface ArticleCardProps {
+  post: {
+    _id: string;
+    title: string;
+    slug: string;
+    category?: string;
+    readTime?: number;
+    expert?: boolean;
+    mainImage?: string;
+    language?: string; // Язык приходит из Sanity
+  };
+  lang?: string; // Язык интерфейса (резервный)
+}
+
+export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
+  // 1. ОПРЕДЕЛЯЕМ ЯЗЫК:
+  // Главная фишка: Если у статьи есть свой язык (post.language), используем его.
+  // Это чинит проблему в закладках: английская статья будет с "min", даже если сайт на русском.
+  const articleLang = post.language || lang || "ru";
+
+  // 2. Подбираем словари
+  const timeLabel = TIME_LABELS[articleLang] || "min";
+  const expertLabel = EXPERT_LABELS[articleLang] || "Expert";
+  const defaultCategory = DEFAULT_CATEGORIES[articleLang] || "Psychology";
+
+  return (
+    // Ссылка тоже строится на базе языка статьи
+    <Link 
+      href={`/${articleLang}/post/${post.slug}`} 
+      className="group block outline-none h-full"
+    >
+      <article className="card-editorial h-full flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+        
+        {/* Картинка */}
+        <div className="relative w-full aspect-[4/3] rounded-2xl bg-gray-100 dark:bg-zinc-800 mb-5 overflow-hidden shadow-sm">
+          {post.mainImage ? (
+            <Image 
+              src={post.mainImage} 
+              alt={post.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 to-indigo-50 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center">
+                <span className="text-gray-300 dark:text-zinc-700 font-bold text-4xl opacity-20">PSY</span>
+            </div>
+          )}
+        </div>
+
+        {/* Текстовая часть */}
+        <div className="flex flex-col flex-1">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider">
+              {/* Категория */}
+              <span className="text-blue-600 dark:text-blue-400">
+                {post.category || defaultCategory}
+              </span>
+              <span className="text-gray-300 dark:text-zinc-700">•</span>
+              {/* Время чтения (мин/min/хв) */}
+              <span className="text-gray-500">
+                {post.readTime || 5} {timeLabel}
+              </span>
+            </div>
+            
+            {/* Кнопка закладки (не нажимает ссылку карточки) */}
+            <div className="z-10 relative" onClick={(e) => e.preventDefault()}>
+                <BookmarkButton articleId={post._id} />
+            </div>
+          </div>
+
+          <h3 className="text-xl font-extrabold text-gray-900 dark:text-white leading-snug mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
+            {post.title}
+          </h3>
+
+          {/* Плашка эксперта */}
+          {post.expert && (
+            <div className="mt-auto pt-3 flex items-center gap-2">
+                <span className="text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
+                  ✓ {expertLabel}
+                </span>
+            </div>
+          )}
+        </div>
+      </article>
+    </Link>
+  );
+}
+// === КОНЕЦ БЛОКА ===
+</file>
 
 <file path=".gitignore">
 # Logs
@@ -747,72 +872,6 @@ export default function MenuPage() {
   );
 }
 // === КОНЕЦ БЛОКА ===
-</file>
-
-<file path="psy-front/app/[lang]/page.tsx">
-import { client } from "@/lib/sanity";
-import { articlesQuery } from "@/lib/queries";
-import SearchAndFeed from "@/components/feed/SearchAndFeed";
-
-export const revalidate = 60; 
-
-const translations = {
-  ru: { h1: "Познай себя.", sub: "Научный подход к психологии.", err: "Упс! База данных недоступна", errSub: "Проверь настройки Sanity или соединение." },
-  en: { h1: "Know yourself.", sub: "Scientific approach to psychology.", err: "Oops! Database unavailable", errSub: "Check Sanity settings or connection." },
-  ua: { h1: "Пізнай себе.", sub: "Науковий підхід до психології.", err: "Упс! База даних недоступна", errSub: "Перевір налаштування Sanity або з'єднання." },
-  pl: { h1: "Poznaj siebie.", sub: "Naukowe podejście do psychologii.", err: "Ups! Baza danych niedostępna", errSub: "Sprawdź ustawienia Sanity lub połączenie." },
-  de: { h1: "Erkenne dich selbst.", sub: "Wissenschaftlicher Ansatz zur Psychologie.", err: "Hoppla! Datenbank nicht verfügbar", errSub: "Sanity-Einstellungen oder Verbindung prüfen." },
-};
-
-interface Props {
-  params: Promise<{ lang: string }>;
-}
-
-export default async function HomePage(props: Props) {
-  const params = await props.params;
-  const lang = (params.lang || "ru") as keyof typeof translations;
-  const t = translations[lang] || translations.ru;
-
-  let articles = [];
-  let errorOccurred = false;
-
-  try {
-    // В articlesQuery должен быть фильтр по language == $lang
-    articles = await client.fetch(articlesQuery, { lang });
-  } catch (error) {
-    console.error("Sanity fetch error:", error);
-    errorOccurred = true;
-  }
-
-  return (
-    <main id="home-main">
-      <div id="home-container" className="layout-container space-y-10">
-        
-        <section id="hero-section" className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900 dark:text-zinc-50">
-              {t.h1}
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">
-              {t.sub}
-            </p>
-          </div>
-        </section>
-
-        {errorOccurred ? (
-          <div id="error-state" className="p-10 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl text-center">
-            <p className="text-red-500 font-bold mb-2">{t.err}</p>
-            <p className="text-sm text-gray-500">{t.errSub}</p>
-          </div>
-        ) : (
-          /* Передаем lang внутрь, чтобы фильтрация по тегам тоже знала про язык */
-          <SearchAndFeed initialArticles={articles} lang={lang} />
-        )}
-
-      </div>
-    </main>
-  );
-}
 </file>
 
 <file path="psy-front/app/[lang]/post/[slug]/loading.tsx">
@@ -1559,6 +1618,78 @@ export default function BookmarksPage() {
 // === КОНЕЦ БЛОКА ===
 </file>
 
+<file path="psy-front/app/[lang]/page.tsx">
+// === НАЧАЛО БЛОКА: Home Page (Strict Lang) ===
+import { client } from "@/lib/sanity";
+import { articlesQuery } from "@/lib/queries";
+import SearchAndFeed from "@/components/feed/SearchAndFeed";
+
+// Кэшируем страницу на 60 секунд
+export const revalidate = 60; 
+
+const translations = {
+  ru: { h1: "Познай себя.", sub: "Научный подход к психологии.", err: "Упс! База данных недоступна", errSub: "Проверь настройки Sanity или соединение." },
+  en: { h1: "Know yourself.", sub: "Scientific approach to psychology.", err: "Oops! Database unavailable", errSub: "Check Sanity settings or connection." },
+  ua: { h1: "Пізнай себе.", sub: "Науковий підхід до психології.", err: "Упс! База даних недоступна", errSub: "Перевір налаштування Sanity або з'єднання." },
+  pl: { h1: "Poznaj siebie.", sub: "Naukowe podejście do psychologii.", err: "Ups! Baza danych niedostępna", errSub: "Sprawdź ustawienia Sanity lub połączenie." },
+  de: { h1: "Erkenne dich selbst.", sub: "Wissenschaftlicher Ansatz zur Psychologie.", err: "Hoppla! Datenbank nicht verfügbar", errSub: "Sanity-Einstellungen oder Verbindung prüfen." },
+};
+
+interface Props {
+  params: Promise<{ lang: string }>;
+}
+
+export default async function HomePage(props: Props) {
+  // В Next.js 15 params нужно ждать (await)
+  const params = await props.params;
+  
+  // Определяем язык (fallback на ru)
+  const lang = (params.lang || "ru") as keyof typeof translations;
+  const t = translations[lang] || translations.ru;
+
+  let articles = [];
+  let errorOccurred = false;
+
+  try {
+    // Получаем статьи. В запросе articlesQuery уже есть логика фильтрации по языку.
+    articles = await client.fetch(articlesQuery, { lang });
+  } catch (error) {
+    console.error("Sanity fetch error:", error);
+    errorOccurred = true;
+  }
+
+  return (
+    <main id="home-main">
+      <div id="home-container" className="layout-container space-y-10">
+        
+        <section id="hero-section" className="space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900 dark:text-zinc-50">
+              {t.h1}
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">
+              {t.sub}
+            </p>
+          </div>
+        </section>
+
+        {errorOccurred ? (
+          <div id="error-state" className="p-10 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl text-center">
+            <p className="text-red-500 font-bold mb-2">{t.err}</p>
+            <p className="text-sm text-gray-500">{t.errSub}</p>
+          </div>
+        ) : (
+          /* Передаем lang в SearchAndFeed, чтобы ссылки строились правильно */
+          <SearchAndFeed initialArticles={articles} lang={lang} />
+        )}
+
+      </div>
+    </main>
+  );
+}
+// === КОНЕЦ БЛОКА ===
+</file>
+
 <file path="psy-front/app/not-found.tsx">
 // === НАЧАЛО БЛОКА: Страница 404 ===
 "use client";
@@ -1718,216 +1849,6 @@ export default function ArticleActions({ title, textToRead }: ArticleActionsProp
       <button onClick={handleShare} className="btn-primary w-full sm:w-1/2">
         ↗ Поделиться
       </button>
-    </div>
-  );
-}
-// === КОНЕЦ БЛОКА ===
-</file>
-
-<file path="psy-front/components/feed/SearchAndFeed.tsx">
-// === НАЧАЛО БЛОКА: Feed with Inline Search ===
-"use client";
-
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { Search } from "lucide-react";
-import BookmarkButton from "@/components/ui/BookmarkButton";
-
-interface Article {
-  _id: string;
-  title: string;
-  slug: string;
-  category: string;
-  readTime: number;
-  expert: boolean;
-  mainImage: string;
-}
-
-// 1. ДОБАВЛЕН lang в интерфейс
-interface SearchAndFeedProps {
-  initialArticles: Article[];
-  lang: string; 
-}
-
-// 2. Словари для локализации внутри компонента
-const componentTranslations = {
-  ru: {
-    placeholder: "Найти статью, тему или автора...",
-    resultsFor: "Результаты поиска",
-    latest: "Свежие материалы",
-    notFound: "Ничего не найдено по запросу",
-    verified: "Проверено экспертом",
-    categoryDefault: "Психология",
-    tags: ["Токсичность", "Личные границы", "Тревожность", "Стресс", "Привязанность"]
-  },
-  en: {
-    placeholder: "Search for article, topic or author...",
-    resultsFor: "Search results",
-    latest: "Latest articles",
-    notFound: "Nothing found for",
-    verified: "Verified by expert",
-    categoryDefault: "Psychology",
-    tags: ["Toxicity", "Boundaries", "Anxiety", "Stress", "Attachment"]
-  },
-  ua: {
-    placeholder: "Знайти статтю, тему або автора...",
-    resultsFor: "Результати пошуку",
-    latest: "Свіжі матеріали",
-    notFound: "Нічого не знайдено за запитом",
-    verified: "Перевірено експертом",
-    categoryDefault: "Психологія",
-    tags: ["Токсичність", "Особисті кордони", "Тривожність", "Стрес", "Прихильність"]
-  },
-  pl: {
-    placeholder: "Szukaj artykułu, tematu lub autora...",
-    resultsFor: "Wyniki wyszukiwania",
-    latest: "Najnowsze artykuły",
-    notFound: "Nic nie znaleziono dla",
-    verified: "Sprawdzone przez eksperta",
-    categoryDefault: "Psychologia",
-    tags: ["Toksyczność", "Granice", "Lęk", "Stres", "Przywiązanie"]
-  },
-  de: {
-    placeholder: "Artikel, Thema oder Autor suchen...",
-    resultsFor: "Suchergebnisse",
-    latest: "Neueste Artikel",
-    notFound: "Nichts gefunden für",
-    verified: "Von Experten geprüft",
-    categoryDefault: "Psychologie",
-    tags: ["Toxizität", "Grenzen", "Angst", "Stress", "Bindung"]
-  }
-};
-
-// 3. ДОБАВЛЕН lang в параметры компонента
-export default function SearchAndFeed({ initialArticles, lang }: SearchAndFeedProps) {
-  const [query, setQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [results, setResults] = useState<Article[]>(initialArticles);
-
-  // Получаем нужные переводы на основе пропса lang
-  const t = componentTranslations[lang as keyof typeof componentTranslations] || componentTranslations.ru;
-  const currentTags = t.tags;
-
-  // Дебаунс (задержка ввода)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(query);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [query]);
-
-  // Фильтрация статей
-  useEffect(() => {
-    if (!debouncedQuery.trim()) {
-      setResults(initialArticles);
-      return;
-    }
-    
-    const lowerQuery = debouncedQuery.toLowerCase();
-    const filtered = initialArticles.filter((article) => 
-      article.title.toLowerCase().includes(lowerQuery) || 
-      (article.category && article.category.toLowerCase().includes(lowerQuery))
-    );
-    
-    setResults(filtered);
-  }, [debouncedQuery, initialArticles]);
-
-  return (
-    <div className="space-y-10">
-      
-      {/* 1. Блок Поиска и Тегов */}
-      <section id="search-section" className="space-y-6">
-        <div className="relative w-full">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-7 pointer-events-none text-gray-400">
-            <Search size={20} />
-          </div>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t.placeholder}
-            className="w-full py-4 pl-14 pr-7 text-lg bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all"
-          />
-        </div>
-
-        {/* Теги */}
-        <div id="tags-carousel" className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory scroll-smooth">
-          {currentTags.map((tag) => (
-            <button 
-              key={tag} 
-              onClick={() => setQuery(tag)} 
-              className={`tag-pill whitespace-nowrap snap-center cursor-pointer transition-colors ${
-                query.toLowerCase() === tag.toLowerCase() 
-                  ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-600 dark:text-white' 
-                  : ''
-              }`}
-            >
-              #{tag}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* 2. Лента Статей (Результаты) */}
-      <section id="latest-articles" className="space-y-8">
-        <h2 className="text-2xl font-extrabold text-gray-900 dark:text-zinc-50">
-          {query ? `${t.resultsFor} (${results.length})` : t.latest}
-        </h2>
-
-        {results.length === 0 ? (
-          <div className="text-center py-10 text-gray-500 dark:text-zinc-500 font-medium">
-            {t.notFound} «{query}»
-          </div>
-        ) : (
-          <div id="articles-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {results.map((article, index) => (
-              <Link key={article._id} href={`/post/${article.slug}`} className="group block outline-none">
-                <article className="card-editorial h-full flex flex-col hover:border-blue-500/30 transition-all border border-transparent relative">
-                  
-                  <div className="relative w-full h-48 rounded-2xl bg-gray-100 dark:bg-zinc-800 mb-5 overflow-hidden">
-                    {article.mainImage ? (
-                      <Image 
-                        src={article.mainImage} 
-                        alt={article.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        priority={index === 0 && !query}
-                        className="object-cover group-hover:scale-105 transition-transform duration-500" 
-                      />
-                    ) : (
-                      <div className="absolute inset-0 bg-gradient-to-tr from-blue-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-700" />
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider">
-                      <span className="text-blue-600 dark:text-blue-400">{article.category || t.categoryDefault}</span>
-                      <span className="text-gray-400 dark:text-zinc-600">•</span>
-                      <span className="text-gray-500">{article.readTime || 5} мин</span>
-                    </div>
-                    
-                    <div className="z-10 relative" onClick={(e) => e.preventDefault()}>
-                       <BookmarkButton articleId={article._id} />
-                    </div>
-                  </div>
-
-                  <h3 className="text-xl font-extrabold text-gray-900 dark:text-white leading-snug mb-4 group-hover:text-blue-600 transition-colors">
-                    {article.title}
-                  </h3>
-
-                  {article.expert && (
-                    <div className="mt-auto pt-4 border-t border-gray-100 dark:border-zinc-800 flex items-center gap-2">
-                       <span className="text-sm font-bold text-gray-600 dark:text-zinc-400">✓ {t.verified}</span>
-                    </div>
-                  )}
-                </article>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
     </div>
   );
 }
@@ -2561,6 +2482,238 @@ export default function SearchClient({ initialArticles }: any) {
 // === КОНЕЦ БЛОКА ===
 </file>
 
+<file path="psy-front/components/feed/SearchAndFeed.tsx">
+// === НАЧАЛО БЛОКА: Feed with Inline Search ===
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Search, X } from "lucide-react"; // Добавили X
+import BookmarkButton from "@/components/ui/BookmarkButton";
+
+interface Article {
+  _id: string;
+  title: string;
+  slug: string;
+  category: string;
+  readTime: number;
+  expert: boolean;
+  mainImage: string;
+}
+
+interface SearchAndFeedProps {
+  initialArticles: Article[];
+  lang: string; 
+}
+
+// Словари для локализации внутри компонента
+const componentTranslations = {
+  ru: {
+    placeholder: "Найти статью, тему или автора...",
+    resultsFor: "Результаты поиска",
+    latest: "Свежие материалы",
+    notFound: "Ничего не найдено по запросу",
+    verified: "Проверено экспертом",
+    categoryDefault: "Психология",
+    tags: ["Токсичность", "Личные границы", "Тревожность", "Стресс", "Привязанность"]
+  },
+  en: {
+    placeholder: "Search for article, topic or author...",
+    resultsFor: "Search results",
+    latest: "Latest articles",
+    notFound: "Nothing found for",
+    verified: "Verified by expert",
+    categoryDefault: "Psychology",
+    tags: ["Toxicity", "Boundaries", "Anxiety", "Stress", "Attachment"]
+  },
+  ua: {
+    placeholder: "Знайти статтю, тему або автора...",
+    resultsFor: "Результати пошуку",
+    latest: "Свіжі матеріали",
+    notFound: "Нічого не знайдено за запитом",
+    verified: "Перевірено експертом",
+    categoryDefault: "Психологія",
+    tags: ["Токсичність", "Особисті кордони", "Тривожність", "Стрес", "Прихильність"]
+  },
+  pl: {
+    placeholder: "Szukaj artykułu, tematu lub autora...",
+    resultsFor: "Wyniki wyszukiwania",
+    latest: "Najnowsze artykuły",
+    notFound: "Nic nie znaleziono dla",
+    verified: "Sprawdzone przez eksperta",
+    categoryDefault: "Psychologia",
+    tags: ["Toksyczność", "Granice", "Lęk", "Stres", "Przywiązanie"]
+  },
+  de: {
+    placeholder: "Artikel, Thema oder Autor suchen...",
+    resultsFor: "Suchergebnisse",
+    latest: "Neueste Artikel",
+    notFound: "Nichts gefunden für",
+    verified: "Von Experten geprüft",
+    categoryDefault: "Psychologie",
+    tags: ["Toxizität", "Grenzen", "Angst", "Stress", "Bindung"]
+  }
+};
+
+export default function SearchAndFeed({ initialArticles, lang }: SearchAndFeedProps) {
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [results, setResults] = useState<Article[]>(initialArticles);
+
+  // Получаем нужные переводы на основе пропса lang
+  const t = componentTranslations[lang as keyof typeof componentTranslations] || componentTranslations.ru;
+  const currentTags = t.tags;
+
+  // Дебаунс (задержка ввода)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  // Фильтрация статей
+  useEffect(() => {
+    if (!debouncedQuery.trim()) {
+      setResults(initialArticles);
+      return;
+    }
+    
+    const lowerQuery = debouncedQuery.toLowerCase();
+    const filtered = initialArticles.filter((article) => 
+      article.title.toLowerCase().includes(lowerQuery) || 
+      (article.category && article.category.toLowerCase().includes(lowerQuery))
+    );
+    
+    setResults(filtered);
+  }, [debouncedQuery, initialArticles]);
+
+  return (
+    <div className="space-y-10">
+      
+      {/* 1. Блок Поиска и Тегов */}
+      <section id="search-section" className="space-y-6">
+        <div className="relative w-full max-w-2xl mx-auto">
+          {/* Иконка поиска */}
+          <div className="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none text-gray-400">
+            <Search size={20} />
+          </div>
+          
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t.placeholder}
+            // pr-12 чтобы текст не наезжал на крестик
+            className="w-full py-4 pl-12 pr-12 text-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all placeholder:text-gray-400"
+          />
+
+          {/* Кнопка очистки (Крестик) */}
+          {query && (
+            <button
+              onClick={() => setQuery("")}
+              className="absolute inset-y-0 right-3 flex items-center p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+              aria-label="Очистить"
+            >
+              <X size={20} />
+            </button>
+          )}
+        </div>
+
+        {/* Теги */}
+        <div id="tags-carousel" className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory scroll-smooth w-full px-1">
+          {currentTags.map((tag) => (
+            <button 
+              key={tag} 
+              onClick={() => setQuery(tag)} 
+              className={`tag-pill whitespace-nowrap snap-center cursor-pointer transition-colors px-4 py-2 rounded-full border text-sm font-medium ${
+                query.toLowerCase() === tag.toLowerCase() 
+                  ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-600 dark:text-white' 
+                  : 'bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-700'
+              }`}
+            >
+              #{tag}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* 2. Лента Статей (Результаты) */}
+      <section id="latest-articles" className="space-y-8">
+        <h2 className="text-2xl font-extrabold text-gray-900 dark:text-zinc-50 tracking-tight">
+          {query ? `${t.resultsFor} (${results.length})` : t.latest}
+        </h2>
+
+        {results.length === 0 ? (
+          <div className="text-center py-16 text-gray-500 dark:text-zinc-500 font-medium bg-gray-50 dark:bg-zinc-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-zinc-800">
+            <p className="mb-2">{t.notFound} «{query}»</p>
+            <button onClick={() => setQuery("")} className="text-blue-600 hover:underline">
+              {lang === 'en' ? 'Clear search' : 'Очистить поиск'}
+            </button>
+          </div>
+        ) : (
+          <div id="articles-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {results.map((article, index) => (
+              // ВАЖНО: Добавил ${lang} в ссылку, чтобы сохранять язык при переходе
+              <Link key={article._id} href={`/${lang}/post/${article.slug}`} className="group block outline-none h-full">
+                <article className="card-editorial h-full flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                  
+                  <div className="relative w-full aspect-[4/3] rounded-2xl bg-gray-100 dark:bg-zinc-800 mb-5 overflow-hidden shadow-sm">
+                    {article.mainImage ? (
+                      <Image 
+                        src={article.mainImage} 
+                        alt={article.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        priority={index < 2 && !query}
+                        className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 to-indigo-50 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center">
+                         <span className="text-gray-300 dark:text-zinc-700 font-bold text-4xl opacity-20">PSY</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col flex-1">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider">
+                        <span className="text-blue-600 dark:text-blue-400">{article.category || t.categoryDefault}</span>
+                        <span className="text-gray-300 dark:text-zinc-700">•</span>
+                        <span className="text-gray-500">{article.readTime || 5} min</span>
+                      </div>
+                      
+                      <div className="z-10 relative" onClick={(e) => e.preventDefault()}>
+                         <BookmarkButton articleId={article._id} />
+                      </div>
+                    </div>
+
+                    <h3 className="text-xl font-extrabold text-gray-900 dark:text-white leading-snug mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
+                      {article.title}
+                    </h3>
+
+                    {article.expert && (
+                      <div className="mt-auto pt-3 flex items-center gap-2">
+                         <span className="text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
+                           ✓ {t.verified}
+                         </span>
+                      </div>
+                    )}
+                  </div>
+                </article>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+    </div>
+  );
+}
+// === КОНЕЦ БЛОКА ===
+</file>
+
 <file path="psy-front/components/ui/BottomBar.tsx">
 "use client";
 
@@ -2768,6 +2921,19 @@ export default function Header() {
 }
 </file>
 
+<file path="psy-front/lib/sanity.ts">
+// === НАЧАЛО БЛОКА: Sanity Client Setup ===
+import { createClient } from "next-sanity";
+
+export const client = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "dp2yjc73", // 👈 Жесткая страховка
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  apiVersion: "2024-02-16", 
+  useCdn: false, // 👈 СТАВИМ FALSE! Отключаем кэш, чтобы посты появлялись мгновенно
+});
+// === КОНЕЦ БЛОКА ===
+</file>
+
 <file path="psy-front/components/LanguageSwitcher.tsx">
 // === НАЧАЛО БЛОКА: Smart Language Switcher (Localized) ===
 "use client";
@@ -2887,17 +3053,46 @@ export default function LanguageSwitcher() {
 // === КОНЕЦ БЛОКА ===
 </file>
 
-<file path="psy-front/lib/sanity.ts">
-// === НАЧАЛО БЛОКА: Sanity Client Setup ===
-import { createClient } from "next-sanity";
-
-export const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "dp2yjc73", // 👈 Жесткая страховка
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
-  apiVersion: "2024-02-16", 
-  useCdn: false, // 👈 СТАВИМ FALSE! Отключаем кэш, чтобы посты появлялись мгновенно
-});
-// === КОНЕЦ БЛОКА ===
+<file path="psy-front/package.json">
+{
+  "name": "psy-front",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@portabletext/react": "^6.0.2",
+    "@sanity/client": "^7.15.0",
+    "@sanity/document-internationalization": "^5.0.1",
+    "@sanity/image-url": "^2.0.3",
+    "@tailwindcss/typography": "^0.5.19",
+    "algoliasearch": "^5.48.1",
+    "lucide-react": "^0.564.0",
+    "next": "16.1.6",
+    "next-sanity": "^12.1.0",
+    "next-themes": "^0.4.6",
+    "postcss": "^8.5.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-instantsearch": "^7.23.2",
+    "sanity": "^5.9.0",
+    "styled-components": "^6.3.9"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5"
+  }
+}
 </file>
 
 <file path="psy-admin/schemaTypes/post.ts">
@@ -2947,6 +3142,14 @@ export default defineType({
       title: '🌐 Язык статьи',
       type: 'string',
       readOnly: true, // Поле управляется плагином document-internationalization
+    }),
+    // 👇 ДОБАВЛЕНО: Это поле чинит ошибку "Unknown field... category: anxiety"
+    defineField({
+      name: 'category',
+      title: 'Category (Legacy Tag)',
+      type: 'string',
+      hidden: false, // Можно скрыть (true), если хочешь редактировать только через Categories (array)
+      description: 'Старое текстовое поле категории (для совместимости)',
     }),
     defineField({
       name: 'author',
@@ -3036,48 +3239,6 @@ export default defineType({
   },
 })
 // === КОНЕЦ БЛОКА ===
-</file>
-
-<file path="psy-front/package.json">
-{
-  "name": "psy-front",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@portabletext/react": "^6.0.2",
-    "@sanity/client": "^7.15.0",
-    "@sanity/document-internationalization": "^5.0.1",
-    "@sanity/image-url": "^2.0.3",
-    "@tailwindcss/typography": "^0.5.19",
-    "algoliasearch": "^5.48.1",
-    "lucide-react": "^0.564.0",
-    "next": "16.1.6",
-    "next-sanity": "^12.1.0",
-    "next-themes": "^0.4.6",
-    "postcss": "^8.5.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-instantsearch": "^7.23.2",
-    "sanity": "^5.9.0",
-    "styled-components": "^6.3.9"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.6",
-    "tailwindcss": "^4.1.18",
-    "typescript": "^5"
-  }
-}
 </file>
 
 <file path="psy-front/app/layout.tsx">
