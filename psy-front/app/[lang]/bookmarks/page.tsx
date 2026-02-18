@@ -1,7 +1,7 @@
-// === НАЧАЛО БЛОКА: Bookmarks Page ===
+// === НАЧАЛО БЛОКА: Bookmarks Page (Next.js 15+ Fix) ===
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react"; // Добавили 'use'
 import Link from "next/link";
 import Image from "next/image";
 import { client } from "@/lib/sanity";
@@ -35,19 +35,22 @@ interface Article {
   readTime: number;
   expert: boolean;
   mainImage: string;
-  language: string; // Sanity возвращает язык статьи
+  language: string; 
 }
 
-export default function BookmarksPage({ params }: { params: { lang: string } }) {
+// ВАЖНО: В Next.js 15 params — это Promise
+export default function BookmarksPage({ params }: { params: Promise<{ lang: string }> }) {
+  // 1. Распаковываем params через use()
+  const { lang } = use(params);
+
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Выбираем текст интерфейса
-  const t = UI_TEXT[params.lang as keyof typeof UI_TEXT] || UI_TEXT.ru;
+  // 2. Используем распакованный lang
+  const t = UI_TEXT[lang as keyof typeof UI_TEXT] || UI_TEXT.ru;
 
   useEffect(() => {
     const fetchBookmarks = async () => {
-      // 1. Берем ID из localStorage
       const saved = localStorage.getItem("bookmarkedArticles");
       if (!saved) {
         setLoading(false);
@@ -60,7 +63,6 @@ export default function BookmarksPage({ params }: { params: { lang: string } }) 
         return;
       }
 
-      // 2. Делаем запрос в Sanity
       try {
         const data = await client.fetch(bookmarkedArticlesQuery, { ids });
         setArticles(data);
@@ -74,17 +76,14 @@ export default function BookmarksPage({ params }: { params: { lang: string } }) 
     fetchBookmarks();
   }, []);
 
-  // Слушаем изменения localStorage (если удалили закладку в другом окне/компоненте)
   useEffect(() => {
     const handleStorageChange = () => {
        const saved = localStorage.getItem("bookmarkedArticles");
        const ids = saved ? JSON.parse(saved) : [];
-       // Фильтруем текущий список, оставляя только те, что есть в ids
        setArticles(prev => prev.filter(a => ids.includes(a._id)));
     };
 
     window.addEventListener('storage', handleStorageChange);
-    // Наш кастомный эвент, если BookmarkButton используется на этой же странице
     window.addEventListener('bookmarksUpdated', handleStorageChange); 
     
     return () => {
@@ -108,7 +107,8 @@ export default function BookmarksPage({ params }: { params: { lang: string } }) 
       {articles.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-dashed border-gray-200 dark:border-zinc-800">
           <p className="text-gray-500 dark:text-gray-400 text-lg mb-6">{t.empty}</p>
-          <Link href={`/${params.lang}`} className="btn-primary">
+          {/* Используем распакованный lang */}
+          <Link href={`/${lang}`} className="btn-primary">
             {t.back}
           </Link>
         </div>
@@ -116,14 +116,12 @@ export default function BookmarksPage({ params }: { params: { lang: string } }) 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {articles.map((post) => {
             // === ЛОГИКА ЯЗЫКА ===
-            // 1. Определяем язык этой конкретной статьи
-            const articleLang = post.language || params.lang || "ru";
-            // 2. Берем правильное окончание (мин, min, хв)
+            // Используем распакованный lang как фолбэк
+            const articleLang = post.language || lang || "ru";
             const timeLabel = TIME_LABELS[articleLang] || "min";
 
             return (
               <div key={post._id} className="group flex flex-col h-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative">
-                 {/* Ссылка на статью */}
                  <Link href={`/${articleLang}/post/${post.slug}`} className="block h-full">
                     <div className="relative h-48 w-full overflow-hidden bg-gray-100">
                       {post.mainImage && (
@@ -136,7 +134,7 @@ export default function BookmarksPage({ params }: { params: { lang: string } }) 
                       )}
                     </div>
                     
-                    <div className="p-5 pb-16"> {/* pb-16 чтобы оставить место для футера */}
+                    <div className="p-5 pb-16">
                       <div className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">
                         {post.category || "Psychology"}
                       </div>
@@ -146,18 +144,13 @@ export default function BookmarksPage({ params }: { params: { lang: string } }) 
                     </div>
                  </Link>
 
-                 {/* Футер карточки (время + кнопка удаления) */}
-                 {/* ВАЖНО: z-10 чтобы кнопка работала поверх ссылки */}
                  <div className="absolute bottom-0 left-0 right-0 p-5 flex items-center justify-between pt-4 border-t border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                     <span className="text-sm font-medium text-gray-500">
-                      {/* ВОТ ЗДЕСЬ ИСПРАВЛЕНИЕ: Число + правильный суффикс */}
                       {post.readTime || 5} {timeLabel}
                     </span>
                     
                     <div className="z-10 relative" onClick={(e) => {
-                        // Эта функция обновляет стейт страницы сразу после клика
-                        e.stopPropagation(); // Чтобы не переходило по ссылке
-                        // BookmarkButton сам удалит из LS и кинет событие, которое мы ловим в useEffect
+                        e.stopPropagation();
                     }}>
                       <BookmarkButton articleId={post._id} />
                     </div>
