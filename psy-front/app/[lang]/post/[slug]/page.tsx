@@ -8,7 +8,7 @@ import ProgressBar from "@/components/ui/ProgressBar";
 import ArticleActions from "@/components/article/ArticleActions"; 
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { Metadata } from "next";
-import TranslationProvider from "./TranslationProvider"; // МЫ СОЗДАДИМ ЭТОТ ФАЙЛ СЛЕДУЮЩИМ ШАГОМ
+import TranslationProvider from "./TranslationProvider"; 
 
 // Словари для локализации страницы "Не найдено" и футера статьи
 const postTranslations = {
@@ -134,6 +134,39 @@ const portableTextComponents = {
         </div>
       );
     },
+  },
+  block: {
+    // Кастомизация стандартных блоков для красивой типографики
+    normal: ({ children }: any) => (
+      <p className="mb-6 text-lg leading-relaxed text-gray-700 dark:text-zinc-300">
+        {children}
+      </p>
+    ),
+    h2: ({ children }: any) => (
+      <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-12 mb-6 text-gray-900 dark:text-white">
+        {children}
+      </h2>
+    ),
+    h3: ({ children }: any) => (
+      <h3 className="text-xl sm:text-2xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">
+        {children}
+      </h3>
+    ),
+    blockquote: ({ children }: any) => (
+      <blockquote className="border-l-4 border-blue-600 pl-6 py-2 my-8 italic text-xl text-gray-800 dark:text-zinc-200 bg-gray-50 dark:bg-zinc-800/50 rounded-r-xl">
+        {children}
+      </blockquote>
+    ),
+    ul: ({ children }: any) => (
+      <ul className="list-disc pl-6 mb-6 space-y-2 text-lg text-gray-700 dark:text-zinc-300 marker:text-blue-500">
+        {children}
+      </ul>
+    ),
+    ol: ({ children }: any) => (
+      <ol className="list-decimal pl-6 mb-6 space-y-2 text-lg text-gray-700 dark:text-zinc-300 marker:font-bold">
+        {children}
+      </ol>
+    ),
   },
 };
 
@@ -263,10 +296,10 @@ export default async function PostPage({ params }: PostPageProps) {
           </div>
 
           <footer id="post-footer" className="p-8 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800 mt-16 text-center">
-             <h3 className="text-lg font-bold mb-2">{t.footerTitle}</h3>
-             <p className="text-gray-500 dark:text-zinc-400 text-sm">
-               {t.footerText}
-             </p>
+              <h3 className="text-lg font-bold mb-2">{t.footerTitle}</h3>
+              <p className="text-gray-500 dark:text-zinc-400 text-sm">
+                {t.footerText}
+              </p>
           </footer>
 
         </article>
