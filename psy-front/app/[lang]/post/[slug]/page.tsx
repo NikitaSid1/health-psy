@@ -277,7 +277,8 @@ export default async function PostPage({ params }: PostPageProps) {
             </div>
           )}
 
-          <ArticleActions title={post.title} textToRead={textForAudio} />
+          {/* 👇 ИСПРАВЛЕНИЕ ЗДЕСЬ: Добавлена передача lang в ArticleActions 👇 */}
+          <ArticleActions title={post.title} textToRead={textForAudio} lang={lang} />
 
           <div id="post-body" className="prose prose-zinc dark:prose-invert max-w-none 
             prose-lg 
