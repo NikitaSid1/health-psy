@@ -71,6 +71,7 @@ psy-front/app/layout.tsx
 psy-front/app/not-found.tsx
 psy-front/components/article/ArticleActions.tsx
 psy-front/components/article/PortableTextComponents.tsx
+psy-front/components/article/QuizBlock.tsx
 psy-front/components/article/TableOfContents.tsx
 psy-front/components/BottomBar.tsx
 psy-front/components/feed/ArticleCard.tsx
@@ -868,6 +869,109 @@ export const ptComponents: PortableTextComponents = {
     number: ({ children }) => <ol className="list-decimal pl-6 mb-6 space-y-2 text-lg text-gray-700 dark:text-gray-300 marker:font-bold">{children}</ol>,
   },
 };
+// === КОНЕЦ БЛОКА ===
+</file>
+
+<file path="psy-front/components/article/QuizBlock.tsx">
+// === НАЧАЛО БЛОКА: Quiz Component ===
+"use client";
+
+import { useState } from "react";
+import { triggerHaptic } from "@/lib/haptic";
+
+interface Question {
+  question: string;
+  options: string[];
+}
+
+interface QuizProps {
+  title?: string;
+  questions?: Question[];
+}
+
+export default function QuizBlock({ title, questions }: QuizProps) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
+
+  if (!questions || questions.length === 0) return null;
+
+  const handleOptionClick = (index: number) => {
+    // Легкий отклик при выборе варианта
+    triggerHaptic('light');
+    
+    const newSelected = [...selectedOptions, index];
+    setSelectedOptions(newSelected);
+
+    if (currentStep < questions.length - 1) {
+      // Переход к следующему вопросу через небольшую задержку
+      setTimeout(() => setCurrentStep(prev => prev + 1), 300);
+    } else {
+      // Финал теста
+      setTimeout(() => {
+        setIsFinished(true);
+        // ИСПРАВЛЕНО: заменено 'success' на 'heavy' для соответствия типам
+        triggerHaptic('heavy'); 
+      }, 400);
+    }
+  };
+
+  if (isFinished) {
+    return (
+      <div className="my-12 p-8 rounded-[24px] bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 text-center animate-in fade-in zoom-in duration-500">
+        <span className="text-4xl mb-4 block" aria-hidden="true">✨</span>
+        <h4 className="text-xl font-bold text-green-900 dark:text-green-100 mb-2">Тест завершен!</h4>
+        <p className="text-green-700 dark:text-green-300">
+          Спасибо за ответы. Саморефлексия — это первый шаг к лучшему пониманию себя.
+        </p>
+      </div>
+    );
+  }
+
+  const currentQ = questions[currentStep];
+
+  return (
+    <div className="my-12 p-6 sm:p-8 rounded-[24px] bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 shadow-sm">
+      {title && (
+        <h3 className="text-xs font-bold text-gray-400 dark:text-zinc-500 mb-6 uppercase tracking-widest text-center">
+          {title}
+        </h3>
+      )}
+
+      {/* Прогресс-бар теста */}
+      <div className="mb-8">
+        <div className="flex justify-between text-xs font-bold text-gray-400 mb-3">
+          <span>Вопрос {currentStep + 1}</span>
+          <span>из {questions.length}</span>
+        </div>
+        <div className="w-full bg-gray-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+          <div 
+            className="bg-blue-600 h-full transition-all duration-500 ease-out"
+            style={{ width: `${((currentStep) / questions.length) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Вопрос */}
+      <h4 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mb-8 text-center leading-tight">
+        {currentQ.question}
+      </h4>
+
+      {/* Варианты ответов */}
+      <div className="flex flex-col gap-3">
+        {currentQ.options?.map((opt, i) => (
+          <button
+            key={i}
+            onClick={() => handleOptionClick(i)}
+            className="w-full text-left px-6 py-4 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 hover:border-blue-600 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 text-gray-800 dark:text-zinc-200 font-medium active:scale-[0.98]"
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 // === КОНЕЦ БЛОКА ===
 </file>
 
@@ -1842,49 +1946,6 @@ export default nextConfig;
 // === КОНЕЦ БЛОКА ===
 </file>
 
-<file path="psy-admin/package.json">
-{
-  "name": "psy-admin",
-  "private": true,
-  "version": "1.0.0",
-  "main": "package.json",
-  "license": "UNLICENSED",
-  "scripts": {
-    "dev": "sanity dev",
-    "start": "sanity start",
-    "build": "sanity build",
-    "deploy": "sanity deploy",
-    "deploy-graphql": "sanity graphql deploy"
-  },
-  "keywords": [
-    "sanity"
-  ],
-  "dependencies": {
-    "@sanity/cli": "^5.10.0",
-    "@sanity/document-internationalization": "^5.0.1",
-    "@sanity/vision": "^5.10.0",
-    "next-themes": "^0.4.6",
-    "react": "^19.1",
-    "react-dom": "^19.1",
-    "sanity": "^5.10.0",
-    "styled-components": "^6.1.18"
-  },
-  "devDependencies": {
-    "@sanity/eslint-config-studio": "^6.0.0",
-    "@types/react": "^19.1",
-    "eslint": "^9.28",
-    "prettier": "^3.5",
-    "typescript": "^5.8"
-  },
-  "prettier": {
-    "semi": false,
-    "printWidth": 100,
-    "bracketSpacing": false,
-    "singleQuote": true
-  }
-}
-</file>
-
 <file path="psy-admin/sanity.cli.ts">
 // === НАЧАЛО БЛОКА: Sanity CLI Config ===
 import {defineCliConfig} from 'sanity/cli'
@@ -1897,70 +1958,6 @@ export default defineCliConfig({
   deployment: {
     appId: 'njvezevwrat8kpk3ahprsimp', // Оставляем тот, что выдал терминал
   }
-})
-// === КОНЕЦ БЛОКА ===
-</file>
-
-<file path="psy-admin/schemaTypes/blockContent.ts">
-// === НАЧАЛО БЛОКА: Block Content (Added YouTube) ===
-import {defineType, defineArrayMember} from 'sanity'
-
-export default defineType({
-  title: 'Block Content',
-  name: 'blockContent',
-  type: 'array',
-  of: [
-    defineArrayMember({
-      title: 'Block',
-      type: 'block',
-      styles: [
-        {title: 'Normal', value: 'normal'},
-        {title: 'H1', value: 'h1'},
-        {title: 'H2', value: 'h2'},
-        {title: 'H3', value: 'h3'},
-        {title: 'H4', value: 'h4'},
-        {title: 'Quote', value: 'blockquote'},
-      ],
-      lists: [{title: 'Bullet', value: 'bullet'}, {title: 'Number', value: 'number'}],
-      marks: {
-        decorators: [
-          {title: 'Strong', value: 'strong'},
-          {title: 'Emphasis', value: 'em'},
-        ],
-        annotations: [
-          {
-            title: 'URL',
-            name: 'link',
-            type: 'object',
-            fields: [
-              {
-                title: 'URL',
-                name: 'href',
-                type: 'url',
-              },
-            ],
-          },
-        ],
-      },
-    }),
-    defineArrayMember({
-      type: 'image',
-      options: {hotspot: true},
-    }),
-    // ВАЖНО: Добавляем поддержку YouTube
-    defineArrayMember({
-      name: 'youtube',
-      type: 'object',
-      title: 'YouTube Video',
-      fields: [
-        {
-          name: 'url',
-          type: 'url',
-          title: 'YouTube Video URL'
-        }
-      ]
-    }),
-  ],
 })
 // === КОНЕЦ БЛОКА ===
 </file>
@@ -2388,49 +2385,160 @@ export default function Header() {
 // === КОНЕЦ БЛОКА ===
 </file>
 
-<file path="psy-admin/sanity.config.ts">
-// === НАЧАЛО БЛОКА: Sanity Config Admin ===
-import {defineConfig} from 'sanity'
-import {structureTool} from 'sanity/structure'
-import {visionTool} from '@sanity/vision'
-import {schemaTypes} from './schemaTypes'
-import {documentInternationalization} from '@sanity/document-internationalization'
+<file path="psy-admin/package.json">
+{
+  "name": "psy-admin",
+  "private": true,
+  "version": "1.0.0",
+  "main": "package.json",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "sanity dev",
+    "start": "sanity start",
+    "build": "sanity build",
+    "deploy": "sanity deploy",
+    "deploy-graphql": "sanity graphql deploy"
+  },
+  "keywords": [
+    "sanity"
+  ],
+  "dependencies": {
+    "@sanity/assist": "^5.0.4",
+    "@sanity/cli": "^5.10.0",
+    "@sanity/document-internationalization": "^5.0.1",
+    "@sanity/vision": "^5.10.0",
+    "next-themes": "^0.4.6",
+    "react": "^19.1",
+    "react-dom": "^19.1",
+    "sanity": "^5.10.0",
+    "styled-components": "^6.1.18"
+  },
+  "devDependencies": {
+    "@sanity/eslint-config-studio": "^6.0.0",
+    "@types/react": "^19.1",
+    "eslint": "^9.28",
+    "prettier": "^3.5",
+    "typescript": "^5.8"
+  },
+  "prettier": {
+    "semi": false,
+    "printWidth": 100,
+    "bracketSpacing": false,
+    "singleQuote": true
+  }
+}
+</file>
 
-export default defineConfig({
-  name: 'default',
-  title: 'Health Psy CMS',
-  projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'dp2yjc73',
-  dataset: process.env.SANITY_STUDIO_DATASET || 'production',
+<file path="psy-admin/schemaTypes/blockContent.ts">
+// === НАЧАЛО БЛОКА: blockContent ===
+import { defineType, defineArrayMember } from 'sanity'
 
-  plugins: [
-    // 👇 ДОБАВЛЕНО: Кастомная структура, скрывающая Translation Metadata
-    structureTool({
-      structure: (S) =>
-        S.list()
-          .title('Content')
-          .items([
-            ...S.documentTypeListItems().filter(
-              (listItem) => listItem.getId() !== 'translation.metadata'
-            ),
-          ]),
-    }),
-    visionTool(),
-    documentInternationalization({
-      supportedLanguages: [
-        {id: 'ru', title: 'Русский'},
-        {id: 'en', title: 'English'},
-        {id: 'ua', title: 'Українська'},
-        {id: 'pl', title: 'Polski'},
-        {id: 'de', title: 'Deutsch'}
+export default defineType({
+  title: 'Block Content',
+  name: 'blockContent',
+  type: 'array',
+  of: [
+    defineArrayMember({
+      title: 'Block',
+      type: 'block',
+      styles: [
+        { title: 'Normal', value: 'normal' },
+        { title: 'H2', value: 'h2' },
+        { title: 'H3', value: 'h3' },
+        { title: 'Quote', value: 'blockquote' },
       ],
-      schemaTypes: ['post'],
-      languageField: 'language',
+      lists: [
+        { title: 'Bullet', value: 'bullet' },
+        { title: 'Numbered', value: 'number' }
+      ],
+      marks: {
+        decorators: [
+          { title: 'Strong', value: 'strong' },
+          { title: 'Emphasis', value: 'em' },
+        ],
+        annotations: [
+          {
+            title: 'URL',
+            name: 'link',
+            type: 'object',
+            fields: [
+              { title: 'URL', name: 'href', type: 'url' },
+            ],
+          },
+        ],
+      },
+    }),
+    defineArrayMember({
+      type: 'image',
+      options: { hotspot: true },
+    }),
+    
+    // 💡 БЛОК 1: Инфобокс / Мнение эксперта (Для E-E-A-T)
+    defineArrayMember({
+      name: 'infoBox',
+      title: 'Мнение эксперта / Плашка',
+      type: 'object',
+      fields: [
+        {
+          name: 'type',
+          title: 'Тип плашки',
+          type: 'string',
+          options: {
+            list: [
+              { title: 'Мнение психолога', value: 'expert' },
+              { title: 'Важное предупреждение', value: 'warning' },
+              { title: 'Научный факт', value: 'science' }
+            ]
+          },
+          initialValue: 'expert'
+        },
+        { name: 'author', title: 'Имя эксперта (опционально)', type: 'string' },
+        { name: 'text', title: 'Текст', type: 'text', validation: (Rule) => Rule.required() }
+      ]
+    }),
+    
+    // 💡 БЛОК 2: YouTube Shorts / Видео
+    defineArrayMember({
+      name: 'youtubeShorts',
+      title: 'YouTube Shorts / Reels',
+      type: 'object',
+      fields: [
+        { 
+          name: 'url', 
+          title: 'URL видео', 
+          type: 'url',
+          description: 'Вставь ссылку на YouTube Shorts или обычное видео'
+        }
+      ]
+    }),
+    
+    // 💡 БЛОК 3: Интерактивный мини-тест
+    defineArrayMember({
+      name: 'quiz',
+      title: 'Мини-тест',
+      type: 'object',
+      fields: [
+        { name: 'title', title: 'Название теста (например: Уровень тревоги)', type: 'string' },
+        {
+          name: 'questions',
+          title: 'Вопросы',
+          type: 'array',
+          of: [{
+            type: 'object',
+            fields: [
+              { name: 'question', title: 'Вопрос', type: 'string' },
+              { 
+                name: 'options', 
+                title: 'Варианты ответа', 
+                type: 'array', 
+                of: [{ type: 'string' }] 
+              }
+            ]
+          }]
+        }
+      ]
     })
   ],
-
-  schema: {
-    types: schemaTypes,
-  },
 })
 // === КОНЕЦ БЛОКА ===
 </file>
@@ -2749,6 +2857,55 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
 // === КОНЕЦ БЛОКА ===
 </file>
 
+<file path="psy-admin/sanity.config.ts">
+// === НАЧАЛО БЛОКА: Sanity Config Admin ===
+import {defineConfig} from 'sanity'
+import {structureTool} from 'sanity/structure'
+import {visionTool} from '@sanity/vision'
+import {schemaTypes} from './schemaTypes'
+import {documentInternationalization} from '@sanity/document-internationalization'
+import {assist} from '@sanity/assist' // 💡 ДОБАВЛЕН ИМПОРТ ПЛАГИНА
+
+export default defineConfig({
+  name: 'default',
+  title: 'Health Psy CMS',
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'dp2yjc73',
+  dataset: process.env.SANITY_STUDIO_DATASET || 'production',
+
+  plugins: [
+    // Кастомная структура, скрывающая Translation Metadata
+    structureTool({
+      structure: (S) =>
+        S.list()
+          .title('Content')
+          .items([
+            ...S.documentTypeListItems().filter(
+              (listItem) => listItem.getId() !== 'translation.metadata'
+            ),
+          ]),
+    }),
+    visionTool(),
+    documentInternationalization({
+      supportedLanguages: [
+        {id: 'ru', title: 'Русский'},
+        {id: 'en', title: 'English'},
+        {id: 'ua', title: 'Українська'},
+        {id: 'pl', title: 'Polski'},
+        {id: 'de', title: 'Deutsch'}
+      ],
+      schemaTypes: ['post'],
+      languageField: 'language',
+    }),
+    assist(), // 💡 ДОБАВЛЕН ВЫЗОВ ПЛАГИНА
+  ],
+
+  schema: {
+    types: schemaTypes,
+  },
+})
+// === КОНЕЦ БЛОКА ===
+</file>
+
 <file path="psy-front/lib/sanity.ts">
 // === НАЧАЛО БЛОКА: Sanity Client & Image Builder ===
 import { createClient } from "next-sanity";
@@ -2945,318 +3102,6 @@ export default function BookmarksPage({ params }: { params: Promise<{ lang: stri
 // === КОНЕЦ БЛОКА ===
 </file>
 
-<file path="psy-front/app/[lang]/post/[slug]/page.tsx">
-// === НАЧАЛО БЛОКА: Single Post Page ===
-import { client } from "@/lib/sanity";
-import { groq } from "next-sanity";
-import { PortableText } from "@portabletext/react";
-import Link from "next/link";
-import Image from "next/image"; 
-import ProgressBar from "@/components/ui/ProgressBar"; 
-import ArticleActions from "@/components/article/ArticleActions"; 
-import BookmarkButton from "@/components/ui/BookmarkButton";
-import { Metadata } from "next";
-import TranslationProvider from "./TranslationProvider"; 
-
-// Словари для локализации страницы "Не найдено" и футера статьи
-const postTranslations = {
-  ru: { 
-    notFoundTitle: "Статья не найдена", 
-    backHome: "Вернуться на главную", 
-    backBtn: "← Назад к статьям",
-    categoryDefault: "Психология",
-    minRead: "мин чтения",
-    verified: "Проверено экспертом",
-    footerTitle: "Понравился материал?",
-    footerText: "Подпишитесь на наши обновления, чтобы не пропустить новые советы экспертов."
-  },
-  en: { 
-    notFoundTitle: "Article not found", 
-    backHome: "Back to home", 
-    backBtn: "← Back to articles",
-    categoryDefault: "Psychology",
-    minRead: "min read",
-    verified: "Verified by expert",
-    footerTitle: "Did you like this article?",
-    footerText: "Subscribe to our updates so you don't miss new expert advice."
-  },
-  ua: { 
-    notFoundTitle: "Статтю не знайдено", 
-    backHome: "Повернутися на головну", 
-    backBtn: "← Назад до статей",
-    categoryDefault: "Психологія",
-    minRead: "хв читання",
-    verified: "Перевірено експертом",
-    footerTitle: "Сподобався матеріал?",
-    footerText: "Підпишіться на наші оновлення, щоб не пропустити нові поради експертів."
-  },
-  pl: { 
-    notFoundTitle: "Nie znaleziono artykułu", 
-    backHome: "Wróć do strony głównej", 
-    backBtn: "← Wróć do artykułów",
-    categoryDefault: "Psychologia",
-    minRead: "min czytania",
-    verified: "Sprawdzone przez eksperta",
-    footerTitle: "Podobał Ci się materiał?",
-    footerText: "Zapisz się na nasze aktualizacje, aby nie przegapić nowych porad ekspertów."
-  },
-  de: { 
-    notFoundTitle: "Artikel nicht gefunden", 
-    backHome: "Zurück zur Startseite", 
-    backBtn: "← Zurück zu den Artikeln",
-    categoryDefault: "Psychologie",
-    minRead: "Minuten Lesezeit",
-    verified: "Von Experten geprüft",
-    footerTitle: "Hat Ihnen der Artikel gefallen?",
-    footerText: "Abonnieren Sie unsere Updates, um keine neuen Experten-Tipps zu verpassen."
-  },
-};
-
-// 1. ЗАПРОС ИЗМЕНЕН: Теперь мы получаем еще translationId и slugs всех переводов
-const postQuery = groq`*[_type == "post" && slug.current == $slug && language == $lang][0] {
-  _id,
-  title,
-  body,
-  publishedAt,
-  category,
-  readTime,
-  expert,
-  translationId,
-  "mainImage": mainImage.asset->url,
-  "plainText": pt::text(body),
-  "translations": *[_type == "post" && translationId == ^.translationId] {
-    language,
-    "slug": slug.current
-  }
-}`;
-
-export async function generateMetadata({ params }: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
-  const { lang, slug } = await params;
-  const post = await client.fetch(postQuery, { lang, slug });
-
-  const t = postTranslations[lang as keyof typeof postTranslations] || postTranslations.ru;
-
-  if (!post) return { title: t.notFoundTitle };
-
-  return {
-    title: `${post.title} | HealthPsy`,
-    description: post.plainText?.substring(0, 160) + "...",
-    openGraph: {
-      title: post.title,
-      description: post.plainText?.substring(0, 160) + "...",
-      images: post.mainImage ? [post.mainImage] : [],
-      type: "article",
-      publishedTime: post.publishedAt,
-      authors: post.expert ? [post.expert] : [],
-    },
-  };
-}
-
-const portableTextComponents = {
-  types: {
-    youtube: ({ value }: any) => {
-      const { url } = value;
-      if (!url) return null;
-
-      const isShorts = url.includes("shorts/");
-      const videoId = isShorts 
-        ? url.split("shorts/")[1].split(/[?#]/)[0] 
-        : url.split("v=")[1]?.split("&")[0];
-
-      return (
-        <div id={`video-${videoId}`} className="my-10 flex justify-center">
-          <div className={`w-full overflow-hidden rounded-3xl shadow-2xl bg-black ${
-            isShorts ? "max-w-[315px] aspect-[9/16]" : "aspect-video"
-          }`}>
-            <iframe
-              width="100%"
-              height="100%"
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="w-full h-full"
-            ></iframe>
-          </div>
-        </div>
-      );
-    },
-  },
-  block: {
-    // Кастомизация стандартных блоков для красивой типографики
-    normal: ({ children }: any) => (
-      <p className="mb-6 text-lg leading-relaxed text-gray-700 dark:text-zinc-300">
-        {children}
-      </p>
-    ),
-    h2: ({ children }: any) => (
-      <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-12 mb-6 text-gray-900 dark:text-white">
-        {children}
-      </h2>
-    ),
-    h3: ({ children }: any) => (
-      <h3 className="text-xl sm:text-2xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">
-        {children}
-      </h3>
-    ),
-    blockquote: ({ children }: any) => (
-      <blockquote className="border-l-4 border-blue-600 pl-6 py-2 my-8 italic text-xl text-gray-800 dark:text-zinc-200 bg-gray-50 dark:bg-zinc-800/50 rounded-r-xl">
-        {children}
-      </blockquote>
-    ),
-    ul: ({ children }: any) => (
-      <ul className="list-disc pl-6 mb-6 space-y-2 text-lg text-gray-700 dark:text-zinc-300 marker:text-blue-500">
-        {children}
-      </ul>
-    ),
-    ol: ({ children }: any) => (
-      <ol className="list-decimal pl-6 mb-6 space-y-2 text-lg text-gray-700 dark:text-zinc-300 marker:font-bold">
-        {children}
-      </ol>
-    ),
-  },
-};
-
-interface PostPageProps {
-  params: Promise<{ lang: string; slug: string }>;
-}
-
-export default async function PostPage({ params }: PostPageProps) {
-  const { lang, slug } = await params;
-  const t = postTranslations[lang as keyof typeof postTranslations] || postTranslations.ru;
-  const post = await client.fetch(postQuery, { lang, slug });
-
-  if (!post) {
-    return (
-      <main id="post-not-found" className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 font-sans">{t.notFoundTitle}</h1>
-          <Link href={`/${lang}`} className="text-blue-600 hover:underline">{t.backHome}</Link>
-        </div>
-      </main>
-    );
-  }
-
-  const textForAudio = post.plainText || post.title;
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    image: post.mainImage ? [post.mainImage] : [],
-    datePublished: post.publishedAt,
-    author: {
-      "@type": "Person",
-      name: post.expert || "Редакция",
-    },
-    timeRequired: `PT${post.readTime || 5}M`,
-  };
-
-  const translationMap = post.translations?.reduce((acc: any, curr: any) => {
-    if (curr.language && curr.slug) {
-      acc[curr.language] = curr.slug;
-    }
-    return acc;
-  }, {}) || {};
-
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      
-      <ProgressBar />
-      
-      <TranslationProvider translations={translationMap} currentLang={lang} />
-      
-      <main id="post-main-content" className="font-sans">
-        <article id="post-article" className="layout-container max-w-3xl mx-auto">
-          
-          <nav id="post-navigation" className="mb-8">
-            <Link
-              href={`/${lang}`}
-              className="text-sm font-bold text-zinc-500 hover:text-blue-600 transition-colors flex items-center gap-2"
-            >
-              {t.backBtn}
-            </Link>
-          </nav>
-
-          <header id="post-header">
-            <h1 id="post-title" className="text-3xl md:text-5xl font-black text-gray-900 dark:text-zinc-50 mb-6 leading-tight">
-              {post.title}
-            </h1>
-
-            <div className="flex items-center justify-between mb-10">
-              <div id="post-meta" className="flex flex-wrap items-center gap-4 text-sm font-medium">
-                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                  {post.category || t.categoryDefault}
-                </span>
-                <span className="text-gray-400 dark:text-zinc-500">
-                  {post.readTime || 5} {t.minRead}
-                </span>
-                <time className="text-gray-400 dark:text-zinc-500 hidden sm:inline-block">
-                  {new Date(post.publishedAt).toLocaleDateString(lang === "en" ? "en-US" : "ru-RU")}
-                </time>
-                {post.expert && (
-                  <span className="text-green-600 dark:text-green-400 font-bold flex items-center gap-1">
-                    ✓ <span className="hidden sm:inline-block">{t.verified}</span>
-                  </span>
-                )}
-              </div>
-
-              <div className="shrink-0 pl-4">
-                <BookmarkButton articleId={post._id} />
-              </div>
-            </div>
-          </header>
-
-          {post.mainImage && (
-            <div id="post-hero-image" className="relative w-full aspect-video rounded-3xl overflow-hidden mb-12 shadow-2xl">
-              <Image 
-                src={post.mainImage} 
-                alt={post.title} 
-                fill
-                priority
-                sizes="(max-width: 768px) 100vw, 768px"
-                className="object-cover w-full h-full"
-              />
-            </div>
-          )}
-
-          {/* 👇 ИСПРАВЛЕНИЕ ЗДЕСЬ: Добавлена передача lang в ArticleActions 👇 */}
-          <ArticleActions title={post.title} textToRead={textForAudio} lang={lang} />
-
-          <div id="post-body" className="prose prose-zinc dark:prose-invert max-w-none 
-            prose-lg 
-            prose-p:text-gray-700 dark:prose-p:text-zinc-200 
-            prose-p:leading-relaxed 
-            prose-headings:font-black 
-            prose-a:text-blue-600 dark:prose-a:text-blue-400">
-            
-            <PortableText 
-              value={post.body} 
-              components={portableTextComponents} 
-            />
-            
-          </div>
-
-          <footer id="post-footer" className="p-8 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800 mt-16 text-center">
-              <h3 className="text-lg font-bold mb-2">{t.footerTitle}</h3>
-              <p className="text-gray-500 dark:text-zinc-400 text-sm">
-                {t.footerText}
-              </p>
-          </footer>
-
-        </article>
-      </main>
-    </>
-  );
-}
-// === КОНЕЦ БЛОКА ===
-</file>
-
 <file path="psy-front/components/LanguageSwitcher.tsx">
 // === НАЧАЛО БЛОКА: Smart Language Switcher (Localized) ===
 "use client";
@@ -3422,6 +3267,349 @@ export default function LanguageSwitcher() {
     "typescript": "^5"
   }
 }
+</file>
+
+<file path="psy-front/app/[lang]/post/[slug]/page.tsx">
+// === НАЧАЛО БЛОКА: Single Post Page ===
+import { client } from "@/lib/sanity";
+import { groq } from "next-sanity";
+import { PortableText } from "@portabletext/react";
+import Link from "next/link";
+import Image from "next/image"; 
+import ProgressBar from "@/components/ui/ProgressBar"; 
+import ArticleActions from "@/components/article/ArticleActions"; 
+import BookmarkButton from "@/components/ui/BookmarkButton";
+import { Metadata } from "next";
+import TranslationProvider from "./TranslationProvider"; 
+import QuizBlock from "@/components/article/QuizBlock"; // 💡 ДОБАВЛЕН ИМПОРТ ТЕСТА
+
+// Словари для локализации
+const postTranslations = {
+  ru: { 
+    notFoundTitle: "Статья не найдена", 
+    backHome: "Вернуться на главную", 
+    backBtn: "← Назад к статьям",
+    categoryDefault: "Психология",
+    minRead: "мин чтения",
+    verified: "Проверено экспертом",
+    footerTitle: "Понравился материал?",
+    footerText: "Подпишитесь на наши обновления, чтобы не пропустить новые советы экспертов."
+  },
+  en: { 
+    notFoundTitle: "Article not found", 
+    backHome: "Back to home", 
+    backBtn: "← Back to articles",
+    categoryDefault: "Psychology",
+    minRead: "min read",
+    verified: "Verified by expert",
+    footerTitle: "Did you like this article?",
+    footerText: "Subscribe to our updates so you don't miss new expert advice."
+  },
+  ua: { 
+    notFoundTitle: "Статтю не знайдено", 
+    backHome: "Повернутися на головну", 
+    backBtn: "← Назад до статей",
+    categoryDefault: "Психологія",
+    minRead: "хв читання",
+    verified: "Перевірено експертом",
+    footerTitle: "Сподобався матеріал?",
+    footerText: "Підпишіться на наші оновлення, щоб не пропустити нові поради експертів."
+  },
+  pl: { 
+    notFoundTitle: "Nie znaleziono artykułu", 
+    backHome: "Wróć do strony głównej", 
+    backBtn: "← Wróć do artykułów",
+    categoryDefault: "Psychologia",
+    minRead: "min czytania",
+    verified: "Sprawdzone przez eksperta",
+    footerTitle: "Podobał Ci się materiał?",
+    footerText: "Zapisz się na nasze aktualizacje, aby nie przegapić nowych porad ekspertów."
+  },
+  de: { 
+    notFoundTitle: "Artikel nicht gefunden", 
+    backHome: "Zurück zur Startseite", 
+    backBtn: "← Zurück zu den Artikeln",
+    categoryDefault: "Psychologie",
+    minRead: "Minuten Lesezeit",
+    verified: "Von Experten geprüft",
+    footerTitle: "Hat Ihnen der Artikel gefallen?",
+    footerText: "Abonnieren Sie unsere Updates, um keine neuen Experten-Tipps zu verpassen."
+  },
+};
+
+const postQuery = groq`*[_type == "post" && slug.current == $slug && language == $lang][0] {
+  _id,
+  title,
+  body,
+  publishedAt,
+  category,
+  readTime,
+  expert,
+  translationId,
+  "mainImage": mainImage.asset->url,
+  "plainText": pt::text(body),
+  "translations": *[_type == "post" && translationId == ^.translationId] {
+    language,
+    "slug": slug.current
+  }
+}`;
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
+  const { lang, slug } = await params;
+  const post = await client.fetch(postQuery, { lang, slug });
+  const t = postTranslations[lang as keyof typeof postTranslations] || postTranslations.ru;
+
+  if (!post) return { title: t.notFoundTitle };
+
+  return {
+    title: `${post.title} | HealthPsy`,
+    description: post.plainText?.substring(0, 160) + "...",
+    openGraph: {
+      title: post.title,
+      description: post.plainText?.substring(0, 160) + "...",
+      images: post.mainImage ? [post.mainImage] : [],
+      type: "article",
+      publishedTime: post.publishedAt,
+      authors: post.expert ? [post.expert] : [],
+    },
+  };
+}
+
+const portableTextComponents = {
+  types: {
+    // 1. СТАРЫЙ БЛОК YOUTUBE (Оставили для обратной совместимости)
+    youtube: ({ value }: any) => {
+      const { url } = value;
+      if (!url) return null;
+      const videoId = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([^"&?\/\s]{11})/)?.[1];
+      if (!videoId) return null;
+
+      return (
+        <div className="my-10 flex justify-center">
+          <div className="w-full overflow-hidden rounded-3xl shadow-xl bg-black aspect-video">
+            <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${videoId}`} title="YouTube" frameBorder="0" allowFullScreen></iframe>
+          </div>
+        </div>
+      );
+    },
+
+    // 2. НОВЫЙ БЛОК: YOUTUBE SHORTS
+    youtubeShorts: ({ value }: any) => {
+      const { url } = value;
+      if (!url) return null;
+      const videoId = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([^"&?\/\s]{11})/)?.[1];
+      if (!videoId) return null;
+
+      return (
+        <div className="my-10 flex justify-center">
+          <div className="w-full overflow-hidden rounded-3xl shadow-xl bg-black max-w-[315px] aspect-[9/16]">
+            <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${videoId}`} title="YouTube Shorts" frameBorder="0" allowFullScreen></iframe>
+          </div>
+        </div>
+      );
+    },
+
+    // 3. НОВЫЙ БЛОК: МНЕНИЕ ЭКСПЕРТА / E-E-A-T
+    infoBox: ({ value }: any) => {
+      const { type, author, text } = value;
+      
+      // Динамические стили в зависимости от типа плашки
+      const config = {
+        expert: { icon: "🧠", bg: "bg-blue-50 dark:bg-blue-900/10", border: "border-blue-200 dark:border-blue-800", title: "Мнение психолога" },
+        warning: { icon: "⚠️", bg: "bg-orange-50 dark:bg-orange-900/10", border: "border-orange-200 dark:border-orange-800", title: "Важно" },
+        science: { icon: "🔬", bg: "bg-purple-50 dark:bg-purple-900/10", border: "border-purple-200 dark:border-purple-800", title: "Научный факт" }
+      }[type as string] || { icon: "💡", bg: "bg-gray-50 dark:bg-zinc-800", border: "border-gray-200 dark:border-zinc-700", title: "Информация" };
+
+      return (
+        <div className={`my-10 p-6 md:p-8 rounded-[24px] border ${config.bg} ${config.border}`}>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl" aria-hidden="true">{config.icon}</span>
+            <h4 className="font-bold text-lg md:text-xl text-gray-900 dark:text-white">
+              {author ? `${config.title}: ${author}` : config.title}
+            </h4>
+          </div>
+          <p className="text-gray-700 dark:text-zinc-300 italic m-0 text-lg leading-relaxed">
+            «{text}»
+          </p>
+        </div>
+      );
+    },
+
+    // 4. НОВЫЙ БЛОК: ИНТЕРАКТИВНЫЙ МИНИ-ТЕСТ
+    quiz: ({ value }: any) => {
+      return <QuizBlock title={value.title} questions={value.questions} />;
+    },
+  },
+  block: {
+    normal: ({ children }: any) => (
+      <p className="mb-6 text-lg leading-relaxed text-gray-700 dark:text-zinc-300">
+        {children}
+      </p>
+    ),
+    h2: ({ children }: any) => (
+      <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-12 mb-6 text-gray-900 dark:text-white">
+        {children}
+      </h2>
+    ),
+    h3: ({ children }: any) => (
+      <h3 className="text-xl sm:text-2xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">
+        {children}
+      </h3>
+    ),
+    blockquote: ({ children }: any) => (
+      <blockquote className="border-l-4 border-blue-600 pl-6 py-2 my-8 italic text-xl text-gray-800 dark:text-zinc-200 bg-gray-50 dark:bg-zinc-800/50 rounded-r-xl">
+        {children}
+      </blockquote>
+    ),
+    ul: ({ children }: any) => (
+      <ul className="list-disc pl-6 mb-6 space-y-2 text-lg text-gray-700 dark:text-zinc-300 marker:text-blue-500">
+        {children}
+      </ul>
+    ),
+    ol: ({ children }: any) => (
+      <ol className="list-decimal pl-6 mb-6 space-y-2 text-lg text-gray-700 dark:text-zinc-300 marker:font-bold">
+        {children}
+      </ol>
+    ),
+  },
+};
+
+interface PostPageProps {
+  params: Promise<{ lang: string; slug: string }>;
+}
+
+export default async function PostPage({ params }: PostPageProps) {
+  const { lang, slug } = await params;
+  const t = postTranslations[lang as keyof typeof postTranslations] || postTranslations.ru;
+  const post = await client.fetch(postQuery, { lang, slug });
+
+  if (!post) {
+    return (
+      <main id="post-not-found" className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4 font-sans">{t.notFoundTitle}</h1>
+          <Link href={`/${lang}`} className="text-blue-600 hover:underline">{t.backHome}</Link>
+        </div>
+      </main>
+    );
+  }
+
+  const textForAudio = post.plainText || post.title;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    image: post.mainImage ? [post.mainImage] : [],
+    datePublished: post.publishedAt,
+    author: {
+      "@type": "Person",
+      name: post.expert || "Редакция",
+    },
+    timeRequired: `PT${post.readTime || 5}M`,
+  };
+
+  const translationMap = post.translations?.reduce((acc: any, curr: any) => {
+    if (curr.language && curr.slug) {
+      acc[curr.language] = curr.slug;
+    }
+    return acc;
+  }, {}) || {};
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      
+      <ProgressBar />
+      
+      <TranslationProvider translations={translationMap} currentLang={lang} />
+      
+      <main id="post-main-content" className="font-sans">
+        <article id="post-article" className="layout-container max-w-3xl mx-auto">
+          
+          <nav id="post-navigation" className="mb-8">
+            <Link
+              href={`/${lang}`}
+              className="text-sm font-bold text-zinc-500 hover:text-blue-600 transition-colors flex items-center gap-2"
+            >
+              {t.backBtn}
+            </Link>
+          </nav>
+
+          <header id="post-header">
+            <h1 id="post-title" className="text-3xl md:text-5xl font-black text-gray-900 dark:text-zinc-50 mb-6 leading-tight">
+              {post.title}
+            </h1>
+
+            <div className="flex items-center justify-between mb-10">
+              <div id="post-meta" className="flex flex-wrap items-center gap-4 text-sm font-medium">
+                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                  {post.category || t.categoryDefault}
+                </span>
+                <span className="text-gray-400 dark:text-zinc-500">
+                  {post.readTime || 5} {t.minRead}
+                </span>
+                <time className="text-gray-400 dark:text-zinc-500 hidden sm:inline-block">
+                  {new Date(post.publishedAt).toLocaleDateString(lang === "en" ? "en-US" : "ru-RU")}
+                </time>
+                {post.expert && (
+                  <span className="text-green-600 dark:text-green-400 font-bold flex items-center gap-1">
+                    ✓ <span className="hidden sm:inline-block">{t.verified}</span>
+                  </span>
+                )}
+              </div>
+
+              <div className="shrink-0 pl-4">
+                <BookmarkButton articleId={post._id} />
+              </div>
+            </div>
+          </header>
+
+          {post.mainImage && (
+            <div id="post-hero-image" className="relative w-full aspect-video rounded-3xl overflow-hidden mb-12 shadow-2xl">
+              <Image 
+                src={post.mainImage} 
+                alt={post.title} 
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover w-full h-full"
+              />
+            </div>
+          )}
+
+          <ArticleActions title={post.title} textToRead={textForAudio} lang={lang} />
+
+          <div id="post-body" className="prose prose-zinc dark:prose-invert max-w-none 
+            prose-lg 
+            prose-p:text-gray-700 dark:prose-p:text-zinc-200 
+            prose-p:leading-relaxed 
+            prose-headings:font-black 
+            prose-a:text-blue-600 dark:prose-a:text-blue-400">
+            
+            <PortableText 
+              value={post.body} 
+              components={portableTextComponents} 
+            />
+            
+          </div>
+
+          <footer id="post-footer" className="p-8 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800 mt-16 text-center">
+              <h3 className="text-lg font-bold mb-2">{t.footerTitle}</h3>
+              <p className="text-gray-500 dark:text-zinc-400 text-sm">
+                {t.footerText}
+              </p>
+          </footer>
+
+        </article>
+      </main>
+    </>
+  );
+}
+// === КОНЕЦ БЛОКА ===
 </file>
 
 <file path="psy-front/app/layout.tsx">
@@ -3653,157 +3841,6 @@ export default function ArticleActions({ title, textToRead, lang = "ru" }: Artic
 // === КОНЕЦ БЛОКА ===
 </file>
 
-<file path="psy-admin/schemaTypes/post.ts">
-// === НАЧАЛО БЛОКА: Sanity Post Schema (Updated) ===
-import { defineField, defineType } from 'sanity'
-
-export default defineType({
-  name: 'post',
-  title: 'Статья (Post)',
-  type: 'document',
-  fields: [
-    defineField({
-      name: 'title',
-      title: 'Title (Заголовок)',
-      type: 'string',
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'slug',
-      title: 'Slug (URL статьи)',
-      type: 'slug',
-      options: {
-        source: 'title',
-        maxLength: 96,
-        // 👇 ИЗМЕНЕНО: Строгая проверка уникальности слага для ВСЕХ языков
-        isUnique: async (value, context) => {
-          const { document, getClient } = context;
-          const client = getClient({ apiVersion: '2024-02-16' });
-          const id = document?._id.replace(/^drafts\./, '');
-          
-          const params = {
-            draft: `drafts.${id}`,
-            published: id,
-            slug: value as string,
-          };
-          
-          // Убрали привязку к языку. Теперь слаг ищется по всей базе.
-          const query = `!defined(*[!(_id in [$draft, $published]) && slug.current == $slug][0]._id)`;
-          return await client.fetch(query, params);
-        },
-      },
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'language',
-      title: '🌐 Язык статьи',
-      type: 'string',
-      readOnly: true, // Поле управляется плагином document-internationalization
-    }),
-    
-    defineField({
-        name: 'translationId',
-        title: 'Translation ID (Group ID)',
-        type: 'string',
-        description: 'Придумайте одинаковый ID для всех версий одной статьи (например: "anxiety-01"). Это свяжет их переключателем.',
-    }),
-    
-    defineField({
-      name: 'category',
-      title: 'Category (Legacy Tag)',
-      type: 'string',
-      hidden: false, 
-      description: 'Старое текстовое поле категории (для совместимости)',
-    }),
-    defineField({
-      name: 'author',
-      title: 'Author',
-      type: 'reference',
-      to: { type: 'author' },
-    }),
-    defineField({
-      name: 'mainImage',
-      title: 'Main image',
-      type: 'image',
-      options: { hotspot: true },
-    }),
-    defineField({
-      name: 'categories',
-      title: 'Categories',
-      type: 'array',
-      of: [{ type: 'reference', to: { type: 'category' } }],
-    }),
-    defineField({
-      name: 'publishedAt',
-      title: 'Published at',
-      type: 'datetime',
-      initialValue: () => new Date().toISOString(),
-    }),
-    
-    defineField({
-      name: 'readTime',
-      title: '⏳ Время чтения (в минутах)',
-      type: 'number',
-      validation: (Rule) => Rule.min(1).max(60),
-    }),
-    defineField({
-      name: 'readingTime',
-      title: '[УСТАРЕЛО] Время чтения',
-      type: 'number',
-      hidden: true,
-    }),
-    defineField({
-      name: 'expert',
-      title: '🧠 Мнение психолога (E-E-A-T)',
-      description: 'Поставь галочку, если статью проверял или писал эксперт',
-      type: 'boolean',
-      initialValue: false,
-    }),
-    defineField({
-      name: 'expertReview',
-      title: '[УСТАРЕЛО] Мнение психолога',
-      type: 'boolean',
-      hidden: true,
-    }),
-    defineField({
-      name: 'youtubeShorts',
-      title: 'YouTube Shorts (Мультиязычный)',
-      type: 'object',
-      fields: [
-        { name: 'ru', type: 'url', title: 'Видео (RU)' },
-        { name: 'en', type: 'url', title: 'Видео (EN)' },
-        { name: 'ua', type: 'url', title: 'Видео (UA)' },
-        { name: 'pl', type: 'url', title: 'Видео (PL)' },
-        { name: 'de', type: 'url', title: 'Видео (DE)' },
-      ]
-    }),
-    defineField({
-      name: 'body',
-      title: 'Body (Текст)',
-      type: 'blockContent',
-    }),
-  ],
-
-  preview: {
-    select: {
-      title: 'title',
-      author: 'author.name',
-      media: 'mainImage',
-      lang: 'language',
-    },
-    prepare(selection) {
-      const { author, title, media, lang } = selection;
-      return {
-        title: title,
-        subtitle: `${lang ? lang.toUpperCase() : 'RU'} ${author ? `| by ${author}` : ''}`,
-        media: media,
-      }
-    },
-  },
-})
-// === КОНЕЦ БЛОКА ===
-</file>
-
 <file path="psy-front/lib/queries.ts">
 // === НАЧАЛО БЛОКА: Sanity Queries ===
 import { groq } from "next-sanity";
@@ -3850,6 +3887,202 @@ export const singlePostQuery = groq`*[_type == "post" && slug.current == $slug][
     "mainImage": mainImage.asset->url
   }
 }`;
+// === КОНЕЦ БЛОКА ===
+</file>
+
+<file path="psy-admin/schemaTypes/post.ts">
+// === НАЧАЛО БЛОКА: Sanity Post Schema (Restored & Tabbed) ===
+import { defineField, defineType } from 'sanity'
+
+export default defineType({
+  name: 'post',
+  title: 'Статья (Post)',
+  type: 'document',
+  // 💡 РАЗБИВАЕМ ИНТЕРФЕЙС НА ВКЛАДКИ
+  groups: [
+    { name: 'content', title: 'Контент', default: true },
+    { name: 'seo', title: 'SEO & Meta' },
+    { name: 'settings', title: 'Настройки' },
+  ],
+  fields: [
+    // --- ВКЛАДКА: НАСТРОЙКИ ---
+    defineField({
+      name: 'language',
+      title: '🌐 Язык статьи',
+      type: 'string',
+      readOnly: true,
+      hidden: true,
+      group: 'settings'
+    }),
+    defineField({
+      name: 'translationId',
+      title: 'Translation ID (Group ID)',
+      type: 'string',
+      description: 'Придумайте одинаковый ID для всех версий одной статьи (например: "anxiety-01"). Это свяжет их переключателем.',
+      group: 'settings'
+    }),
+    defineField({
+      name: 'publishedAt',
+      title: 'Published at',
+      type: 'datetime',
+      initialValue: () => new Date().toISOString(),
+      group: 'settings'
+    }),
+
+    // --- ВКЛАДКА: КОНТЕНТ ---
+    defineField({
+      name: 'title',
+      title: 'Title (Заголовок)',
+      type: 'string',
+      group: 'content',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'slug',
+      title: 'Slug (URL статьи)',
+      type: 'slug',
+      group: 'content',
+      options: {
+        source: 'title',
+        maxLength: 96,
+        // Строгая проверка уникальности слага для ВСЕХ языков
+        isUnique: async (value, context) => {
+          const { document, getClient } = context;
+          const client = getClient({ apiVersion: '2024-02-16' });
+          const id = document?._id.replace(/^drafts\./, '');
+          
+          const params = {
+            draft: `drafts.${id}`,
+            published: id,
+            slug: value as string,
+          };
+          
+          const query = `!defined(*[!(_id in [$draft, $published]) && slug.current == $slug][0]._id)`;
+          return await client.fetch(query, params);
+        },
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'category',
+      title: 'Category (Legacy Tag)',
+      type: 'string',
+      hidden: false, 
+      description: 'Старое текстовое поле категории (для совместимости)',
+      group: 'content'
+    }),
+    defineField({
+      name: 'categories',
+      title: 'Categories',
+      type: 'array',
+      of: [{ type: 'reference', to: { type: 'category' } }],
+      group: 'content'
+    }),
+    defineField({
+      name: 'author',
+      title: 'Author',
+      type: 'reference',
+      to: { type: 'author' },
+      group: 'content'
+    }),
+    defineField({
+      name: 'mainImage',
+      title: 'Main image',
+      type: 'image',
+      options: { hotspot: true },
+      group: 'content'
+    }),
+    defineField({
+      name: 'youtubeShorts',
+      title: 'YouTube Shorts (Мультиязычный)',
+      type: 'object',
+      group: 'content',
+      fields: [
+        { name: 'ru', type: 'url', title: 'Видео (RU)' },
+        { name: 'en', type: 'url', title: 'Видео (EN)' },
+        { name: 'ua', type: 'url', title: 'Видео (UA)' },
+        { name: 'pl', type: 'url', title: 'Видео (PL)' },
+        { name: 'de', type: 'url', title: 'Видео (DE)' },
+      ]
+    }),
+    defineField({
+      name: 'body',
+      title: 'Body (Текст)',
+      type: 'blockContent',
+      group: 'content'
+    }),
+
+    // --- ВКЛАДКА: SEO & META (И E-E-A-T) ---
+    defineField({
+      name: 'seoTitle',
+      title: 'SEO Заголовок (Title)',
+      description: 'Оставь пустым, чтобы использовать обычный заголовок. Идеально: 50-60 символов.',
+      type: 'string',
+      group: 'seo',
+    }),
+    defineField({
+      name: 'seoDescription',
+      title: 'SEO Описание (Meta Description)',
+      description: 'Краткое описание для Google и соцсетей (до 160 символов).',
+      type: 'text',
+      rows: 3,
+      group: 'seo',
+    }),
+    defineField({
+      name: 'ogImage',
+      title: 'Картинка для соцсетей (OG Image)',
+      description: 'Специальная картинка для репостов в Telegram/WhatsApp (рекомендуется 1200x630). Если пусто — возьмет главную.',
+      type: 'image',
+      group: 'seo',
+    }),
+    defineField({
+      name: 'expert',
+      title: '🧠 Мнение психолога (E-E-A-T)',
+      description: 'Поставь галочку, если статью проверял или писал эксперт',
+      type: 'boolean',
+      initialValue: false,
+      group: 'seo'
+    }),
+    defineField({
+      name: 'expertReview',
+      title: '[УСТАРЕЛО] Мнение психолога',
+      type: 'boolean',
+      hidden: true,
+      group: 'seo'
+    }),
+    defineField({
+      name: 'readTime',
+      title: '⏳ Время чтения (в минутах)',
+      type: 'number',
+      validation: (Rule) => Rule.min(1).max(60),
+      group: 'seo'
+    }),
+    defineField({
+      name: 'readingTime',
+      title: '[УСТАРЕЛО] Время чтения',
+      type: 'number',
+      hidden: true,
+      group: 'seo'
+    }),
+  ],
+
+  preview: {
+    select: {
+      title: 'title',
+      author: 'author.name',
+      media: 'mainImage',
+      lang: 'language',
+    },
+    prepare(selection) {
+      const { author, title, media, lang } = selection;
+      return {
+        title: title,
+        subtitle: `${lang ? lang.toUpperCase() : 'RU'} ${author ? `| by ${author}` : ''}`,
+        media: media,
+      }
+    },
+  },
+})
 // === КОНЕЦ БЛОКА ===
 </file>
 

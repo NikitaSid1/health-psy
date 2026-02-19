@@ -36,8 +36,11 @@ export default defineType({
         ],
       },
     }),
+    
+    // 🖼 БЛОК: Изображение
     defineArrayMember({
       type: 'image',
+      title: 'Картинка',
       options: { hotspot: true },
     }),
     
@@ -65,22 +68,37 @@ export default defineType({
       ]
     }),
     
-    // 💡 БЛОК 2: YouTube Shorts / Видео
+    // 💡 БЛОК 2: Обычный YouTube
     defineArrayMember({
-      name: 'youtubeShorts',
-      title: 'YouTube Shorts / Reels',
+      name: 'youtube',
+      title: 'YouTube Видео (Горизонтальное)',
       type: 'object',
       fields: [
         { 
           name: 'url', 
           title: 'URL видео', 
           type: 'url',
-          description: 'Вставь ссылку на YouTube Shorts или обычное видео'
+          description: 'Вставь обычную ссылку на YouTube видео'
+        }
+      ]
+    }),
+
+    // 💡 БЛОК 3: YouTube Shorts / Reels
+    defineArrayMember({
+      name: 'youtubeShorts',
+      title: 'YouTube Shorts (Вертикальное)',
+      type: 'object',
+      fields: [
+        { 
+          name: 'url', 
+          title: 'URL Shorts', 
+          type: 'url',
+          description: 'Вставь ссылку на YouTube Shorts'
         }
       ]
     }),
     
-    // 💡 БЛОК 3: Интерактивный мини-тест
+    // 💡 БЛОК 4: Интерактивный мини-тест
     defineArrayMember({
       name: 'quiz',
       title: 'Мини-тест',
@@ -92,6 +110,7 @@ export default defineType({
           title: 'Вопросы',
           type: 'array',
           of: [{
+            name: 'questionItem', // <-- ИСПРАВЛЕНИЕ ДЛЯ ДЕПЛОЯ (строгое имя объекта)
             type: 'object',
             fields: [
               { name: 'question', title: 'Вопрос', type: 'string' },
@@ -99,7 +118,10 @@ export default defineType({
                 name: 'options', 
                 title: 'Варианты ответа', 
                 type: 'array', 
-                of: [{ type: 'string' }] 
+                of: [{ 
+                  name: 'optionItem', // <-- ИСПРАВЛЕНИЕ ДЛЯ ДЕПЛОЯ (на всякий случай даем имя и строке)
+                  type: 'string' 
+                }] 
               }
             ]
           }]

@@ -1,11 +1,10 @@
-// === НАЧАЛО БЛОКА: Sanity Post Schema (Restored & Tabbed) ===
+// === НАЧАЛО БЛОКА: Sanity Post Schema ===
 import { defineField, defineType } from 'sanity'
 
 export default defineType({
   name: 'post',
   title: 'Статья (Post)',
   type: 'document',
-  // 💡 РАЗБИВАЕМ ИНТЕРФЕЙС НА ВКЛАДКИ
   groups: [
     { name: 'content', title: 'Контент', default: true },
     { name: 'seo', title: 'SEO & Meta' },
@@ -52,7 +51,6 @@ export default defineType({
       options: {
         source: 'title',
         maxLength: 96,
-        // Строгая проверка уникальности слага для ВСЕХ языков
         isUnique: async (value, context) => {
           const { document, getClient } = context;
           const client = getClient({ apiVersion: '2024-02-16' });
@@ -70,26 +68,19 @@ export default defineType({
       },
       validation: (Rule) => Rule.required(),
     }),
+    // Оставили только рабочую категорию, по которой ищет сайт
     defineField({
       name: 'category',
-      title: 'Category (Legacy Tag)',
+      title: 'Категория (для поиска)',
       type: 'string',
-      hidden: false, 
-      description: 'Старое текстовое поле категории (для совместимости)',
-      group: 'content'
-    }),
-    defineField({
-      name: 'categories',
-      title: 'Categories',
-      type: 'array',
-      of: [{ type: 'reference', to: { type: 'category' } }],
+      description: 'Введите название категории (по ней работает поиск на сайте)',
       group: 'content'
     }),
     defineField({
       name: 'author',
       title: 'Author',
       type: 'reference',
-      to: { type: 'author' },
+      to: [{ type: 'author' }], // <-- ИСПРАВЛЕНИЕ: добавили квадратные скобки []
       group: 'content'
     }),
     defineField({
@@ -98,19 +89,6 @@ export default defineType({
       type: 'image',
       options: { hotspot: true },
       group: 'content'
-    }),
-    defineField({
-      name: 'youtubeShorts',
-      title: 'YouTube Shorts (Мультиязычный)',
-      type: 'object',
-      group: 'content',
-      fields: [
-        { name: 'ru', type: 'url', title: 'Видео (RU)' },
-        { name: 'en', type: 'url', title: 'Видео (EN)' },
-        { name: 'ua', type: 'url', title: 'Видео (UA)' },
-        { name: 'pl', type: 'url', title: 'Видео (PL)' },
-        { name: 'de', type: 'url', title: 'Видео (DE)' },
-      ]
     }),
     defineField({
       name: 'body',
