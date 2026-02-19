@@ -23,18 +23,24 @@ export default function ArticleActions({ title, textToRead, lang = "ru" }: Artic
   const [url, setUrl] = useState("");
   const isComponentMounted = useRef(true);
   
-  const t = translations[lang as keyof typeof translations] || translations.ru;
+  // Нормализуем код языка (Sanity может отдавать 'uk' вместо 'ua')
+  const isUk = lang === 'ua' || lang === 'uk';
+  const safeLang = isUk ? 'ua' : lang;
+  
+  const t = translations[safeLang as keyof typeof translations] || translations.ru;
 
   useEffect(() => {
     setUrl(window.location.href);
     isComponentMounted.current = true;
     
-    // Предзагружаем голоса, чтобы избежать паузы при первом клике
+    // Предзагружаем голоса и слушаем их готовность (важно для Safari и Chrome)
     if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
     }
     
-    // Гарантированная остановка при выходе со страницы
     return () => {
       isComponentMounted.current = false;
       if (typeof window !== "undefined" && window.speechSynthesis) {
@@ -93,41 +99,47 @@ export default function ArticleActions({ title, textToRead, lang = "ru" }: Artic
       window.speechSynthesis.cancel();
       setIsPlaying(false);
     } else {
-      // Сначала всегда вызываем cancel, чтобы сбросить зависшие очереди браузера
       window.speechSynthesis.cancel();
       
       const utterance = new SpeechSynthesisUtterance(textToRead);
       
-      // Устанавливаем язык
-      const langCode = lang === 'ua' ? 'uk-UA' : lang === 'pl' ? 'pl-PL' : lang === 'de' ? 'de-DE' : lang === 'en' ? 'en-US' : 'ru-RU';
+      // Генерируем правильный тег языка BCP 47
+      const langCode = isUk ? 'uk-UA' : lang === 'pl' ? 'pl-PL' : lang === 'de' ? 'de-DE' : lang === 'en' ? 'en-US' : 'ru-RU';
       utterance.lang = langCode;
       
-      // Поиск лучшего голоса (Google, Microsoft Premium, Natural)
       const voices = window.speechSynthesis.getVoices();
       if (voices.length > 0) {
-        const matchingVoices = voices.filter(v => v.lang.includes(langCode.split('-')[0]));
+        const searchLang = langCode.split('-')[0].toLowerCase(); // 'uk'
         
+        // Ищем все голоса, в которых указан этот язык
+        const matchingVoices = voices.filter(v => v.lang.toLowerCase().includes(searchLang));
+        
+        // Пытаемся взять самый качественный (включая Лесю для техники Apple)
         const bestVoice = matchingVoices.find(v => 
           v.name.includes("Natural") || 
           v.name.includes("Premium") || 
           v.name.includes("Google") ||
-          v.name.includes("Microsoft online")
+          v.name.includes("Microsoft online") ||
+          v.name.includes("Lesya")
         );
 
         if (bestVoice) {
           utterance.voice = bestVoice;
         } else if (matchingVoices.length > 0) {
-          utterance.voice = matchingVoices[0];
+          utterance.voice = matchingVoices[0]; // Берем любой доступный украинский
+        } else {
+          console.warn(`Голос для языка ${langCode} не установлен в операционной системе.`);
         }
       }
 
-      utterance.rate = 1.05; // Чуть быстрее для естественности
+      utterance.rate = 1.05; 
       
       utterance.onend = () => {
         if (isComponentMounted.current) setIsPlaying(false);
       };
       
-      utterance.onerror = () => {
+      utterance.onerror = (e) => {
+        console.error("Ошибка воспроизведения аудио:", e);
         if (isComponentMounted.current) setIsPlaying(false);
       };
       
