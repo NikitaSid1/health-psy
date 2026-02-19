@@ -11,11 +11,11 @@ interface ArticleActionsProps {
 }
 
 const translations = {
-  ru: { listen: "🎧 Слушать статью", stop: "⏹ Остановить", share: "↗ Поделиться", copied: "Ссылка скопирована!", recommend: "Рекомендую прочитать эту статью: ", error: "Ваш браузер не поддерживает аудио-чтение." },
-  en: { listen: "🎧 Listen to article", stop: "⏹ Stop", share: "↗ Share", copied: "Link copied!", recommend: "I recommend reading this article: ", error: "Your browser does not support audio reading." },
-  ua: { listen: "🎧 Слухати статтю", stop: "⏹ Зупинити", share: "↗ Поділитися", copied: "Посилання скопійовано!", recommend: "Рекомендую прочитати цю статтю: ", error: "Ваш браузер не підтримує аудіо-читання." },
-  pl: { listen: "🎧 Posłuchaj artykułu", stop: "⏹ Zatrzymaj", share: "↗ Udostępnij", copied: "Link skopiowany!", recommend: "Polecam przeczytać ten artykuł: ", error: "Twoja przeglądarka nie obsługuje czytania audio." },
-  de: { listen: "🎧 Artikel anhören", stop: "⏹ Stoppen", share: "↗ Teilen", copied: "Link kopiert!", recommend: "Ich empfehle diesen Artikel zu lesen: ", error: "Ihr Browser unterstützt kein Audio-Lesen." },
+  ru: { listen: "🎧 Слушать статью", stop: "⏹ Остановить", share: "↗ Поделиться", copied: "Ссылка скопирована!", recommend: "Рекомендую прочитать эту статью: ", error: "Ваш браузер не поддерживает аудио-чтение.", noVoice: "На вашем устройстве не установлен голосовой пакет для этого языка. Добавьте его в настройках системы." },
+  en: { listen: "🎧 Listen to article", stop: "⏹ Stop", share: "↗ Share", copied: "Link copied!", recommend: "I recommend reading this article: ", error: "Your browser does not support audio reading.", noVoice: "No voice package installed for this language on your device. Please add it in your system settings." },
+  ua: { listen: "🎧 Слухати статтю", stop: "⏹ Зупинити", share: "↗ Поділитися", copied: "Посилання скопійовано!", recommend: "Рекомендую прочитати цю статтю: ", error: "Ваш браузер не підтримує аудіо-читання.", noVoice: "На вашому пристрої не встановлено голосовий пакет для української мови. Додайте його в налаштуваннях системи." },
+  pl: { listen: "🎧 Posłuchaj artykułu", stop: "⏹ Zatrzymaj", share: "↗ Udostępnij", copied: "Link skopiowany!", recommend: "Polecam przeczytać ten artykuł: ", error: "Twoja przeglądarka nie obsługuje czytania audio.", noVoice: "Brak pakietu głosowego dla tego języka na Twoim urządzeniu. Dodaj go w ustawieniach systemu." },
+  de: { listen: "🎧 Artikel anhören", stop: "⏹ Stoppen", share: "↗ Teilen", copied: "Link kopiert!", recommend: "Ich empfehle diesen Artikel zu lesen: ", error: "Ihr Browser unterstützt kein Audio-Lesen.", noVoice: "Auf Ihrem Gerät ist kein Sprachpaket für diese Sprache installiert. Bitte fügen Sie es in Ihren Systemeinstellungen hinzu." },
 };
 
 export default function ArticleActions({ title, textToRead, lang = "ru" }: ArticleActionsProps) {
@@ -23,7 +23,6 @@ export default function ArticleActions({ title, textToRead, lang = "ru" }: Artic
   const [url, setUrl] = useState("");
   const isComponentMounted = useRef(true);
   
-  // Нормализуем код языка (Sanity может отдавать 'uk' вместо 'ua')
   const isUk = lang === 'ua' || lang === 'uk';
   const safeLang = isUk ? 'ua' : lang;
   
@@ -33,7 +32,6 @@ export default function ArticleActions({ title, textToRead, lang = "ru" }: Artic
     setUrl(window.location.href);
     isComponentMounted.current = true;
     
-    // Предзагружаем голоса и слушаем их готовность (важно для Safari и Chrome)
     if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.getVoices();
       window.speechSynthesis.onvoiceschanged = () => {
@@ -102,19 +100,21 @@ export default function ArticleActions({ title, textToRead, lang = "ru" }: Artic
       window.speechSynthesis.cancel();
       
       const utterance = new SpeechSynthesisUtterance(textToRead);
-      
-      // Генерируем правильный тег языка BCP 47
       const langCode = isUk ? 'uk-UA' : lang === 'pl' ? 'pl-PL' : lang === 'de' ? 'de-DE' : lang === 'en' ? 'en-US' : 'ru-RU';
       utterance.lang = langCode;
       
       const voices = window.speechSynthesis.getVoices();
+      
       if (voices.length > 0) {
-        const searchLang = langCode.split('-')[0].toLowerCase(); // 'uk'
-        
-        // Ищем все голоса, в которых указан этот язык
+        const searchLang = langCode.split('-')[0].toLowerCase();
         const matchingVoices = voices.filter(v => v.lang.toLowerCase().includes(searchLang));
         
-        // Пытаемся взять самый качественный (включая Лесю для техники Apple)
+        // ВАЖНАЯ ПРОВЕРКА: Если голосов для нужного языка НЕТ
+        if (matchingVoices.length === 0) {
+          alert(t.noVoice);
+          return; // Останавливаем выполнение, чтобы не читал английским голосом!
+        }
+        
         const bestVoice = matchingVoices.find(v => 
           v.name.includes("Natural") || 
           v.name.includes("Premium") || 
@@ -123,13 +123,7 @@ export default function ArticleActions({ title, textToRead, lang = "ru" }: Artic
           v.name.includes("Lesya")
         );
 
-        if (bestVoice) {
-          utterance.voice = bestVoice;
-        } else if (matchingVoices.length > 0) {
-          utterance.voice = matchingVoices[0]; // Берем любой доступный украинский
-        } else {
-          console.warn(`Голос для языка ${langCode} не установлен в операционной системе.`);
-        }
+        utterance.voice = bestVoice || matchingVoices[0];
       }
 
       utterance.rate = 1.05; 
