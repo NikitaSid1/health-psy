@@ -2,9 +2,8 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { client } from "@/lib/sanity";
 import { useToast } from "@/components/ui/ToastProvider";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Словарь сообщений об отсутствии статьи на целевом языке
 const NO_ARTICLE_MESSAGES: Record<string, string> = {
@@ -20,6 +19,21 @@ export default function LanguageSwitcher() {
   const router = useRouter();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Состояние для хранения правильных ссылок перевода текущей статьи
+  const [articleTranslations, setArticleTranslations] = useState<Record<string, string> | null>(null);
+
+  // Слушаем событие со списком переведенных ссылок от компонента статьи
+  useEffect(() => {
+    const handleTranslations = (e: CustomEvent) => {
+      setArticleTranslations(e.detail);
+    };
+    
+    window.addEventListener('updateArticleTranslations', handleTranslations as EventListener);
+    return () => {
+      window.removeEventListener('updateArticleTranslations', handleTranslations as EventListener);
+    };
+  }, []);
 
   const languages = [
     { code: "ru", label: "RU" },
@@ -43,27 +57,18 @@ export default function LanguageSwitcher() {
 
     try {
       // 1. ПРОВЕРКА: Находимся ли мы внутри статьи?
-      // URL статьи выглядит как /ru/post/some-slug
       const isPostPage = segments.length >= 2 && segments[1] === "post";
       const currentSlug = segments[2]; 
 
       if (isPostPage && currentSlug) {
-        // Запрос в Sanity: есть ли статья с таким slug на новом языке?
-        const query = `count(*[_type == "post" && slug.current == $slug && language == $lang])`;
-        const exists = await client.fetch(query, { slug: currentSlug, lang: targetLangCode });
-
-        if (exists > 0) {
-          // УРА: Статья есть! Переходим.
-          router.push(`/${targetLangCode}/post/${currentSlug}`);
+        // Проверяем, есть ли нужный язык в полученном словаре переводов
+        if (articleTranslations && articleTranslations[targetLangCode]) {
+          // УРА: Перевод есть! Переходим по правильному URL.
+          router.push(`/${targetLangCode}/post/${articleTranslations[targetLangCode]}`);
         } else {
-          // УВЫ: Статьи нет.
-          
-          // Получаем сообщение на ЦЕЛЕВОМ языке (куда хотели перейти)
+          // УВЫ: Перевода нет.
           const message = NO_ARTICLE_MESSAGES[targetLangCode] || NO_ARTICLE_MESSAGES.en;
-          
-          // Показываем уведомление
           showToast(message, "info");
-          
           // Перекидываем на главную страницу выбранного языка
           router.push(`/${targetLangCode}`);
         }

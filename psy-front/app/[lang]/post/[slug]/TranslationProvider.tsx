@@ -2,6 +2,7 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 interface Props {
   translations: Record<string, string>; // { en: "slug-en", ru: "slug-ru" }
@@ -10,6 +11,20 @@ interface Props {
 
 export default function TranslationProvider({ translations, currentLang }: Props) {
   const router = useRouter();
+
+  // Отправляем список доступных переводов глобально, чтобы шапка сайта (LanguageSwitcher) 
+  // знала правильные ссылки (slug) для перевода текущей статьи
+  useEffect(() => {
+    const event = new CustomEvent('updateArticleTranslations', { 
+      detail: translations 
+    });
+    window.dispatchEvent(event);
+
+    return () => {
+      // Очищаем при уходе со статьи
+      window.dispatchEvent(new CustomEvent('updateArticleTranslations', { detail: null }));
+    };
+  }, [translations]);
 
   // Список всех поддерживаемых языков в проекте
   const languages = [
