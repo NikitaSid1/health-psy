@@ -1465,58 +1465,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 # health-psy
 </file>
 
-<file path="psy-front/app/[lang]/post/[slug]/TranslationProvider.tsx">
-// === НАЧАЛО БЛОКА: Translation Provider (UI Buttons) ===
-"use client";
-
-import { useRouter } from 'next/navigation';
-
-interface Props {
-  translations: Record<string, string>; // { en: "slug-en", ru: "slug-ru" }
-  currentLang: string;
-}
-
-export default function TranslationProvider({ translations, currentLang }: Props) {
-  const router = useRouter();
-
-  // Список всех поддерживаемых языков в проекте
-  const languages = [
-    { code: 'ru', label: 'RU' },
-    { code: 'en', label: 'EN' },
-    { code: 'ua', label: 'UA' },
-    { code: 'pl', label: 'PL' },
-    { code: 'de', label: 'DE' }
-  ];
-
-  // Фильтруем:
-  // 1. Проверяем, есть ли перевод для этого языка (translations[code]).
-  // 2. Исключаем текущий язык (currentLang), чтобы не показывать кнопку языка, на котором мы уже находимся.
-  const availableTranslations = languages.filter(
-    lang => translations[lang.code] && lang.code !== currentLang
-  );
-
-  // Если других переводов нет, компонент ничего не рисует
-  if (availableTranslations.length === 0) return null;
-
-  return (
-    <div className="fixed bottom-24 right-4 z-40 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {availableTranslations.map((lang) => (
-        <button
-          key={lang.code}
-          // При клике переходим на страницу перевода
-          onClick={() => router.push(`/${lang.code}/post/${translations[lang.code]}`)}
-          className="bg-white dark:bg-zinc-800 text-gray-900 dark:text-white p-3 rounded-full shadow-lg border border-gray-200 dark:border-zinc-700 hover:scale-110 transition-transform flex items-center justify-center font-bold text-xs w-12 h-12"
-          aria-label={`Switch to ${lang.label}`}
-        >
-          {lang.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-// === КОНЕЦ БЛОКА ===
-</file>
-
 <file path="psy-front/app/not-found.tsx">
 // === НАЧАЛО БЛОКА: Страница 404 ===
 "use client";
@@ -2084,6 +2032,73 @@ export default async function HomePage(props: Props) {
 
       </div>
     </main>
+  );
+}
+// === КОНЕЦ БЛОКА ===
+</file>
+
+<file path="psy-front/app/[lang]/post/[slug]/TranslationProvider.tsx">
+// === НАЧАЛО БЛОКА: Translation Provider (UI Buttons) ===
+"use client";
+
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+
+interface Props {
+  translations: Record<string, string>; // { en: "slug-en", ru: "slug-ru" }
+  currentLang: string;
+}
+
+export default function TranslationProvider({ translations, currentLang }: Props) {
+  const router = useRouter();
+
+  // Отправляем список доступных переводов глобально, чтобы шапка сайта (LanguageSwitcher) 
+  // знала правильные ссылки (slug) для перевода текущей статьи
+  useEffect(() => {
+    const event = new CustomEvent('updateArticleTranslations', { 
+      detail: translations 
+    });
+    window.dispatchEvent(event);
+
+    return () => {
+      // Очищаем при уходе со статьи
+      window.dispatchEvent(new CustomEvent('updateArticleTranslations', { detail: null }));
+    };
+  }, [translations]);
+
+  // Список всех поддерживаемых языков в проекте
+  const languages = [
+    { code: 'ru', label: 'RU' },
+    { code: 'en', label: 'EN' },
+    { code: 'ua', label: 'UA' },
+    { code: 'pl', label: 'PL' },
+    { code: 'de', label: 'DE' }
+  ];
+
+  // Фильтруем:
+  // 1. Проверяем, есть ли перевод для этого языка (translations[code]).
+  // 2. Исключаем текущий язык (currentLang), чтобы не показывать кнопку языка, на котором мы уже находимся.
+  const availableTranslations = languages.filter(
+    lang => translations[lang.code] && lang.code !== currentLang
+  );
+
+  // Если других переводов нет, компонент ничего не рисует
+  if (availableTranslations.length === 0) return null;
+
+  return (
+    <div className="fixed bottom-24 right-4 z-40 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {availableTranslations.map((lang) => (
+        <button
+          key={lang.code}
+          // При клике переходим на страницу перевода
+          onClick={() => router.push(`/${lang.code}/post/${translations[lang.code]}`)}
+          className="bg-white dark:bg-zinc-800 text-gray-900 dark:text-white p-3 rounded-full shadow-lg border border-gray-200 dark:border-zinc-700 hover:scale-110 transition-transform flex items-center justify-center font-bold text-xs w-12 h-12"
+          aria-label={`Switch to ${lang.label}`}
+        >
+          {lang.label}
+        </button>
+      ))}
+    </div>
   );
 }
 // === КОНЕЦ БЛОКА ===
@@ -2734,278 +2749,6 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
 // === КОНЕЦ БЛОКА ===
 </file>
 
-<file path="psy-front/components/article/ArticleActions.tsx">
-// === НАЧАЛО БЛОКА: Article Actions (Audio & Share) ===
-"use client";
-
-import { useState, useEffect, useRef } from "react";
-import { triggerHaptic } from "@/lib/haptic";
-
-interface ArticleActionsProps {
-  title: string;
-  textToRead: string;
-  lang?: string;
-}
-
-const translations = {
-  ru: { listen: "🎧 Слушать статью", stop: "⏹ Остановить", share: "↗ Поделиться", copied: "Ссылка скопирована!", recommend: "Рекомендую прочитать эту статью: ", error: "Ваш браузер не поддерживает аудио-чтение." },
-  en: { listen: "🎧 Listen to article", stop: "⏹ Stop", share: "↗ Share", copied: "Link copied!", recommend: "I recommend reading this article: ", error: "Your browser does not support audio reading." },
-  ua: { listen: "🎧 Слухати статтю", stop: "⏹ Зупинити", share: "↗ Поділитися", copied: "Посилання скопійовано!", recommend: "Рекомендую прочитати цю статтю: ", error: "Ваш браузер не підтримує аудіо-читання." },
-  pl: { listen: "🎧 Posłuchaj artykułu", stop: "⏹ Zatrzymaj", share: "↗ Udostępnij", copied: "Link skopiowany!", recommend: "Polecam przeczytać ten artykuł: ", error: "Twoja przeglądarka nie obsługuje czytania audio." },
-  de: { listen: "🎧 Artikel anhören", stop: "⏹ Stoppen", share: "↗ Teilen", copied: "Link kopiert!", recommend: "Ich empfehle diesen Artikel zu lesen: ", error: "Ihr Browser unterstützt kein Audio-Lesen." },
-};
-
-export default function ArticleActions({ title, textToRead, lang = "ru" }: ArticleActionsProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [url, setUrl] = useState("");
-  const isComponentMounted = useRef(true);
-  
-  const t = translations[lang as keyof typeof translations] || translations.ru;
-
-  useEffect(() => {
-    setUrl(window.location.href);
-    isComponentMounted.current = true;
-    
-    // Предзагружаем голоса, чтобы избежать паузы при первом клике
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.getVoices();
-    }
-    
-    // Гарантированная остановка при выходе со страницы
-    return () => {
-      isComponentMounted.current = false;
-      if (typeof window !== "undefined" && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
-  const handleShare = async () => {
-    triggerHaptic('medium'); 
-    
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({
-          title: title,
-          text: t.recommend + title,
-          url: url,
-        });
-      } catch (error) {
-        console.error("Ошибка шаринга:", error);
-      }
-    } else if (typeof navigator !== "undefined" && navigator.clipboard && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(url);
-        alert(t.copied);
-      } catch (error) {
-        console.error("Ошибка копирования:", error);
-      }
-    } else {
-      try {
-        const textArea = document.createElement("textarea");
-        textArea.value = url;
-        textArea.style.position = "absolute";
-        textArea.style.left = "-999999px";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand('copy');
-        textArea.remove();
-        alert(t.copied);
-      } catch (error) {
-        alert(`Скопируйте ссылку вручную:\n\n${url}`);
-      }
-    }
-  };
-
-  const handleAudio = () => {
-    triggerHaptic('light');
-    
-    if (typeof window !== "undefined" && !window.speechSynthesis) {
-      alert(t.error);
-      return;
-    }
-
-    if (isPlaying) {
-      window.speechSynthesis.cancel();
-      setIsPlaying(false);
-    } else {
-      // Сначала всегда вызываем cancel, чтобы сбросить зависшие очереди браузера
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(textToRead);
-      
-      // Устанавливаем язык
-      const langCode = lang === 'ua' ? 'uk-UA' : lang === 'pl' ? 'pl-PL' : lang === 'de' ? 'de-DE' : lang === 'en' ? 'en-US' : 'ru-RU';
-      utterance.lang = langCode;
-      
-      // Поиск лучшего голоса (Google, Microsoft Premium, Natural)
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        const matchingVoices = voices.filter(v => v.lang.includes(langCode.split('-')[0]));
-        
-        const bestVoice = matchingVoices.find(v => 
-          v.name.includes("Natural") || 
-          v.name.includes("Premium") || 
-          v.name.includes("Google") ||
-          v.name.includes("Microsoft online")
-        );
-
-        if (bestVoice) {
-          utterance.voice = bestVoice;
-        } else if (matchingVoices.length > 0) {
-          utterance.voice = matchingVoices[0];
-        }
-      }
-
-      utterance.rate = 1.05; // Чуть быстрее для естественности
-      
-      utterance.onend = () => {
-        if (isComponentMounted.current) setIsPlaying(false);
-      };
-      
-      utterance.onerror = () => {
-        if (isComponentMounted.current) setIsPlaying(false);
-      };
-      
-      window.speechSynthesis.speak(utterance);
-      setIsPlaying(true);
-    }
-  };
-
-  return (
-    <div id="article-interactive-actions" className="flex flex-col sm:flex-row items-center gap-4 my-10 border-y border-gray-100 dark:border-zinc-800 py-6">
-      <button onClick={handleAudio} className="btn-secondary w-full sm:w-1/2">
-        {isPlaying ? t.stop : t.listen}
-      </button>
-      <button onClick={handleShare} className="btn-primary w-full sm:w-1/2">
-        {t.share}
-      </button>
-    </div>
-  );
-}
-// === КОНЕЦ БЛОКА ===
-</file>
-
-<file path="psy-front/components/LanguageSwitcher.tsx">
-// === НАЧАЛО БЛОКА: Smart Language Switcher (Localized) ===
-"use client";
-
-import { usePathname, useRouter } from "next/navigation";
-import { client } from "@/lib/sanity";
-import { useToast } from "@/components/ui/ToastProvider";
-import { useState } from "react";
-
-// Словарь сообщений об отсутствии статьи на целевом языке
-const NO_ARTICLE_MESSAGES: Record<string, string> = {
-  ru: "К сожалению, эта статья недоступна на русском языке.",
-  en: "Sorry, this article is not available in English.",
-  ua: "На жаль, ця стаття недоступна українською мовою.",
-  pl: "Niestety, ten artykuł nie jest dostępny w języku polskim.",
-  de: "Leider ist dieser Artikel nicht auf Deutsch verfügbar."
-};
-
-export default function LanguageSwitcher() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { showToast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const languages = [
-    { code: "ru", label: "RU" },
-    { code: "en", label: "EN" },
-    { code: "ua", label: "UA" },
-    { code: "pl", label: "PL" },
-    { code: "de", label: "DE" },
-  ];
-
-  const handleLanguageChange = async (targetLangCode: string) => {
-    if (!pathname) return;
-    
-    // Определяем текущий язык из URL (первый сегмент пути)
-    const segments = pathname.split("/").filter(Boolean);
-    const currentLangCode = languages.some(l => l.code === segments[0]) ? segments[0] : "ru";
-
-    // Если кликнули на тот же язык — ничего не делаем
-    if (targetLangCode === currentLangCode) return;
-
-    setIsLoading(true);
-
-    try {
-      // 1. ПРОВЕРКА: Находимся ли мы внутри статьи?
-      // URL статьи выглядит как /ru/post/some-slug
-      const isPostPage = segments.length >= 2 && segments[1] === "post";
-      const currentSlug = segments[2]; 
-
-      if (isPostPage && currentSlug) {
-        // Запрос в Sanity: есть ли статья с таким slug на новом языке?
-        const query = `count(*[_type == "post" && slug.current == $slug && language == $lang])`;
-        const exists = await client.fetch(query, { slug: currentSlug, lang: targetLangCode });
-
-        if (exists > 0) {
-          // УРА: Статья есть! Переходим.
-          router.push(`/${targetLangCode}/post/${currentSlug}`);
-        } else {
-          // УВЫ: Статьи нет.
-          
-          // Получаем сообщение на ЦЕЛЕВОМ языке (куда хотели перейти)
-          const message = NO_ARTICLE_MESSAGES[targetLangCode] || NO_ARTICLE_MESSAGES.en;
-          
-          // Показываем уведомление
-          showToast(message, "info");
-          
-          // Перекидываем на главную страницу выбранного языка
-          router.push(`/${targetLangCode}`);
-        }
-      } else {
-        // 2. ОБЫЧНАЯ СТРАНИЦА (Главная, Поиск, Закладки) - просто меняем язык в URL
-        if (languages.some(l => l.code === segments[0])) {
-          segments[0] = targetLangCode;
-          router.push(`/${segments.join("/")}`);
-        } else {
-          // Если URL был корнем, добавляем язык
-          router.push(`/${targetLangCode}/${segments.join("/")}`);
-        }
-      }
-    } catch (error) {
-      console.error("Ошибка при смене языка:", error);
-      // В случае ошибки просто переходим на главную
-      router.push(`/${targetLangCode}`);
-    } finally {
-      setIsLoading(false);
-      router.refresh();
-    }
-  };
-
-  return (
-    <div 
-      id="desktop-lang-switcher" 
-      className="hidden md:flex items-center bg-gray-100/80 dark:bg-zinc-800/80 rounded-full p-1 gap-1"
-    >
-      {languages.map((lang) => {
-        const isActive = pathname?.startsWith(`/${lang.code}`);
-
-        return (
-          <button
-            key={lang.code}
-            onClick={() => handleLanguageChange(lang.code)}
-            disabled={isLoading}
-            className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all cursor-pointer ${
-              isActive
-                ? "bg-blue-600 text-white shadow-md scale-105"
-                : "text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700"
-            } ${isLoading ? "opacity-50 cursor-wait" : ""}`}
-          >
-            {lang.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-// === КОНЕЦ БЛОКА ===
-</file>
-
 <file path="psy-front/lib/sanity.ts">
 // === НАЧАЛО БЛОКА: Sanity Client & Image Builder ===
 import { createClient } from "next-sanity";
@@ -3514,6 +3257,130 @@ export default async function PostPage({ params }: PostPageProps) {
 // === КОНЕЦ БЛОКА ===
 </file>
 
+<file path="psy-front/components/LanguageSwitcher.tsx">
+// === НАЧАЛО БЛОКА: Smart Language Switcher (Localized) ===
+"use client";
+
+import { usePathname, useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/ToastProvider";
+import { useState, useEffect } from "react";
+
+// Словарь сообщений об отсутствии статьи на целевом языке
+const NO_ARTICLE_MESSAGES: Record<string, string> = {
+  ru: "К сожалению, эта статья недоступна на русском языке.",
+  en: "Sorry, this article is not available in English.",
+  ua: "На жаль, ця стаття недоступна українською мовою.",
+  pl: "Niestety, ten artykuł nie jest dostępny w języku polskim.",
+  de: "Leider ist dieser Artikel nicht auf Deutsch verfügbar."
+};
+
+export default function LanguageSwitcher() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { showToast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Состояние для хранения правильных ссылок перевода текущей статьи
+  const [articleTranslations, setArticleTranslations] = useState<Record<string, string> | null>(null);
+
+  // Слушаем событие со списком переведенных ссылок от компонента статьи
+  useEffect(() => {
+    const handleTranslations = (e: CustomEvent) => {
+      setArticleTranslations(e.detail);
+    };
+    
+    window.addEventListener('updateArticleTranslations', handleTranslations as EventListener);
+    return () => {
+      window.removeEventListener('updateArticleTranslations', handleTranslations as EventListener);
+    };
+  }, []);
+
+  const languages = [
+    { code: "ru", label: "RU" },
+    { code: "en", label: "EN" },
+    { code: "ua", label: "UA" },
+    { code: "pl", label: "PL" },
+    { code: "de", label: "DE" },
+  ];
+
+  const handleLanguageChange = async (targetLangCode: string) => {
+    if (!pathname) return;
+    
+    // Определяем текущий язык из URL (первый сегмент пути)
+    const segments = pathname.split("/").filter(Boolean);
+    const currentLangCode = languages.some(l => l.code === segments[0]) ? segments[0] : "ru";
+
+    // Если кликнули на тот же язык — ничего не делаем
+    if (targetLangCode === currentLangCode) return;
+
+    setIsLoading(true);
+
+    try {
+      // 1. ПРОВЕРКА: Находимся ли мы внутри статьи?
+      const isPostPage = segments.length >= 2 && segments[1] === "post";
+      const currentSlug = segments[2]; 
+
+      if (isPostPage && currentSlug) {
+        // Проверяем, есть ли нужный язык в полученном словаре переводов
+        if (articleTranslations && articleTranslations[targetLangCode]) {
+          // УРА: Перевод есть! Переходим по правильному URL.
+          router.push(`/${targetLangCode}/post/${articleTranslations[targetLangCode]}`);
+        } else {
+          // УВЫ: Перевода нет.
+          const message = NO_ARTICLE_MESSAGES[targetLangCode] || NO_ARTICLE_MESSAGES.en;
+          showToast(message, "info");
+          // Перекидываем на главную страницу выбранного языка
+          router.push(`/${targetLangCode}`);
+        }
+      } else {
+        // 2. ОБЫЧНАЯ СТРАНИЦА (Главная, Поиск, Закладки) - просто меняем язык в URL
+        if (languages.some(l => l.code === segments[0])) {
+          segments[0] = targetLangCode;
+          router.push(`/${segments.join("/")}`);
+        } else {
+          // Если URL был корнем, добавляем язык
+          router.push(`/${targetLangCode}/${segments.join("/")}`);
+        }
+      }
+    } catch (error) {
+      console.error("Ошибка при смене языка:", error);
+      // В случае ошибки просто переходим на главную
+      router.push(`/${targetLangCode}`);
+    } finally {
+      setIsLoading(false);
+      router.refresh();
+    }
+  };
+
+  return (
+    <div 
+      id="desktop-lang-switcher" 
+      className="hidden md:flex items-center bg-gray-100/80 dark:bg-zinc-800/80 rounded-full p-1 gap-1"
+    >
+      {languages.map((lang) => {
+        const isActive = pathname?.startsWith(`/${lang.code}`);
+
+        return (
+          <button
+            key={lang.code}
+            onClick={() => handleLanguageChange(lang.code)}
+            disabled={isLoading}
+            className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+              isActive
+                ? "bg-blue-600 text-white shadow-md scale-105"
+                : "text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700"
+            } ${isLoading ? "opacity-50 cursor-wait" : ""}`}
+          >
+            {lang.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+// === КОНЕЦ БЛОКА ===
+</file>
+
 <file path="psy-front/package.json">
 {
   "name": "psy-front",
@@ -3622,6 +3489,165 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
+  );
+}
+// === КОНЕЦ БЛОКА ===
+</file>
+
+<file path="psy-front/components/article/ArticleActions.tsx">
+// === НАЧАЛО БЛОКА: Article Actions (Audio & Share) ===
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { triggerHaptic } from "@/lib/haptic";
+
+interface ArticleActionsProps {
+  title: string;
+  textToRead: string;
+  lang?: string;
+}
+
+const translations = {
+  ru: { listen: "🎧 Слушать статью", stop: "⏹ Остановить", share: "↗ Поделиться", copied: "Ссылка скопирована!", recommend: "Рекомендую прочитать эту статью: ", error: "Ваш браузер не поддерживает аудио-чтение.", noVoice: "На вашем устройстве не установлен голосовой пакет для этого языка. Добавьте его в настройках системы." },
+  en: { listen: "🎧 Listen to article", stop: "⏹ Stop", share: "↗ Share", copied: "Link copied!", recommend: "I recommend reading this article: ", error: "Your browser does not support audio reading.", noVoice: "No voice package installed for this language on your device. Please add it in your system settings." },
+  ua: { listen: "🎧 Слухати статтю", stop: "⏹ Зупинити", share: "↗ Поділитися", copied: "Посилання скопійовано!", recommend: "Рекомендую прочитати цю статтю: ", error: "Ваш браузер не підтримує аудіо-читання.", noVoice: "На вашому пристрої не встановлено голосовий пакет для української мови. Додайте його в налаштуваннях системи." },
+  pl: { listen: "🎧 Posłuchaj artykułu", stop: "⏹ Zatrzymaj", share: "↗ Udostępnij", copied: "Link skopiowany!", recommend: "Polecam przeczytać ten artykuł: ", error: "Twoja przeglądarka nie obsługuje czytania audio.", noVoice: "Brak pakietu głosowego dla tego języka na Twoim urządzeniu. Dodaj go w ustawieniach systemu." },
+  de: { listen: "🎧 Artikel anhören", stop: "⏹ Stoppen", share: "↗ Teilen", copied: "Link kopiert!", recommend: "Ich empfehle diesen Artikel zu lesen: ", error: "Ihr Browser unterstützt kein Audio-Lesen.", noVoice: "Auf Ihrem Gerät ist kein Sprachpaket für diese Sprache installiert. Bitte fügen Sie es in Ihren Systemeinstellungen hinzu." },
+};
+
+export default function ArticleActions({ title, textToRead, lang = "ru" }: ArticleActionsProps) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [url, setUrl] = useState("");
+  const isComponentMounted = useRef(true);
+  
+  const isUk = lang === 'ua' || lang === 'uk';
+  const safeLang = isUk ? 'ua' : lang;
+  
+  const t = translations[safeLang as keyof typeof translations] || translations.ru;
+
+  useEffect(() => {
+    setUrl(window.location.href);
+    isComponentMounted.current = true;
+    
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+    
+    return () => {
+      isComponentMounted.current = false;
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const handleShare = async () => {
+    triggerHaptic('medium'); 
+    
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          text: t.recommend + title,
+          url: url,
+        });
+      } catch (error) {
+        console.error("Ошибка шаринга:", error);
+      }
+    } else if (typeof navigator !== "undefined" && navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(url);
+        alert(t.copied);
+      } catch (error) {
+        console.error("Ошибка копирования:", error);
+      }
+    } else {
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = url;
+        textArea.style.position = "absolute";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+        alert(t.copied);
+      } catch (error) {
+        alert(`Скопируйте ссылку вручную:\n\n${url}`);
+      }
+    }
+  };
+
+  const handleAudio = () => {
+    triggerHaptic('light');
+    
+    if (typeof window !== "undefined" && !window.speechSynthesis) {
+      alert(t.error);
+      return;
+    }
+
+    if (isPlaying) {
+      window.speechSynthesis.cancel();
+      setIsPlaying(false);
+    } else {
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(textToRead);
+      const langCode = isUk ? 'uk-UA' : lang === 'pl' ? 'pl-PL' : lang === 'de' ? 'de-DE' : lang === 'en' ? 'en-US' : 'ru-RU';
+      utterance.lang = langCode;
+      
+      const voices = window.speechSynthesis.getVoices();
+      
+      if (voices.length > 0) {
+        const searchLang = langCode.split('-')[0].toLowerCase();
+        const matchingVoices = voices.filter(v => v.lang.toLowerCase().includes(searchLang));
+        
+        // ВАЖНАЯ ПРОВЕРКА: Если голосов для нужного языка НЕТ
+        if (matchingVoices.length === 0) {
+          alert(t.noVoice);
+          return; // Останавливаем выполнение, чтобы не читал английским голосом!
+        }
+        
+        const bestVoice = matchingVoices.find(v => 
+          v.name.includes("Natural") || 
+          v.name.includes("Premium") || 
+          v.name.includes("Google") ||
+          v.name.includes("Microsoft online") ||
+          v.name.includes("Lesya")
+        );
+
+        utterance.voice = bestVoice || matchingVoices[0];
+      }
+
+      utterance.rate = 1.05; 
+      
+      utterance.onend = () => {
+        if (isComponentMounted.current) setIsPlaying(false);
+      };
+      
+      utterance.onerror = (e) => {
+        console.error("Ошибка воспроизведения аудио:", e);
+        if (isComponentMounted.current) setIsPlaying(false);
+      };
+      
+      window.speechSynthesis.speak(utterance);
+      setIsPlaying(true);
+    }
+  };
+
+  return (
+    <div id="article-interactive-actions" className="flex flex-col sm:flex-row items-center gap-4 my-10 border-y border-gray-100 dark:border-zinc-800 py-6">
+      <button onClick={handleAudio} className="btn-secondary w-full sm:w-1/2">
+        {isPlaying ? t.stop : t.listen}
+      </button>
+      <button onClick={handleShare} className="btn-primary w-full sm:w-1/2">
+        {t.share}
+      </button>
+    </div>
   );
 }
 // === КОНЕЦ БЛОКА ===

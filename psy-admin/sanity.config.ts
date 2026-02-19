@@ -4,6 +4,7 @@ import {structureTool} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
 import {documentInternationalization} from '@sanity/document-internationalization'
+import {assist} from '@sanity/assist' // 💡 ДОБАВЛЕН ИМПОРТ ПЛАГИНА
 
 export default defineConfig({
   name: 'default',
@@ -12,7 +13,7 @@ export default defineConfig({
   dataset: process.env.SANITY_STUDIO_DATASET || 'production',
 
   plugins: [
-    // 👇 ДОБАВЛЕНО: Кастомная структура, скрывающая Translation Metadata
+    // Кастомная структура, скрывающая Translation Metadata
     structureTool({
       structure: (S) =>
         S.list()
@@ -34,7 +35,8 @@ export default defineConfig({
       ],
       schemaTypes: ['post'],
       languageField: 'language',
-    })
+    }),
+    assist(), // 💡 ДОБАВЛЕН ВЫЗОВ ПЛАГИНА
   ],
 
   schema: {

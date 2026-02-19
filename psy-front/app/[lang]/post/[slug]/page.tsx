@@ -9,8 +9,9 @@ import ArticleActions from "@/components/article/ArticleActions";
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { Metadata } from "next";
 import TranslationProvider from "./TranslationProvider"; 
+import QuizBlock from "@/components/article/QuizBlock"; // 💡 ДОБАВЛЕН ИМПОРТ ТЕСТА
 
-// Словари для локализации страницы "Не найдено" и футера статьи
+// Словари для локализации
 const postTranslations = {
   ru: { 
     notFoundTitle: "Статья не найдена", 
@@ -64,7 +65,6 @@ const postTranslations = {
   },
 };
 
-// 1. ЗАПРОС ИЗМЕНЕН: Теперь мы получаем еще translationId и slugs всех переводов
 const postQuery = groq`*[_type == "post" && slug.current == $slug && language == $lang][0] {
   _id,
   title,
@@ -85,7 +85,6 @@ const postQuery = groq`*[_type == "post" && slug.current == $slug && language ==
 export async function generateMetadata({ params }: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
   const { lang, slug } = await params;
   const post = await client.fetch(postQuery, { lang, slug });
-
   const t = postTranslations[lang as keyof typeof postTranslations] || postTranslations.ru;
 
   if (!post) return { title: t.notFoundTitle };
@@ -106,37 +105,70 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 
 const portableTextComponents = {
   types: {
+    // 1. СТАРЫЙ БЛОК YOUTUBE (Оставили для обратной совместимости)
     youtube: ({ value }: any) => {
       const { url } = value;
       if (!url) return null;
-
-      const isShorts = url.includes("shorts/");
-      const videoId = isShorts 
-        ? url.split("shorts/")[1].split(/[?#]/)[0] 
-        : url.split("v=")[1]?.split("&")[0];
+      const videoId = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([^"&?\/\s]{11})/)?.[1];
+      if (!videoId) return null;
 
       return (
-        <div id={`video-${videoId}`} className="my-10 flex justify-center">
-          <div className={`w-full overflow-hidden rounded-3xl shadow-2xl bg-black ${
-            isShorts ? "max-w-[315px] aspect-[9/16]" : "aspect-video"
-          }`}>
-            <iframe
-              width="100%"
-              height="100%"
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="w-full h-full"
-            ></iframe>
+        <div className="my-10 flex justify-center">
+          <div className="w-full overflow-hidden rounded-3xl shadow-xl bg-black aspect-video">
+            <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${videoId}`} title="YouTube" frameBorder="0" allowFullScreen></iframe>
           </div>
         </div>
       );
     },
+
+    // 2. НОВЫЙ БЛОК: YOUTUBE SHORTS
+    youtubeShorts: ({ value }: any) => {
+      const { url } = value;
+      if (!url) return null;
+      const videoId = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|watch\?v=|watch\?.+&v=))([^"&?\/\s]{11})/)?.[1];
+      if (!videoId) return null;
+
+      return (
+        <div className="my-10 flex justify-center">
+          <div className="w-full overflow-hidden rounded-3xl shadow-xl bg-black max-w-[315px] aspect-[9/16]">
+            <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${videoId}`} title="YouTube Shorts" frameBorder="0" allowFullScreen></iframe>
+          </div>
+        </div>
+      );
+    },
+
+    // 3. НОВЫЙ БЛОК: МНЕНИЕ ЭКСПЕРТА / E-E-A-T
+    infoBox: ({ value }: any) => {
+      const { type, author, text } = value;
+      
+      // Динамические стили в зависимости от типа плашки
+      const config = {
+        expert: { icon: "🧠", bg: "bg-blue-50 dark:bg-blue-900/10", border: "border-blue-200 dark:border-blue-800", title: "Мнение психолога" },
+        warning: { icon: "⚠️", bg: "bg-orange-50 dark:bg-orange-900/10", border: "border-orange-200 dark:border-orange-800", title: "Важно" },
+        science: { icon: "🔬", bg: "bg-purple-50 dark:bg-purple-900/10", border: "border-purple-200 dark:border-purple-800", title: "Научный факт" }
+      }[type as string] || { icon: "💡", bg: "bg-gray-50 dark:bg-zinc-800", border: "border-gray-200 dark:border-zinc-700", title: "Информация" };
+
+      return (
+        <div className={`my-10 p-6 md:p-8 rounded-[24px] border ${config.bg} ${config.border}`}>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl" aria-hidden="true">{config.icon}</span>
+            <h4 className="font-bold text-lg md:text-xl text-gray-900 dark:text-white">
+              {author ? `${config.title}: ${author}` : config.title}
+            </h4>
+          </div>
+          <p className="text-gray-700 dark:text-zinc-300 italic m-0 text-lg leading-relaxed">
+            «{text}»
+          </p>
+        </div>
+      );
+    },
+
+    // 4. НОВЫЙ БЛОК: ИНТЕРАКТИВНЫЙ МИНИ-ТЕСТ
+    quiz: ({ value }: any) => {
+      return <QuizBlock title={value.title} questions={value.questions} />;
+    },
   },
   block: {
-    // Кастомизация стандартных блоков для красивой типографики
     normal: ({ children }: any) => (
       <p className="mb-6 text-lg leading-relaxed text-gray-700 dark:text-zinc-300">
         {children}
@@ -277,7 +309,6 @@ export default async function PostPage({ params }: PostPageProps) {
             </div>
           )}
 
-          {/* 👇 ИСПРАВЛЕНИЕ ЗДЕСЬ: Добавлена передача lang в ArticleActions 👇 */}
           <ArticleActions title={post.title} textToRead={textForAudio} lang={lang} />
 
           <div id="post-body" className="prose prose-zinc dark:prose-invert max-w-none 
