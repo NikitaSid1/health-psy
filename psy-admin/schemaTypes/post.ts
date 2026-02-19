@@ -19,21 +19,20 @@ export default defineType({
       options: {
         source: 'title',
         maxLength: 96,
-        // Кастомная проверка: разрешает одинаковые слаги для РАЗНЫХ языков!
+        // 👇 ИЗМЕНЕНО: Строгая проверка уникальности слага для ВСЕХ языков
         isUnique: async (value, context) => {
           const { document, getClient } = context;
           const client = getClient({ apiVersion: '2024-02-16' });
           const id = document?._id.replace(/^drafts\./, '');
-          const lang = document?.language || 'ru';
           
           const params = {
             draft: `drafts.${id}`,
             published: id,
             slug: value as string,
-            lang: lang,
           };
           
-          const query = `!defined(*[!(_id in [$draft, $published]) && slug.current == $slug && language == $lang][0]._id)`;
+          // Убрали привязку к языку. Теперь слаг ищется по всей базе.
+          const query = `!defined(*[!(_id in [$draft, $published]) && slug.current == $slug][0]._id)`;
           return await client.fetch(query, params);
         },
       },
@@ -46,7 +45,6 @@ export default defineType({
       readOnly: true, // Поле управляется плагином document-internationalization
     }),
     
-    // 👇 ДОБАВЛЕНО НОВОЕ ПОЛЕ (Нужно для переключателя языков)
     defineField({
         name: 'translationId',
         title: 'Translation ID (Group ID)',
@@ -54,7 +52,6 @@ export default defineType({
         description: 'Придумайте одинаковый ID для всех версий одной статьи (например: "anxiety-01"). Это свяжет их переключателем.',
     }),
     
-    // 👇 ДОБАВЛЕНО: Это поле чинит ошибку "Unknown field... category: anxiety"
     defineField({
       name: 'category',
       title: 'Category (Legacy Tag)',
@@ -87,7 +84,6 @@ export default defineType({
       initialValue: () => new Date().toISOString(),
     }),
     
-    // --- КАСТОМНЫЕ ПОЛЯ (с защитой старых данных) ---
     defineField({
       name: 'readTime',
       title: '⏳ Время чтения (в минутах)',
@@ -98,7 +94,7 @@ export default defineType({
       name: 'readingTime',
       title: '[УСТАРЕЛО] Время чтения',
       type: 'number',
-      hidden: true, // Скрываем из админки, но сохраняем в базе
+      hidden: true,
     }),
     defineField({
       name: 'expert',
@@ -111,7 +107,7 @@ export default defineType({
       name: 'expertReview',
       title: '[УСТАРЕЛО] Мнение психолога',
       type: 'boolean',
-      hidden: true, // Скрываем из админки, но сохраняем в базе
+      hidden: true,
     }),
     defineField({
       name: 'youtubeShorts',

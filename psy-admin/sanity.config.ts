@@ -8,15 +8,22 @@ import {documentInternationalization} from '@sanity/document-internationalizatio
 export default defineConfig({
   name: 'default',
   title: 'Health Psy CMS',
-  // === НАЧАЛО БЛОКА: Sanity Config Admin ===
-  projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'dp2yjc73', // 👈 Правильный Project ID
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'dp2yjc73',
   dataset: process.env.SANITY_STUDIO_DATASET || 'production',
-  // === КОНЕЦ БЛОКА ===
 
   plugins: [
-    structureTool(),
+    // 👇 ДОБАВЛЕНО: Кастомная структура, скрывающая Translation Metadata
+    structureTool({
+      structure: (S) =>
+        S.list()
+          .title('Content')
+          .items([
+            ...S.documentTypeListItems().filter(
+              (listItem) => listItem.getId() !== 'translation.metadata'
+            ),
+          ]),
+    }),
     visionTool(),
-    // Возвращаем плагин переводов!
     documentInternationalization({
       supportedLanguages: [
         {id: 'ru', title: 'Русский'},
