@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, X } from "lucide-react"; // Добавили X
+import { Search, X } from "lucide-react"; 
 import BookmarkButton from "@/components/ui/BookmarkButton";
 
 interface Article {
@@ -20,6 +20,7 @@ interface Article {
 interface SearchAndFeedProps {
   initialArticles: Article[];
   lang: string; 
+  minReadLabel: string; // Принимаем переведенное слово "мин"
 }
 
 // Словари для локализации внутри компонента
@@ -71,16 +72,14 @@ const componentTranslations = {
   }
 };
 
-export default function SearchAndFeed({ initialArticles, lang }: SearchAndFeedProps) {
+export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: SearchAndFeedProps) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [results, setResults] = useState<Article[]>(initialArticles);
 
-  // Получаем нужные переводы на основе пропса lang
   const t = componentTranslations[lang as keyof typeof componentTranslations] || componentTranslations.ru;
   const currentTags = t.tags;
 
-  // Дебаунс (задержка ввода)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query);
@@ -88,7 +87,6 @@ export default function SearchAndFeed({ initialArticles, lang }: SearchAndFeedPr
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Фильтрация статей
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setResults(initialArticles);
@@ -110,7 +108,6 @@ export default function SearchAndFeed({ initialArticles, lang }: SearchAndFeedPr
       {/* 1. Блок Поиска и Тегов */}
       <section id="search-section" className="space-y-6">
         <div className="relative w-full max-w-2xl mx-auto">
-          {/* Иконка поиска */}
           <div className="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none text-gray-400">
             <Search size={20} />
           </div>
@@ -120,11 +117,9 @@ export default function SearchAndFeed({ initialArticles, lang }: SearchAndFeedPr
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t.placeholder}
-            // pr-12 чтобы текст не наезжал на крестик
             className="w-full py-4 pl-12 pr-12 text-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all placeholder:text-gray-400"
           />
 
-          {/* Кнопка очистки (Крестик) */}
           {query && (
             <button
               onClick={() => setQuery("")}
@@ -136,7 +131,6 @@ export default function SearchAndFeed({ initialArticles, lang }: SearchAndFeedPr
           )}
         </div>
 
-        {/* Теги */}
         <div id="tags-carousel" className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory scroll-smooth w-full px-1">
           {currentTags.map((tag) => (
             <button 
@@ -170,7 +164,6 @@ export default function SearchAndFeed({ initialArticles, lang }: SearchAndFeedPr
         ) : (
           <div id="articles-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {results.map((article, index) => (
-              // ВАЖНО: Добавил ${lang} в ссылку, чтобы сохранять язык при переходе
               <Link key={article._id} href={`/${lang}/post/${article.slug}`} className="group block outline-none h-full">
                 <article className="card-editorial h-full flex flex-col hover:translate-y-[-4px] transition-all duration-300">
                   
@@ -192,14 +185,17 @@ export default function SearchAndFeed({ initialArticles, lang }: SearchAndFeedPr
                   </div>
 
                   <div className="flex flex-col flex-1">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider">
-                        <span className="text-blue-600 dark:text-blue-400">{article.category || t.categoryDefault}</span>
-                        <span className="text-gray-300 dark:text-zinc-700">•</span>
-                        <span className="text-gray-500">{article.readTime || 5} min</span>
+                    {/* 👇 ИСПРАВЛЕННАЯ ВЕРСТКА: min-w-0, shrink-0, whitespace-nowrap 👇 */}
+                    <div className="flex items-start justify-between mb-3 gap-2">
+                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider min-w-0">
+                        <span className="text-blue-600 dark:text-blue-400 truncate">{article.category || t.categoryDefault}</span>
+                        <span className="text-gray-300 dark:text-zinc-700 shrink-0">•</span>
+                        {/* whitespace-nowrap не дает цифрам перенестись на другую строку от текста */}
+                        <span className="text-gray-500 shrink-0 whitespace-nowrap">{article.readTime || 5} {minReadLabel}</span>
                       </div>
                       
-                      <div className="z-10 relative" onClick={(e) => e.preventDefault()}>
+                      {/* shrink-0 запрещает кнопке закладок сжиматься и улетать */}
+                      <div className="z-10 relative shrink-0" onClick={(e) => e.preventDefault()}>
                          <BookmarkButton articleId={article._id} />
                       </div>
                     </div>
@@ -210,7 +206,7 @@ export default function SearchAndFeed({ initialArticles, lang }: SearchAndFeedPr
 
                     {article.expert && (
                       <div className="mt-auto pt-3 flex items-center gap-2">
-                         <span className="text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
+                         <span className="text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full whitespace-nowrap">
                            ✓ {t.verified}
                          </span>
                       </div>

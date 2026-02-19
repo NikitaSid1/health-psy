@@ -7,11 +7,11 @@ import SearchAndFeed from "@/components/feed/SearchAndFeed";
 export const revalidate = 60; 
 
 const translations = {
-  ru: { h1: "Познай себя.", sub: "Научный подход к психологии.", err: "Упс! База данных недоступна", errSub: "Проверь настройки Sanity или соединение." },
-  en: { h1: "Know yourself.", sub: "Scientific approach to psychology.", err: "Oops! Database unavailable", errSub: "Check Sanity settings or connection." },
-  ua: { h1: "Пізнай себе.", sub: "Науковий підхід до психології.", err: "Упс! База даних недоступна", errSub: "Перевір налаштування Sanity або з'єднання." },
-  pl: { h1: "Poznaj siebie.", sub: "Naukowe podejście do psychologii.", err: "Ups! Baza danych niedostępna", errSub: "Sprawdź ustawienia Sanity lub połączenie." },
-  de: { h1: "Erkenne dich selbst.", sub: "Wissenschaftlicher Ansatz zur Psychologie.", err: "Hoppla! Datenbank nicht verfügbar", errSub: "Sanity-Einstellungen oder Verbindung prüfen." },
+  ru: { h1: "Познай себя.", sub: "Научный подход к психологии.", minRead: "мин", err: "Упс! База данных недоступна", errSub: "Проверь настройки Sanity или соединение." },
+  en: { h1: "Know yourself.", sub: "Scientific approach to psychology.", minRead: "min", err: "Oops! Database unavailable", errSub: "Check Sanity settings or connection." },
+  ua: { h1: "Пізнай себе.", sub: "Науковий підхід до психології.", minRead: "хв", err: "Упс! База даних недоступна", errSub: "Перевір налаштування Sanity або з'єднання." },
+  pl: { h1: "Poznaj siebie.", sub: "Naukowe podejście do psychologii.", minRead: "min", err: "Ups! Baza danych niedostępna", errSub: "Sprawdź ustawienia Sanity lub połączenie." },
+  de: { h1: "Erkenne dich selbst.", sub: "Wissenschaftlicher Ansatz zur Psychologie.", minRead: "Min", err: "Hoppla! Datenbank nicht verfügbar", errSub: "Sanity-Einstellungen oder Verbindung prüfen." },
 };
 
 interface Props {
@@ -58,8 +58,8 @@ export default async function HomePage(props: Props) {
             <p className="text-sm text-gray-500">{t.errSub}</p>
           </div>
         ) : (
-          /* Передаем lang в SearchAndFeed, чтобы ссылки строились правильно */
-          <SearchAndFeed initialArticles={articles} lang={lang} />
+          /* Передаем lang и minReadLabel в SearchAndFeed */
+          <SearchAndFeed initialArticles={articles} lang={lang} minReadLabel={t.minRead} />
         )}
 
       </div>
