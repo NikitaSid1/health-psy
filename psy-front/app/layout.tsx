@@ -5,8 +5,10 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import BottomBar from "@/components/ui/BottomBar"; 
 import Header from "@/components/ui/Header"; 
-// Импортируем провайдер уведомлений (не забудь создать сам файл!)
+// Импортируем провайдер уведомлений
 import { ToastProvider } from "@/components/ui/ToastProvider"; 
+// Импортируем компонент аналитики Vercel
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -52,6 +54,9 @@ export default function RootLayout({
               <BottomBar />
               
             </div>
+
+            {/* Компонент аналитики Vercel (работает только в продакшене или при деплое на Vercel) */}
+            <Analytics />
 
           </ToastProvider>
         </ThemeProvider>

@@ -1,4 +1,4 @@
-// === НАЧАЛО БЛОКА: Sanity Post Schema (Final) ===
+// === НАЧАЛО БЛОКА: Sanity Post Schema (Updated) ===
 import { defineField, defineType } from 'sanity'
 
 export default defineType({
@@ -45,12 +45,21 @@ export default defineType({
       type: 'string',
       readOnly: true, // Поле управляется плагином document-internationalization
     }),
+    
+    // 👇 ДОБАВЛЕНО НОВОЕ ПОЛЕ (Нужно для переключателя языков)
+    defineField({
+        name: 'translationId',
+        title: 'Translation ID (Group ID)',
+        type: 'string',
+        description: 'Придумайте одинаковый ID для всех версий одной статьи (например: "anxiety-01"). Это свяжет их переключателем.',
+    }),
+    
     // 👇 ДОБАВЛЕНО: Это поле чинит ошибку "Unknown field... category: anxiety"
     defineField({
       name: 'category',
       title: 'Category (Legacy Tag)',
       type: 'string',
-      hidden: false, // Можно скрыть (true), если хочешь редактировать только через Categories (array)
+      hidden: false, 
       description: 'Старое текстовое поле категории (для совместимости)',
     }),
     defineField({
