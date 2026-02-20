@@ -2,17 +2,18 @@
 // === НАЧАЛО БЛОКА: Desktop Categories Menu ===
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { X, ChevronRight } from "lucide-react";
+import { client } from "@/lib/sanity";
 
-// Словари для категорий (согласованы с главной лентой)
+// Оставляем только перевод заголовка окна
 const menuTranslations = {
-  ru: { title: "Категории", categories: [{ id: "psychology", label: "Психология" }, { id: "anxiety", label: "Тревожность" }, { id: "relationships", label: "Отношения" }, { id: "depression", label: "Депрессия" }, { id: "selfcare", label: "Забота о себе" }] },
-  en: { title: "Categories", categories: [{ id: "psychology", label: "Psychology" }, { id: "anxiety", label: "Anxiety" }, { id: "relationships", label: "Relationships" }, { id: "depression", label: "Depression" }, { id: "selfcare", label: "Self-care" }] },
-  ua: { title: "Категорії", categories: [{ id: "psychology", label: "Психологія" }, { id: "anxiety", label: "Тривожність" }, { id: "relationships", label: "Стосунки" }, { id: "depression", label: "Депресія" }, { id: "selfcare", label: "Турбота про себе" }] },
-  pl: { title: "Kategorie", categories: [{ id: "psychology", label: "Psychologia" }, { id: "anxiety", label: "Niepokój" }, { id: "relationships", label: "Relacje" }, { id: "depression", label: "Depresja" }, { id: "selfcare", label: "Samoopieka" }] },
-  de: { title: "Kategorien", categories: [{ id: "psychology", label: "Psychologie" }, { id: "anxiety", label: "Angst" }, { id: "relationships", label: "Beziehungen" }, { id: "depression", label: "Depression" }, { id: "selfcare", label: "Selbstfürsorge" }] },
+  ru: { title: "Популярные темы" },
+  en: { title: "Popular Topics" },
+  ua: { title: "Популярні теми" },
+  pl: { title: "Popularne tematy" },
+  de: { title: "Beliebte Themen" },
 };
 
 interface DesktopMenuProps {
@@ -23,22 +24,39 @@ interface DesktopMenuProps {
 
 export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps) {
   const t = menuTranslations[lang as keyof typeof menuTranslations] || menuTranslations.ru;
+  
+  // Состояние для динамических тегов из Sanity
+  const [featuredTags, setFeaturedTags] = useState<{slug: string, name: string}[]>([]);
 
-  // Блокируем скролл страницы, когда меню открыто
+  // Блокируем скролл страницы
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
+
+  // Загружаем теги при открытии сайта
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const query = `*[_type == "tag" && isFeatured == true] | order(_createdAt asc) { 
+          "slug": slug.current, 
+          "name": coalesce(translations[$lang], title) 
+        }`;
+        const data = await client.fetch(query, { lang });
+        setFeaturedTags(data);
+      } catch (error) {
+        console.error("Ошибка загрузки тегов для меню:", error);
+      }
+    };
+    fetchTags();
+  }, [lang]);
 
   return (
     <div id="desktop-menu-wrapper" className="hidden md:block">
-      {/* Затемнение фона (Оверлей) */}
       <div 
         id="desktop-menu-overlay"
         onClick={onClose}
@@ -48,14 +66,12 @@ export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps)
         aria-hidden="true"
       />
 
-      {/* Сама панель меню (выезжает слева) */}
       <aside
         id="desktop-menu-panel"
         className={`fixed top-0 left-0 bottom-0 z-[70] w-[320px] bg-white dark:bg-[#0a0a0a] border-r border-gray-200 dark:border-zinc-800 shadow-2xl dark:shadow-none transform transition-transform duration-500 ease-in-out flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Шапка меню */}
         <div id="desktop-menu-header" className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-zinc-800/50">
           <span className="text-sm font-extrabold uppercase tracking-widest text-gray-400 dark:text-zinc-500">
             {t.title}
@@ -64,30 +80,34 @@ export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps)
             id="desktop-menu-close-btn"
             onClick={onClose}
             className="p-2 -mr-2 text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800"
-            aria-label="Close menu"
           >
             <X size={24} strokeWidth={2.5} />
           </button>
         </div>
 
-        {/* Список категорий */}
-        <nav id="desktop-menu-nav" className="flex-1 overflow-y-auto p-6 space-y-2">
-          {t.categories.map((category) => (
-            <Link
-              key={category.id}
-              id={`desktop-menu-link-${category.id}`}
-              // Позже мы настроим правильный роутинг для категорий, пока ведет на главную с параметром
-              href={`/${lang}?category=${category.id}`}
-              onClick={onClose}
-              className="group flex items-center justify-between py-3 text-lg font-bold text-[#111827] dark:text-[#f3f4f6] hover:text-blue-600 dark:hover:text-blue-500 transition-colors"
-            >
-              <span className="tracking-tight">{category.label}</span>
-              <ChevronRight size={18} className="text-gray-300 dark:text-zinc-700 group-hover:text-blue-600 dark:group-hover:text-blue-500 transition-colors transform group-hover:translate-x-1 duration-300" />
-            </Link>
-          ))}
+        <nav id="desktop-menu-nav" className="flex-1 overflow-y-auto p-6 space-y-2 custom-scrollbar">
+          {featuredTags.length === 0 ? (
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-gray-200 dark:bg-zinc-800/50 rounded-md w-3/4"></div>
+              <div className="h-8 bg-gray-200 dark:bg-zinc-800/50 rounded-md w-1/2"></div>
+            </div>
+          ) : (
+            featuredTags.map((tag) => (
+              <Link
+                key={tag.slug}
+                id={`desktop-menu-link-${tag.slug}`}
+                // В будущем можно сделать фильтрацию на странице
+                href={`/${lang}?tag=${tag.slug}`}
+                onClick={onClose}
+                className="group flex items-center justify-between py-3 text-lg font-bold text-[#111827] dark:text-[#f3f4f6] hover:text-blue-600 dark:hover:text-blue-500 transition-colors"
+              >
+                <span className="tracking-tight">{tag.name}</span>
+                <ChevronRight size={18} className="text-gray-300 dark:text-zinc-700 group-hover:text-blue-600 dark:group-hover:text-blue-500 transition-colors transform group-hover:translate-x-1 duration-300" />
+              </Link>
+            ))
+          )}
         </nav>
 
-        {/* Подвал меню (Логотип) */}
         <div id="desktop-menu-footer" className="p-6 border-t border-gray-100 dark:border-zinc-800/50">
           <Link 
             id="desktop-menu-logo" 

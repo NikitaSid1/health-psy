@@ -4,7 +4,8 @@
 
 import { useState, useEffect } from "react";
 import { Search, X } from "lucide-react"; 
-import ArticleCard from "./ArticleCard"; // <-- ИСПОЛЬЗУЕМ ВАШ КОМПОНЕНТ!
+import ArticleCard from "./ArticleCard";
+import { client } from "@/lib/sanity"; // <-- Добавили клиент Sanity
 
 interface Article {
   _id: string;
@@ -14,6 +15,7 @@ interface Article {
   readTime: number;
   expert: boolean;
   mainImage: string;
+  tags?: string[]; // <-- Добавили массив тегов для фильтрации
 }
 
 interface SearchAndFeedProps {
@@ -23,25 +25,46 @@ interface SearchAndFeedProps {
 }
 
 const componentTranslations = {
-  ru: { placeholder: "Найти статью, тему или автора...", resultsFor: "Результаты поиска", latest: "Свежие материалы", notFound: "Ничего не найдено по запросу", tags: ["Саморазвитие", "Личные границы", "Тревожность", "Стресс", "Привязанность"] },
-  en: { placeholder: "Search for article, topic or author...", resultsFor: "Search results", latest: "Latest articles", notFound: "Nothing found for", tags: ["Self-development", "Boundaries", "Anxiety", "Stress", "Attachment"] },
-  ua: { placeholder: "Знайти статтю, тему або автора...", resultsFor: "Результати пошуку", latest: "Свіжі матеріали", notFound: "Нічого не знайдено за запитом", tags: ["Саморозвиток", "Особисті кордони", "Тривожність", "Стрес", "Прихильність"] },
-  pl: { placeholder: "Szukaj artykułu, tematu lub autora...", resultsFor: "Wyniki wyszukiwania", latest: "Najnowsze artykuły", notFound: "Nic nie znaleziono dla", tags: ["Samorozwój", "Granice", "Lęk", "Stres", "Przywiązanie"] },
-  de: { placeholder: "Artikel, Thema oder Autor suchen...", resultsFor: "Suchergebnisse", latest: "Neueste Artikel", notFound: "Nichts gefunden für", tags: ["Selbstentwicklung", "Grenzen", "Angst", "Stress", "Bindung"] }
+  ru: { placeholder: "Найти статью, тему или автора...", resultsFor: "Результаты поиска", latest: "Свежие материалы", notFound: "Ничего не найдено по запросу" },
+  en: { placeholder: "Search for article, topic or author...", resultsFor: "Search results", latest: "Latest articles", notFound: "Nothing found for" },
+  ua: { placeholder: "Знайти статтю, тему або автора...", resultsFor: "Результати пошуку", latest: "Свіжі матеріали", notFound: "Нічого не знайдено за запитом" },
+  pl: { placeholder: "Szukaj artykułu, tematu lub autora...", resultsFor: "Wyniki wyszukiwania", latest: "Najnowsze artykuły", notFound: "Nic nie znaleziono dla" },
+  de: { placeholder: "Artikel, Thema oder Autor suchen...", resultsFor: "Suchergebnisse", latest: "Neueste Artikel", notFound: "Nichts gefunden für" }
 };
 
 export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: SearchAndFeedProps) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [results, setResults] = useState<Article[]>(initialArticles);
+  
+  // Состояние для динамических тегов из Sanity
+  const [featuredTags, setFeaturedTags] = useState<{slug: string, name: string}[]>([]);
 
   const t = componentTranslations[lang as keyof typeof componentTranslations] || componentTranslations.ru;
+
+  // Загружаем теги из Sanity при монтировании компонента
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const query = `*[_type == "tag" && isFeatured == true] | order(_createdAt asc) { 
+          "slug": slug.current, 
+          "name": coalesce(translations[$lang], title) 
+        }`;
+        const data = await client.fetch(query, { lang });
+        setFeaturedTags(data);
+      } catch (error) {
+        console.error("Ошибка загрузки тегов:", error);
+      }
+    };
+    fetchTags();
+  }, [lang]);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query), 300);
     return () => clearTimeout(timer);
   }, [query]);
 
+  // Фильтрация статей
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setResults(initialArticles);
@@ -50,7 +73,9 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
     const lowerQuery = debouncedQuery.toLowerCase();
     const filtered = initialArticles.filter((article) => 
       article.title.toLowerCase().includes(lowerQuery) || 
-      (article.category && article.category.toLowerCase().includes(lowerQuery))
+      (article.category && article.category.toLowerCase().includes(lowerQuery)) ||
+      // Фильтруем также по тегам, если они есть в статье
+      (article.tags && article.tags.some(tag => tag.toLowerCase().includes(lowerQuery)))
     );
     setResults(filtered);
   }, [debouncedQuery, initialArticles]);
@@ -83,25 +108,27 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
           )}
         </div>
 
-        {/* Теги */}
-        <div id="inline-tags-carousel" className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory scroll-smooth w-full px-1">
-          {t.tags.map((tag) => {
-            const isActive = query.toLowerCase() === tag.toLowerCase();
-            return (
-              <button 
-                key={tag} 
-                onClick={() => setQuery(tag)} 
-                className={`tag-pill whitespace-nowrap snap-center cursor-pointer transition-all px-5 py-2.5 rounded-full border text-sm font-bold ${
-                  isActive 
-                    ? 'bg-[#111827] text-white border-[#111827] dark:bg-white dark:text-[#0a0a0a] shadow-md' 
-                    : 'bg-white dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-800 text-gray-600 dark:text-zinc-300 hover:border-gray-300 dark:hover:border-zinc-600'
-                }`}
-              >
-                #{tag}
-              </button>
-            )
-          })}
-        </div>
+        {/* Динамические Теги из Sanity */}
+        {featuredTags.length > 0 && (
+          <div id="inline-tags-carousel" className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory scroll-smooth w-full px-1">
+            {featuredTags.map((tag) => {
+              const isActive = query.toLowerCase() === tag.name.toLowerCase();
+              return (
+                <button 
+                  key={tag.slug} 
+                  onClick={() => setQuery(tag.name)} 
+                  className={`tag-pill whitespace-nowrap snap-center cursor-pointer transition-all px-5 py-2.5 rounded-full border text-sm font-bold ${
+                    isActive 
+                      ? 'bg-[#111827] text-white border-[#111827] dark:bg-white dark:text-[#0a0a0a] shadow-md' 
+                      : 'bg-white dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-800 text-gray-600 dark:text-zinc-300 hover:border-gray-300 dark:hover:border-zinc-600'
+                  }`}
+                >
+                  #{tag.name}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </section>
 
       {/* 2. Лента Статей */}
@@ -120,7 +147,6 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
         ) : (
           <div id="articles-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {results.map((article) => (
-              // ВЕСЬ ТОТ УЖАСНЫЙ КОД ЗАМЕНЕН НА 1 СТРОКУ!
               <ArticleCard key={article._id} post={article} lang={lang} />
             ))}
           </div>

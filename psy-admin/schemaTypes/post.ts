@@ -76,6 +76,19 @@ export default defineType({
       description: 'Введите название категории (по ней работает поиск на сайте)',
       group: 'content'
     }),
+    // === НАЧАЛО БЛОКА: Post Tags Field ===
+    defineField({
+      name: 'tags',
+      title: 'Теги статьи',
+      description: 'Выберите теги, которые появятся внизу статьи',
+      type: 'array',
+      of: [{ type: 'reference', to: { type: 'tag' } }],
+      options: {
+        layout: 'tags', // Красивое отображение в виде "пилюль" в админке
+      },
+      group: 'seo', // Или любая другая группа, где вам удобно это держать
+    }),
+    // === КОНЕЦ БЛОКА: Post Tags Field ===
     defineField({
       name: 'author',
       title: 'Author',
