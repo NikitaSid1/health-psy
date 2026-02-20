@@ -1,3 +1,4 @@
+// C:\Users\Admin\Desktop\psy\psy-front\app\[lang]\page.tsx
 // === НАЧАЛО БЛОКА: Home Page (Strict Lang) ===
 import { client } from "@/lib/sanity";
 import { articlesQuery } from "@/lib/queries";
@@ -7,11 +8,41 @@ import SearchAndFeed from "@/components/feed/SearchAndFeed";
 export const revalidate = 60; 
 
 const translations = {
-  ru: { h1: "Познай себя.", sub: "Научный подход к психологии.", minRead: "мин", err: "Упс! База данных недоступна", errSub: "Проверь настройки Sanity или соединение." },
-  en: { h1: "Know yourself.", sub: "Scientific approach to psychology.", minRead: "min", err: "Oops! Database unavailable", errSub: "Check Sanity settings or connection." },
-  ua: { h1: "Пізнай себе.", sub: "Науковий підхід до психології.", minRead: "хв", err: "Упс! База даних недоступна", errSub: "Перевір налаштування Sanity або з'єднання." },
-  pl: { h1: "Poznaj siebie.", sub: "Naukowe podejście do psychologii.", minRead: "min", err: "Ups! Baza danych niedostępna", errSub: "Sprawdź ustawienia Sanity lub połączenie." },
-  de: { h1: "Erkenne dich selbst.", sub: "Wissenschaftlicher Ansatz zur Psychologie.", minRead: "Min", err: "Hoppla! Datenbank nicht verfügbar", errSub: "Sanity-Einstellungen oder Verbindung prüfen." },
+  ru: { 
+    h1: "Познай себя.", 
+    sub: "Научный подход к психологии. #Токсичность #Личные границы #Тревожность", 
+    minRead: "мин", 
+    err: "Упс! База данных недоступна", 
+    errSub: "Проверь настройки Sanity или соединение." 
+  },
+  en: { 
+    h1: "Know yourself.", 
+    sub: "A scientific approach to psychology. #Toxicity #PersonalBoundaries #Anxiety", 
+    minRead: "min", 
+    err: "Oops! Database unavailable", 
+    errSub: "Check Sanity settings or connection." 
+  },
+  ua: { 
+    h1: "Пізнай себе.", 
+    sub: "Науковий підхід до психології. #Токсичність #ОсобистіКордони #Тривожність", 
+    minRead: "хв", 
+    err: "Упс! База даних недоступна", 
+    errSub: "Перевір налаштування Sanity або з'єднання." 
+  },
+  pl: { 
+    h1: "Poznaj siebie.", 
+    sub: "Naukowe podejście do psychologii. #Toksyczność #GraniceOsobiste #Niepokój", 
+    minRead: "min", 
+    err: "Ups! Baza danych niedostępna", 
+    errSub: "Sprawdź ustawienia Sanity lub połączenie." 
+  },
+  de: { 
+    h1: "Erkenne dich selbst.", 
+    sub: "Ein wissenschaftlicher Ansatz zur Psychologie. #Toxizität #PersönlicheGrenzen #Angst", 
+    minRead: "Min", 
+    err: "Hoppla! Datenbank nicht verfügbar", 
+    errSub: "Sanity-Einstellungen oder Verbindung prüfen." 
+  },
 };
 
 interface Props {
@@ -22,9 +53,9 @@ export default async function HomePage(props: Props) {
   // В Next.js 15 params нужно ждать (await)
   const params = await props.params;
   
-  // Определяем язык (fallback на ru)
-  const lang = (params.lang || "ru") as keyof typeof translations;
-  const t = translations[lang] || translations.ru;
+  // Определяем язык (теперь fallback на en, а не на ru)
+  const lang = (params.lang || "en") as keyof typeof translations;
+  const t = translations[lang] || translations.en;
 
   let articles = [];
   let errorOccurred = false;
