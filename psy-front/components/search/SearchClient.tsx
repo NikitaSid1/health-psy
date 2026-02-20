@@ -1,68 +1,89 @@
+// C:\Users\Admin\Desktop\psy\psy-front\components\search\SearchClient.tsx
 // === НАЧАЛО БЛОКА: Клиентский Поиск (Algolia) ===
 "use client";
 
 import { liteClient } from "algoliasearch/lite";
 import { InstantSearch, useSearchBox, useHits, Configure } from "react-instantsearch";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import Link from "next/link";
 import BookmarkButton from "@/components/ui/BookmarkButton";
 
-// Инициализация клиента Algolia (используем liteClient для v5)
-// Если ключей нет в .env, предотвращаем падение приложения
+// Инициализация Algolia
 const searchClient = liteClient(
   process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || "APP_ID_MISSING",
   process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY || "API_KEY_MISSING"
 );
 
-// Кастомное поле ввода (SearchBox), стилизованное под наш дизайн
-function CustomSearchBox() {
+// Мультиязычный словарь для самого поиска
+const searchTranslations = {
+  ru: { placeholder: "Найти статью, тег или автора...", empty: "Ничего не найдено. Попробуйте другой запрос.", results: "Результаты поиска", article: "Статья" },
+  en: { placeholder: "Search article, tag, or author...", empty: "No results found. Try another query.", results: "Search results", article: "Article" },
+  ua: { placeholder: "Знайти статтю, тег або автора...", empty: "Нічого не знайдено. Спробуйте інший запит.", results: "Результати пошуку", article: "Стаття" },
+  pl: { placeholder: "Szukaj artykułu, tagu lub autora...", empty: "Nic nie znaleziono. Spróbuj innego zapytania.", results: "Wyniki wyszukiwania", article: "Artykuł" },
+  de: { placeholder: "Artikel, Tag oder Autor suchen...", empty: "Nichts gefunden. Versuchen Sie eine andere Suchanfrage.", results: "Suchergebnisse", article: "Artikel" },
+};
+
+// --- Кастомный Инпут ---
+function CustomSearchBox({ t }: { t: any }) {
   const { query, refine } = useSearchBox();
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
-      <div className="absolute inset-y-0 left-0 flex items-center pl-7 pointer-events-none text-gray-400">
+    <div id="algolia-search-box" className="relative w-full max-w-2xl mx-auto">
+      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
         <Search size={20} />
       </div>
       <input
         type="text"
         value={query}
         onChange={(e) => refine(e.target.value)}
-        placeholder="Найти статью, тему или автора..."
-        className="w-full py-4 pl-14 pr-7 text-lg bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all"
+        placeholder={t.placeholder}
+        // Формула отступов: py-4 pl-[48px] (16+20+12)
+        className="w-full py-4 pl-[48px] pr-12 text-[16px] sm:text-[18px] bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-zinc-800 text-[#111827] dark:text-[#f3f4f6] rounded-[24px] focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm dark:shadow-none transition-all"
       />
+      {query && (
+        <button
+          onClick={() => refine("")}
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+          aria-label="Clear search"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 }
 
-// Кастомный вывод результатов (Hits)
-function CustomHits() {
+// --- Кастомный Вывод Результатов ---
+function CustomHits({ lang, t }: { lang: string, t: any }) {
   const { hits } = useHits();
 
   if (hits.length === 0) {
     return (
-      <div className="text-center py-10 text-gray-500 dark:text-zinc-500 font-medium">
-        Ничего не найдено. Попробуйте другой запрос.
+      <div id="algolia-empty-state" className="text-center py-10 text-gray-500 dark:text-zinc-500 font-medium">
+        {t.empty}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+    <div id="algolia-hits-grid" className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
       {hits.map((article: any) => (
         <Link
-          href={`/post/${article.slug?.current || article.slug}`}
+          // ВАЖНО: правильная ссылка с учетом языка!
+          href={`/${lang}/post/${article.slug?.current || article.slug}`}
           key={article.objectID || article._id}
-          className="flex flex-col justify-between p-5 bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-zinc-800 rounded-2xl hover:border-gray-200 dark:hover:border-zinc-700 transition-colors"
+          className="flex flex-col justify-between p-6 bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-zinc-800 rounded-[24px] hover:border-gray-300 dark:hover:border-zinc-700 shadow-sm dark:shadow-none transition-colors"
         >
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight mb-2">
+            <h3 className="text-lg font-extrabold text-[#111827] dark:text-[#f3f4f6] tracking-tight leading-relaxed mb-2">
               {article.title}
             </h3>
           </div>
           <div className="flex justify-between items-center mt-4">
             <span className="text-xs font-bold text-blue-600 uppercase tracking-wide">
-              {article.category || "Статья"}
+              {article.category || t.article}
             </span>
+            {/* Остановка всплытия клика, чтобы кнопка закладки не триггерила переход в статью */}
             <div className="z-10" onClick={(e) => e.preventDefault()}>
               <BookmarkButton articleId={article.objectID || article._id} />
             </div>
@@ -73,27 +94,23 @@ function CustomHits() {
   );
 }
 
-interface SearchClientProps {
-  initialArticles: any[]; // Оставляем для совместимости, но теперь данные тянет Algolia
-}
-
-export default function SearchClient({ initialArticles }: SearchClientProps) {
-  // Имя индекса Algolia (создай его в панели управления Algolia)
+// --- Главная обертка ---
+export default function SearchClient({ lang }: { lang: string }) {
   const indexName = "posts_index"; 
+  const t = searchTranslations[lang as keyof typeof searchTranslations] || searchTranslations.en;
 
   return (
     <div id="search-client-algolia" className="space-y-8">
       <InstantSearch searchClient={searchClient} indexName={indexName}>
-        {/* Настройки поиска (искать только по этим полям) */}
         <Configure hitsPerPage={10} />
         
-        <CustomSearchBox />
+        <CustomSearchBox t={t} />
         
-        <div>
+        <div id="search-results-wrapper">
           <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 pl-2">
-            Результаты поиска
+            {t.results}
           </h2>
-          <CustomHits />
+          <CustomHits lang={lang} t={t} />
         </div>
       </InstantSearch>
     </div>
