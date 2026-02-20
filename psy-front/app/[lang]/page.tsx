@@ -11,35 +11,35 @@ export const revalidate = 60;
 const translations = {
   ru: { 
     h1: "Познай себя.", 
-    sub: "Научный подход к психологии. #Токсичность #Личные границы #Тревожность", 
+    sub: "Саморазвитие. #Токсичность #Личные границы #Тревожность", 
     minRead: "мин", 
     err: "Упс! База данных недоступна", 
     errSub: "Проверь настройки Sanity или соединение." 
   },
   en: { 
     h1: "Know yourself.", 
-    sub: "A scientific approach to psychology. #Toxicity #PersonalBoundaries #Anxiety", 
+    sub: "Self-development. #Toxicity #PersonalBoundaries #Anxiety", 
     minRead: "min", 
     err: "Oops! Database unavailable", 
     errSub: "Check Sanity settings or connection." 
   },
   ua: { 
     h1: "Пізнай себе.", 
-    sub: "Науковий підхід до психології. #Токсичність #ОсобистіКордони #Тривожність", 
+    sub: "Саморозвиток. #Токсичність #ОсобистіКордони #Тривожність", 
     minRead: "хв", 
     err: "Упс! База даних недоступна", 
     errSub: "Перевір налаштування Sanity або з'єднання." 
   },
   pl: { 
     h1: "Poznaj siebie.", 
-    sub: "Naukowe podejście do psychologii. #Toksyczność #GraniceOsobiste #Niepokój", 
+    sub: "Samorozwój. #Toksyczność #GraniceOsobiste #Niepokój", 
     minRead: "min", 
     err: "Ups! Baza danych niedostępna", 
     errSub: "Sprawdź ustawienia Sanity lub połączenie." 
   },
   de: { 
     h1: "Erkenne dich selbst.", 
-    sub: "Ein wissenschaftlicher Ansatz zur Psychologie. #Toxizität #PersönlicheGrenzen #Angst", 
+    sub: "Selbstentwicklung. #Toxizität #PersönlicheGrenzen #Angst", 
     minRead: "Min", 
     err: "Hoppla! Datenbank nicht verfügbar", 
     errSub: "Sanity-Einstellungen oder Verbindung prüfen." 

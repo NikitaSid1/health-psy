@@ -23,11 +23,11 @@ interface SearchAndFeedProps {
 }
 
 const componentTranslations = {
-  ru: { placeholder: "Найти статью, тему или автора...", resultsFor: "Результаты поиска", latest: "Свежие материалы", notFound: "Ничего не найдено по запросу", tags: ["Токсичность", "Личные границы", "Тревожность", "Стресс", "Привязанность"] },
-  en: { placeholder: "Search for article, topic or author...", resultsFor: "Search results", latest: "Latest articles", notFound: "Nothing found for", tags: ["Toxicity", "Boundaries", "Anxiety", "Stress", "Attachment"] },
-  ua: { placeholder: "Знайти статтю, тему або автора...", resultsFor: "Результати пошуку", latest: "Свіжі матеріали", notFound: "Нічого не знайдено за запитом", tags: ["Токсичність", "Особисті кордони", "Тривожність", "Стрес", "Прихильність"] },
-  pl: { placeholder: "Szukaj artykułu, tematu lub autora...", resultsFor: "Wyniki wyszukiwania", latest: "Najnowsze artykuły", notFound: "Nic nie znaleziono dla", tags: ["Toksyczność", "Granice", "Lęk", "Stres", "Przywiązanie"] },
-  de: { placeholder: "Artikel, Thema oder Autor suchen...", resultsFor: "Suchergebnisse", latest: "Neueste Artikel", notFound: "Nichts gefunden für", tags: ["Toxizität", "Grenzen", "Angst", "Stress", "Bindung"] }
+  ru: { placeholder: "Найти статью, тему или автора...", resultsFor: "Результаты поиска", latest: "Свежие материалы", notFound: "Ничего не найдено по запросу", tags: ["Саморазвитие", "Личные границы", "Тревожность", "Стресс", "Привязанность"] },
+  en: { placeholder: "Search for article, topic or author...", resultsFor: "Search results", latest: "Latest articles", notFound: "Nothing found for", tags: ["Self-development", "Boundaries", "Anxiety", "Stress", "Attachment"] },
+  ua: { placeholder: "Знайти статтю, тему або автора...", resultsFor: "Результати пошуку", latest: "Свіжі матеріали", notFound: "Нічого не знайдено за запитом", tags: ["Саморозвиток", "Особисті кордони", "Тривожність", "Стрес", "Прихильність"] },
+  pl: { placeholder: "Szukaj artykułu, tematu lub autora...", resultsFor: "Wyniki wyszukiwania", latest: "Najnowsze artykuły", notFound: "Nic nie znaleziono dla", tags: ["Samorozwój", "Granice", "Lęk", "Stres", "Przywiązanie"] },
+  de: { placeholder: "Artikel, Thema oder Autor suchen...", resultsFor: "Suchergebnisse", latest: "Neueste Artikel", notFound: "Nichts gefunden für", tags: ["Selbstentwicklung", "Grenzen", "Angst", "Stress", "Bindung"] }
 };
 
 export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: SearchAndFeedProps) {
