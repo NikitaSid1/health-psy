@@ -7,22 +7,6 @@ import ArticleCard from "@/components/feed/ArticleCard";
 import { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 
-// Запрос: Ищем тег, чтобы получить его название, а затем ищем все посты на нужном языке, где этот тег прикреплен
-const tagFeedQuery = groq`{
-  "tag": *[_type == "tag" && slug.current == $slug][0] {
-    "name": coalesce(translations[$lang], title)
-  },
-  "articles": *[_type == "post" && language == $lang && $slug in tags[]->slug.current] | order(publishedAt desc) {
-    _id,
-    title,
-    "slug": slug.current,
-    category,
-    readTime,
-    expert,
-    "mainImage": mainImage.asset->url
-  }
-}`;
-
 const pageTranslations = {
   ru: { back: "На главную", notFound: "Тег не найден", empty: "В этой категории пока нет статей." },
   en: { back: "Back Home", notFound: "Tag not found", empty: "No articles in this category yet." },
@@ -34,10 +18,13 @@ const pageTranslations = {
 // Динамические метаданные для SEO
 export async function generateMetadata({ params }: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
   const { lang, slug } = await params;
-  const data = await client.fetch(tagFeedQuery, { lang, slug });
+  
+  // Получаем название тега для Title страницы
+  const tag = await client.fetch(`*[_type == "tag" && slug.current == $slug][0]{ "name": coalesce(translations[$lang], title) }`, { lang, slug });
+  
   return {
-    title: `${data.tag?.name || 'Category'} | HealthPsy`,
-    description: `Articles and insights about ${data.tag?.name}`,
+    title: `${tag?.name || 'Category'} | HealthPsy`,
+    description: `Articles and insights about ${tag?.name}`,
   };
 }
 
@@ -49,11 +36,13 @@ export default async function TagPage({ params }: TagPageProps) {
   const { lang, slug } = await params;
   const t = pageTranslations[lang as keyof typeof pageTranslations] || pageTranslations.ru;
   
-  const data = await client.fetch(tagFeedQuery, { lang, slug });
-  const tagTitle = data.tag?.name;
-  const articles = data.articles || [];
+  // 1. Сначала получаем сам тег, его системное имя и перевод
+  const tag = await client.fetch(`*[_type == "tag" && slug.current == $slug][0]{ 
+    title,
+    "name": coalesce(translations[$lang], title)
+  }`, { lang, slug });
 
-  if (!tagTitle) {
+  if (!tag) {
     return (
       <main id="tag-not-found" className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
@@ -63,6 +52,29 @@ export default async function TagPage({ params }: TagPageProps) {
       </main>
     );
   }
+
+  // 2. УМНЫЙ ЗАПРОС: Ищем статьи по новому массиву (tags) ИЛИ по старому текстовому полю (category)
+  const articlesQuery = groq`*[_type == "post" && language == $lang && (
+    $slug in tags[]->slug.current || 
+    category match $tagName || 
+    category match $tagTitle
+  )] | order(publishedAt desc) {
+    _id,
+    title,
+    "slug": slug.current,
+    category,
+    readTime,
+    expert,
+    "mainImage": mainImage.asset->url
+  }`;
+
+  // Выполняем запрос, передавая и системное имя тега, и его локализованное имя
+  const articles = await client.fetch(articlesQuery, { 
+    lang, 
+    slug, 
+    tagName: tag.name, 
+    tagTitle: tag.title 
+  });
 
   return (
     <main id="tag-feed-main" className="layout-container space-y-10 pt-4 pb-20">
@@ -79,7 +91,7 @@ export default async function TagPage({ params }: TagPageProps) {
       {/* Заголовок Категории */}
       <header id="tag-feed-header" className="border-b border-gray-100 dark:border-zinc-800/50 pb-8">
         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-[#111827] dark:text-[#f3f4f6]">
-          {tagTitle}
+          {tag.name}
         </h1>
         <p className="mt-4 text-lg text-gray-500 dark:text-zinc-400 font-medium">
           {articles.length} {articles.length === 1 ? 'статья' : 'статей'}
