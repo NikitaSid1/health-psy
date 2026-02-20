@@ -2429,109 +2429,6 @@ export default function Header() {
 }
 </file>
 
-<file path="psy-front/app/[lang]/page.tsx">
-// C:\Users\Admin\Desktop\psy\psy-front\app\[lang]\page.tsx
-// === НАЧАЛО БЛОКА: Home Page (Strict Lang) ===
-import { client } from "@/lib/sanity";
-import { articlesQuery } from "@/lib/queries";
-import SearchAndFeed from "@/components/feed/SearchAndFeed";
-
-// Кэшируем страницу на 60 секунд
-export const revalidate = 60; 
-
-const translations = {
-  ru: { 
-    h1: "Познай себя.", 
-    sub: "Научный подход к психологии. #Токсичность #Личные границы #Тревожность", 
-    minRead: "мин", 
-    err: "Упс! База данных недоступна", 
-    errSub: "Проверь настройки Sanity или соединение." 
-  },
-  en: { 
-    h1: "Know yourself.", 
-    sub: "A scientific approach to psychology. #Toxicity #PersonalBoundaries #Anxiety", 
-    minRead: "min", 
-    err: "Oops! Database unavailable", 
-    errSub: "Check Sanity settings or connection." 
-  },
-  ua: { 
-    h1: "Пізнай себе.", 
-    sub: "Науковий підхід до психології. #Токсичність #ОсобистіКордони #Тривожність", 
-    minRead: "хв", 
-    err: "Упс! База даних недоступна", 
-    errSub: "Перевір налаштування Sanity або з'єднання." 
-  },
-  pl: { 
-    h1: "Poznaj siebie.", 
-    sub: "Naukowe podejście do psychologii. #Toksyczność #GraniceOsobiste #Niepokój", 
-    minRead: "min", 
-    err: "Ups! Baza danych niedostępna", 
-    errSub: "Sprawdź ustawienia Sanity lub połączenie." 
-  },
-  de: { 
-    h1: "Erkenne dich selbst.", 
-    sub: "Ein wissenschaftlicher Ansatz zur Psychologie. #Toxizität #PersönlicheGrenzen #Angst", 
-    minRead: "Min", 
-    err: "Hoppla! Datenbank nicht verfügbar", 
-    errSub: "Sanity-Einstellungen oder Verbindung prüfen." 
-  },
-};
-
-interface Props {
-  params: Promise<{ lang: string }>;
-}
-
-export default async function HomePage(props: Props) {
-  // В Next.js 15 params нужно ждать (await)
-  const params = await props.params;
-  
-  // Определяем язык (теперь fallback на en, а не на ru)
-  const lang = (params.lang || "en") as keyof typeof translations;
-  const t = translations[lang] || translations.en;
-
-  let articles = [];
-  let errorOccurred = false;
-
-  try {
-    // Получаем статьи. В запросе articlesQuery уже есть логика фильтрации по языку.
-    articles = await client.fetch(articlesQuery, { lang });
-  } catch (error) {
-    console.error("Sanity fetch error:", error);
-    errorOccurred = true;
-  }
-
-  return (
-    <main id="home-main">
-      <div id="home-container" className="layout-container space-y-10">
-        
-        <section id="hero-section" className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900 dark:text-zinc-50">
-              {t.h1}
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">
-              {t.sub}
-            </p>
-          </div>
-        </section>
-
-        {errorOccurred ? (
-          <div id="error-state" className="p-10 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl text-center">
-            <p className="text-red-500 font-bold mb-2">{t.err}</p>
-            <p className="text-sm text-gray-500">{t.errSub}</p>
-          </div>
-        ) : (
-          /* Передаем lang и minReadLabel в SearchAndFeed */
-          <SearchAndFeed initialArticles={articles} lang={lang} minReadLabel={t.minRead} />
-        )}
-
-      </div>
-    </main>
-  );
-}
-// === КОНЕЦ БЛОКА ===
-</file>
-
 <file path="psy-front/app/globals.css">
 @import "tailwindcss";
 
@@ -3028,6 +2925,130 @@ export default defineType({
     })
   ],
 })
+// === КОНЕЦ БЛОКА ===
+</file>
+
+<file path="psy-front/app/[lang]/page.tsx">
+// C:\Users\Admin\Desktop\psy\psy-front\app\[lang]\page.tsx
+// === НАЧАЛО БЛОКА: Home Page (Strict Lang) ===
+import { client } from "@/lib/sanity";
+import { articlesQuery } from "@/lib/queries";
+import SearchAndFeed from "@/components/feed/SearchAndFeed";
+import { Metadata } from "next"; // <-- ДОБАВИЛИ ИМПОРТ
+
+// Кэшируем страницу на 60 секунд
+export const revalidate = 60; 
+
+const translations = {
+  ru: { 
+    h1: "Познай себя.", 
+    sub: "Научный подход к психологии. #Токсичность #Личные границы #Тревожность", 
+    minRead: "мин", 
+    err: "Упс! База данных недоступна", 
+    errSub: "Проверь настройки Sanity или соединение." 
+  },
+  en: { 
+    h1: "Know yourself.", 
+    sub: "A scientific approach to psychology. #Toxicity #PersonalBoundaries #Anxiety", 
+    minRead: "min", 
+    err: "Oops! Database unavailable", 
+    errSub: "Check Sanity settings or connection." 
+  },
+  ua: { 
+    h1: "Пізнай себе.", 
+    sub: "Науковий підхід до психології. #Токсичність #ОсобистіКордони #Тривожність", 
+    minRead: "хв", 
+    err: "Упс! База даних недоступна", 
+    errSub: "Перевір налаштування Sanity або з'єднання." 
+  },
+  pl: { 
+    h1: "Poznaj siebie.", 
+    sub: "Naukowe podejście do psychologii. #Toksyczność #GraniceOsobiste #Niepokój", 
+    minRead: "min", 
+    err: "Ups! Baza danych niedostępna", 
+    errSub: "Sprawdź ustawienia Sanity lub połączenie." 
+  },
+  de: { 
+    h1: "Erkenne dich selbst.", 
+    sub: "Ein wissenschaftlicher Ansatz zur Psychologie. #Toxizität #PersönlicheGrenzen #Angst", 
+    minRead: "Min", 
+    err: "Hoppla! Datenbank nicht verfügbar", 
+    errSub: "Sanity-Einstellungen oder Verbindung prüfen." 
+  },
+};
+
+interface Props {
+  params: Promise<{ lang: string }>;
+}
+
+// === НАЧАЛО НОВОГО SEO-БЛОКА ДЛЯ GOOGLE (hreflang) ===
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
+  const lang = params.lang || "en";
+
+  return {
+    alternates: {
+      canonical: `https://healthpsy.info/${lang}`,
+      languages: {
+        'ru': 'https://healthpsy.info/ru',
+        'en': 'https://healthpsy.info/en',
+        'uk': 'https://healthpsy.info/ua', // ВАЖНО: для Google украинский язык обозначается как uk
+        'pl': 'https://healthpsy.info/pl',
+        'de': 'https://healthpsy.info/de',
+      },
+    },
+  };
+}
+// === КОНЕЦ SEO-БЛОКА ===
+
+export default async function HomePage(props: Props) {
+  // В Next.js 15 params нужно ждать (await)
+  const params = await props.params;
+  
+  // Определяем язык (теперь fallback на en, а не на ru)
+  const lang = (params.lang || "en") as keyof typeof translations;
+  const t = translations[lang] || translations.en;
+
+  let articles = [];
+  let errorOccurred = false;
+
+  try {
+    // Получаем статьи. В запросе articlesQuery уже есть логика фильтрации по языку.
+    articles = await client.fetch(articlesQuery, { lang });
+  } catch (error) {
+    console.error("Sanity fetch error:", error);
+    errorOccurred = true;
+  }
+
+  return (
+    <main id="home-main">
+      <div id="home-container" className="layout-container space-y-10">
+        
+        <section id="hero-section" className="space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900 dark:text-zinc-50">
+              {t.h1}
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">
+              {t.sub}
+            </p>
+          </div>
+        </section>
+
+        {errorOccurred ? (
+          <div id="error-state" className="p-10 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl text-center">
+            <p className="text-red-500 font-bold mb-2">{t.err}</p>
+            <p className="text-sm text-gray-500">{t.errSub}</p>
+          </div>
+        ) : (
+          /* Передаем lang и minReadLabel в SearchAndFeed */
+          <SearchAndFeed initialArticles={articles} lang={lang} minReadLabel={t.minRead} />
+        )}
+
+      </div>
+    </main>
+  );
+}
 // === КОНЕЦ БЛОКА ===
 </file>
 
@@ -3737,76 +3758,6 @@ export default async function PostPage({ params }: PostPageProps) {
 // === КОНЕЦ БЛОКА ===
 </file>
 
-<file path="psy-front/app/layout.tsx">
-// === НАЧАЛО БЛОКА: Root Layout ===
-import type { Metadata, Viewport } from "next"; 
-import { Inter } from "next/font/google";
-import { ThemeProvider } from "next-themes";
-import "./globals.css";
-import BottomBar from "@/components/ui/BottomBar"; 
-import Header from "@/components/ui/Header"; 
-// Импортируем провайдер уведомлений
-import { ToastProvider } from "@/components/ui/ToastProvider"; 
-// Импортируем компонент аналитики Vercel
-import { Analytics } from "@vercel/analytics/react";
-
-const inter = Inter({ subsets: ["latin", "cyrillic"] });
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: "cover",
-};
-
-export const metadata: Metadata = {
-  title: "HealthPsy",
-  description: "Твой проводник в ментальном мире",
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
-  },
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="ru" suppressHydrationWarning>
-      <body id="root-body" className={`${inter.className} bg-background text-foreground antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {/* Оборачиваем всё приложение в ToastProvider для работы уведомлений */}
-          <ToastProvider>
-            
-            <div id="app-wrapper" className="relative flex min-h-screen flex-col">
-              
-              <Header />
-              
-              {/* Глобальная обертка отступов: защищает от наложения Header и BottomBar */}
-              <div id="main-content" className="flex-1 pt-20 md:pt-28 pb-24 md:pb-12">
-                {children}
-              </div>
-              
-              <BottomBar />
-              
-            </div>
-
-            {/* Компонент аналитики Vercel (работает только в продакшене или при деплое на Vercel) */}
-            <Analytics />
-
-          </ToastProvider>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
-}
-// === КОНЕЦ БЛОКА ===
-</file>
-
 <file path="psy-front/components/article/ArticleActions.tsx">
 // === НАЧАЛО БЛОКА: Article Actions (Audio & Share) ===
 "use client";
@@ -3961,6 +3912,69 @@ export default function ArticleActions({ title, textToRead, lang = "ru" }: Artic
         {t.share}
       </button>
     </div>
+  );
+}
+// === КОНЕЦ БЛОКА ===
+</file>
+
+<file path="psy-front/app/layout.tsx">
+// C:\Users\Admin\Desktop\psy\psy-front\app\layout.tsx
+// === НАЧАЛО БЛОКА: Root Layout ===
+import type { Metadata, Viewport } from "next"; 
+import { Inter } from "next/font/google";
+import { ThemeProvider } from "next-themes";
+import "./globals.css";
+import BottomBar from "@/components/ui/BottomBar"; 
+import Header from "@/components/ui/Header"; 
+import { ToastProvider } from "@/components/ui/ToastProvider"; 
+import { Analytics } from "@vercel/analytics/react";
+
+const inter = Inter({ subsets: ["latin", "cyrillic"] });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
+export const metadata: Metadata = {
+  title: "HealthPsy",
+  description: "Know yourself. A scientific approach to psychology.",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Комментарий перенесен сюда, чтобы не ломать JSX:
+  // Изменили lang="ru" на lang="en" для глобального SEO
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body id="root-body" className={`${inter.className} bg-background text-foreground antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ToastProvider>
+            
+            <div id="app-wrapper" className="relative flex min-h-screen flex-col">
+              
+              <Header />
+              
+              <div id="main-content" className="flex-1 pt-20 md:pt-28 pb-24 md:pb-12">
+                {children}
+              </div>
+              
+              <BottomBar />
+              
+            </div>
+
+            <Analytics />
+
+          </ToastProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
 // === КОНЕЦ БЛОКА ===

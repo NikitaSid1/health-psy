@@ -1,67 +1,70 @@
+// C:\Users\Admin\Desktop\psy\psy-front\components\ui\BottomBar.tsx
+// === НАЧАЛО БЛОКА: Bottom Navigation Bar ===
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { triggerHaptic } from "@/lib/haptic";
+import { Home, Search, Bookmark, Menu } from "lucide-react";
 
-const translations = {
-  ru: { home: "Главная", fav: "Избранное", menu: "Меню" },
-  en: { home: "Home", fav: "Bookmarks", menu: "Menu" },
-  ua: { home: "Головна", fav: "Обране", menu: "Меню" },
-  pl: { home: "Główna", fav: "Zakładki", menu: "Menu" },
-  de: { home: "Home", fav: "Favoriten", menu: "Menü" },
+// Изолированный словарь для переводов нижнего меню
+const bottomNavTranslations = {
+  ru: { home: "Главная", search: "Поиск", bookmarks: "Закладки", menu: "Меню" },
+  en: { home: "Home", search: "Search", bookmarks: "Bookmarks", menu: "Menu" },
+  ua: { home: "Головна", search: "Пошук", bookmarks: "Закладки", menu: "Меню" },
+  pl: { home: "Główna", search: "Szukaj", bookmarks: "Zakładki", menu: "Menu" },
+  de: { home: "Start", search: "Suche", bookmarks: "Lesezeichen", menu: "Menü" },
 };
 
 export default function BottomBar() {
   const pathname = usePathname();
-  const currentLang = (pathname?.split("/")[1] || "ru") as keyof typeof translations;
-  const t = translations[currentLang] || translations.ru;
+  // Вытаскиваем текущий язык из URL (например, "ru" из "/ru/bookmarks")
+  const lang = pathname.split('/')[1] || 'en';
+  const t = bottomNavTranslations[lang as keyof typeof bottomNavTranslations] || bottomNavTranslations.en;
 
-  const isActive = (path: string) => {
-    if (path === `/${currentLang}`) {
-      return pathname === `/${currentLang}` || pathname === `/${currentLang}/`;
-    }
-    return pathname?.startsWith(path);
-  };
+  const navItems = [
+    { id: "nav-home", href: `/${lang}`, icon: Home, label: t.home },
+    { id: "nav-search", href: `/${lang}/search`, icon: Search, label: t.search },
+    { id: "nav-bookmarks", href: `/${lang}/bookmarks`, icon: Bookmark, label: t.bookmarks },
+    { id: "nav-menu", href: `/${lang}/menu`, icon: Menu, label: t.menu },
+  ];
 
   return (
-    <nav id="mobile-bottom-bar" className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-lg border-t border-gray-100 dark:border-zinc-800 pb-[env(safe-area-inset-bottom)]">
-      <div className="flex items-center justify-around h-16 px-4">
-        
-        <Link 
-          href={`/${currentLang}`} 
-          onClick={() => triggerHaptic('light')}
-          className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isActive(`/${currentLang}`) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          <span className="text-[10px] font-bold">{t.home}</span>
-        </Link>
+    <nav 
+      id="bottom-bar" 
+      // md:hidden скрывает бар на ПК. pb-[env(...)] дает правильный отступ на iPhone.
+      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/90 dark:bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-gray-200 dark:border-zinc-800 transition-colors duration-500 ease-in-out pb-[env(safe-area-inset-bottom)]"
+    >
+      <div id="bottom-bar-container" className="flex items-center justify-around h-[64px] px-2">
+        {navItems.map((item) => {
+          // Проверяем, активна ли текущая вкладка (для подсветки)
+          const isActive = pathname === item.href || (item.href !== `/${lang}` && pathname.startsWith(item.href));
+          const Icon = item.icon;
 
-        <Link 
-          href={`/${currentLang}/bookmarks`} 
-          onClick={() => triggerHaptic('light')}
-          className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isActive(`/${currentLang}/bookmarks`) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-          </svg>
-          <span className="text-[10px] font-bold">{t.fav}</span>
-        </Link>
-
-        <Link 
-          href={`/${currentLang}/menu`} 
-          onClick={() => triggerHaptic('light')}
-          className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isActive(`/${currentLang}/menu`) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          <span className="text-[10px] font-bold">{t.menu}</span>
-        </Link>
-
+          return (
+            <Link
+              key={item.id}
+              id={item.id}
+              href={item.href}
+              className={`flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-colors duration-300 ${
+                isActive 
+                  ? "text-blue-600 dark:text-blue-500" 
+                  : "text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              }`}
+            >
+              <Icon 
+                id={`${item.id}-icon`} 
+                size={24} 
+                strokeWidth={isActive ? 2.5 : 2} 
+                className="transition-transform duration-300 active:scale-95" 
+              />
+              <span id={`${item.id}-label`} className="text-[10px] font-semibold tracking-wide">
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );
 }
+// === КОНЕЦ БЛОКА ===
