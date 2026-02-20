@@ -3,6 +3,7 @@
 import { client } from "@/lib/sanity";
 import { articlesQuery } from "@/lib/queries";
 import SearchAndFeed from "@/components/feed/SearchAndFeed";
+import { Metadata } from "next"; // <-- ДОБАВИЛИ ИМПОРТ
 
 // Кэшируем страницу на 60 секунд
 export const revalidate = 60; 
@@ -48,6 +49,26 @@ const translations = {
 interface Props {
   params: Promise<{ lang: string }>;
 }
+
+// === НАЧАЛО НОВОГО SEO-БЛОКА ДЛЯ GOOGLE (hreflang) ===
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
+  const lang = params.lang || "en";
+
+  return {
+    alternates: {
+      canonical: `https://healthpsy.info/${lang}`,
+      languages: {
+        'ru': 'https://healthpsy.info/ru',
+        'en': 'https://healthpsy.info/en',
+        'uk': 'https://healthpsy.info/ua', // ВАЖНО: для Google украинский язык обозначается как uk
+        'pl': 'https://healthpsy.info/pl',
+        'de': 'https://healthpsy.info/de',
+      },
+    },
+  };
+}
+// === КОНЕЦ SEO-БЛОКА ===
 
 export default async function HomePage(props: Props) {
   // В Next.js 15 params нужно ждать (await)

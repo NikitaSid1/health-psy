@@ -1,3 +1,4 @@
+// C:\Users\Admin\Desktop\psy\psy-front\app\layout.tsx
 // === НАЧАЛО БЛОКА: Root Layout ===
 import type { Metadata, Viewport } from "next"; 
 import { Inter } from "next/font/google";
@@ -5,9 +6,7 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import BottomBar from "@/components/ui/BottomBar"; 
 import Header from "@/components/ui/Header"; 
-// Импортируем провайдер уведомлений
 import { ToastProvider } from "@/components/ui/ToastProvider"; 
-// Импортируем компонент аналитики Vercel
 import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
@@ -22,12 +21,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "HealthPsy",
-  description: "Твой проводник в ментальном мире",
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
-  },
+  description: "Know yourself. A scientific approach to psychology.",
 };
 
 export default function RootLayout({
@@ -35,18 +29,18 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Комментарий перенесен сюда, чтобы не ломать JSX:
+  // Изменили lang="ru" на lang="en" для глобального SEO
   return (
-    <html lang="ru" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body id="root-body" className={`${inter.className} bg-background text-foreground antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {/* Оборачиваем всё приложение в ToastProvider для работы уведомлений */}
           <ToastProvider>
             
             <div id="app-wrapper" className="relative flex min-h-screen flex-col">
               
               <Header />
               
-              {/* Глобальная обертка отступов: защищает от наложения Header и BottomBar */}
               <div id="main-content" className="flex-1 pt-20 md:pt-28 pb-24 md:pb-12">
                 {children}
               </div>
@@ -55,7 +49,6 @@ export default function RootLayout({
               
             </div>
 
-            {/* Компонент аналитики Vercel (работает только в продакшене или при деплое на Vercel) */}
             <Analytics />
 
           </ToastProvider>
