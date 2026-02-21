@@ -169,11 +169,14 @@ export default async function PostPage({ params }: PostPageProps) {
       
       <main id="post-main-content" className="font-sans">
         
-        {/* 👇 ИСПРАВЛЕНИЕ: justify-center идеально центрирует статью и сайдбар по центру экрана 👇 */}
-        <div className="layout-container mx-auto flex flex-col lg:flex-row justify-center gap-8 lg:gap-12 items-start pt-4">
+        {/* 👇 ИСПРАВЛЕНИЕ 1: Вернул жесткий каркас (w-full max-w-[1440px] px-4), чтобы вёрстка не ломалась 👇 */}
+        <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row justify-center xl:justify-between items-start pt-4 gap-8 lg:gap-12">
           
-          {/* 👇 Убран класс flex-1, чтобы статья не растягивалась и не прилипала влево 👇 */}
-          <article id="post-article" className="w-full max-w-3xl mx-auto lg:mx-0">
+          {/* 👇 ИСПРАВЛЕНИЕ 2: Пустой блок-распорка. Он нужен, чтобы уравновесить правое меню, тогда статья встанет ИДЕАЛЬНО по центру монитора 👇 */}
+          <div className="hidden xl:block w-[280px] shrink-0"></div>
+
+          {/* Центральная колонка (Статья) */}
+          <article id="post-article" className="w-full max-w-3xl mx-auto lg:mx-0 xl:mx-auto">
             
             <nav id="post-navigation" className="mb-8">
               <Link href={`/${lang}`} className="text-sm font-bold text-zinc-500 hover:text-blue-600 transition-colors flex items-center gap-2">
@@ -261,7 +264,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
           </article>
 
-          {/* Боковое оглавление для ПК */}
+          {/* Правая колонка (Боковое меню) */}
           <aside className="hidden lg:block w-[280px] shrink-0 sticky top-28">
             <TableOfContents lang={lang} />
           </aside>
