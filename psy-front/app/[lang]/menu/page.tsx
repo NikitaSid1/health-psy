@@ -5,46 +5,41 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { triggerHaptic } from "@/lib/haptic";
 import { client } from "@/lib/sanity";
 import { ChevronRight } from "lucide-react";
 
-// 1. Создаем словарь интерфейса (без захардкоженных категорий)
+// 1. Создаем словарь интерфейса (без захардкоженных категорий и выбора языка)
 const dictionary = {
   ru: {
     title: "Меню",
     settings: "Настройки",
     darkTheme: "Темная тема",
-    language: "Язык",
     categories: "Категории",
   },
   en: {
     title: "Menu",
     settings: "Settings",
     darkTheme: "Dark mode",
-    language: "Language",
     categories: "Categories",
   },
   ua: {
     title: "Меню",
     settings: "Налаштування",
     darkTheme: "Темна тема",
-    language: "Мова",
     categories: "Категорії",
   },
   pl: {
     title: "Menu",
     settings: "Ustawienia",
     darkTheme: "Tryb ciemny",
-    language: "Język",
     categories: "Kategorie",
   },
   de: {
     title: "Menü",
     settings: "Einstellungen",
     darkTheme: "Dunkler Modus",
-    language: "Sprache",
     categories: "Kategorien",
   }
 };
@@ -56,7 +51,6 @@ export default function MenuPage() {
   
   const { theme, setTheme, systemTheme } = useTheme();
   const pathname = usePathname();
-  const router = useRouter();
 
   const currentLang = (pathname?.split("/")[1] || "ru") as keyof typeof dictionary;
   const t = dictionary[currentLang] || dictionary.ru;
@@ -92,21 +86,6 @@ export default function MenuPage() {
     setTheme(currentTheme === "dark" ? "light" : "dark");
   };
 
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    triggerHaptic('light');
-    const locale = e.target.value;
-    
-    if (!pathname) {
-      router.push(`/${locale}`);
-      return;
-    }
-    
-    const segments = pathname.split("/");
-    segments[1] = locale;
-    router.push(segments.join("/"));
-    router.refresh();
-  };
-
   return (
     <main id="menu-page" className="pb-24"> {/* pb-24 чтобы нижний бар не перекрывал контент */}
       <div className="layout-container space-y-8 pt-4">
@@ -115,7 +94,7 @@ export default function MenuPage() {
           {t.title}
         </h1>
 
-        {/* Настройки */}
+        {/* Настройки (Остался только переключатель темы) */}
         <section id="menu-settings" className="bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-zinc-800 rounded-[24px] p-6 shadow-sm dark:shadow-none space-y-6">
           <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">
             {t.settings}
@@ -143,25 +122,6 @@ export default function MenuPage() {
                 />
               </button>
             )}
-          </div>
-
-          <div className="h-px bg-gray-100 dark:bg-zinc-800/50 w-full" />
-
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-bold text-[#111827] dark:text-zinc-200">
-              {t.language}
-            </span>
-            <select
-              onChange={handleLanguageChange}
-              value={currentLang}
-              className="bg-gray-50 dark:bg-zinc-900 text-[#111827] dark:text-white border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-600 font-bold appearance-none cursor-pointer"
-            >
-              <option value="ru">Русский (RU)</option>
-              <option value="en">English (EN)</option>
-              <option value="ua">Українська (UA)</option>
-              <option value="pl">Polski (PL)</option>
-              <option value="de">Deutsch (DE)</option>
-            </select>
           </div>
         </section>
 
