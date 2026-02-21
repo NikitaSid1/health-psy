@@ -10,38 +10,12 @@ import { triggerHaptic } from "@/lib/haptic";
 import { client } from "@/lib/sanity";
 import { ChevronRight } from "lucide-react";
 
-// 1. Создаем словарь интерфейса (без захардкоженных категорий и выбора языка)
 const dictionary = {
-  ru: {
-    title: "Меню",
-    settings: "Настройки",
-    darkTheme: "Темная тема",
-    categories: "Категории",
-  },
-  en: {
-    title: "Menu",
-    settings: "Settings",
-    darkTheme: "Dark mode",
-    categories: "Categories",
-  },
-  ua: {
-    title: "Меню",
-    settings: "Налаштування",
-    darkTheme: "Темна тема",
-    categories: "Категорії",
-  },
-  pl: {
-    title: "Menu",
-    settings: "Ustawienia",
-    darkTheme: "Tryb ciemny",
-    categories: "Kategorie",
-  },
-  de: {
-    title: "Menü",
-    settings: "Einstellungen",
-    darkTheme: "Dunkler Modus",
-    categories: "Kategorien",
-  }
+  ru: { title: "Меню", settings: "Настройки", darkTheme: "Темная тема", categories: "Категории" },
+  en: { title: "Menu", settings: "Settings", darkTheme: "Dark mode", categories: "Categories" },
+  ua: { title: "Меню", settings: "Налаштування", darkTheme: "Темна тема", categories: "Категорії" },
+  pl: { title: "Menu", settings: "Ustawienia", darkTheme: "Tryb ciemny", categories: "Kategorie" },
+  de: { title: "Menü", settings: "Einstellungen", darkTheme: "Dunkler Modus", categories: "Kategorien" }
 };
 
 export default function MenuPage() {
@@ -55,18 +29,12 @@ export default function MenuPage() {
   const currentLang = (pathname?.split("/")[1] || "ru") as keyof typeof dictionary;
   const t = dictionary[currentLang] || dictionary.ru;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
-  // 2. Асинхронная загрузка тегов из Sanity
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const query = `*[_type == "tag" && isFeatured == true] | order(_createdAt asc) { 
-          "slug": slug.current, 
-          "name": coalesce(translations[$lang], title) 
-        }`;
+        const query = `*[_type == "tag" && isFeatured == true] | order(_createdAt asc) { "slug": slug.current, "name": coalesce(translations[$lang], title) }`;
         const data = await client.fetch(query, { lang: currentLang });
         setTags(data);
       } catch (error) {
@@ -75,7 +43,6 @@ export default function MenuPage() {
         setIsLoadingTags(false);
       }
     };
-
     fetchTags();
   }, [currentLang]);
 
@@ -87,14 +54,13 @@ export default function MenuPage() {
   };
 
   return (
-    <main id="menu-page" className="pb-24"> {/* pb-24 чтобы нижний бар не перекрывал контент */}
+    <main id="menu-page" className="pb-24">
       <div className="layout-container space-y-8 pt-4">
         
         <h1 className="text-4xl md:text-5xl font-black text-[#111827] dark:text-[#f3f4f6] tracking-tight px-2">
           {t.title}
         </h1>
 
-        {/* Настройки (Остался только переключатель темы) */}
         <section id="menu-settings" className="bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-zinc-800 rounded-[24px] p-6 shadow-sm dark:shadow-none space-y-6">
           <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">
             {t.settings}
@@ -125,7 +91,6 @@ export default function MenuPage() {
           </div>
         </section>
 
-        {/* Категории (динамические) */}
         <section id="menu-categories" className="bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-zinc-800 rounded-[24px] overflow-hidden shadow-sm dark:shadow-none">
           <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50">
             <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">
@@ -135,7 +100,6 @@ export default function MenuPage() {
           
           <nav className="flex flex-col divide-y divide-gray-100 dark:divide-zinc-800/50">
             {isLoadingTags ? (
-              // Скелетон во время загрузки
               Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex justify-between items-center p-6 animate-pulse">
                   <div className="h-6 bg-gray-200 dark:bg-zinc-800/50 rounded-md w-1/2"></div>
@@ -143,12 +107,8 @@ export default function MenuPage() {
                 </div>
               ))
             ) : tags.length === 0 ? (
-              // Если тегов нет
-              <div className="p-6 text-center text-gray-500 font-medium">
-                Нет доступных категорий
-              </div>
+              <div className="p-6 text-center text-gray-500 font-medium">Нет доступных категорий</div>
             ) : (
-              // Вывод тегов
               tags.map((tag) => (
                 <Link
                   key={tag.slug}
@@ -156,9 +116,7 @@ export default function MenuPage() {
                   className="group flex items-center justify-between p-6 hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors active:bg-gray-100 dark:active:bg-zinc-800"
                   onClick={() => triggerHaptic('light')}
                 >
-                  <span className="text-xl font-bold text-[#111827] dark:text-[#f3f4f6] tracking-tight">
-                    {tag.name}
-                  </span>
+                  <span className="text-xl font-bold text-[#111827] dark:text-[#f3f4f6] tracking-tight">{tag.name}</span>
                   <ChevronRight size={20} className="text-gray-300 dark:text-zinc-600 group-hover:text-blue-600 transition-colors transform group-hover:translate-x-1 duration-300" />
                 </Link>
               ))

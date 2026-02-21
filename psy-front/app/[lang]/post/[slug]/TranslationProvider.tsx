@@ -19,13 +19,12 @@ export default function TranslationProvider({ translations, currentLang }: Props
     window.dispatchEvent(event);
 
     return () => {
-      // Очищаем при уходе со статьи
+      // Очищаем данные при уходе со статьи
       window.dispatchEvent(new CustomEvent('updateArticleTranslations', { detail: null }));
     };
   }, [translations]);
 
-  // Возвращаем null. Компонент больше не рендерит дублирующиеся кнопки на экране,
-  // он работает только как "поставщик данных" (Data Provider) для Header.
+  // Больше никаких дублирующихся кнопок! 
   return null;
 }
 // === КОНЕЦ БЛОКА ===

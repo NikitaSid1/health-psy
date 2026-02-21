@@ -50,14 +50,14 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* ПРАВАЯ ЧАСТЬ (Адаптирована для мобилок и ПК) */}
+          {/* ПРАВАЯ ЧАСТЬ */}
           <nav id="header-right" className="flex items-center gap-2 md:gap-6">
             <Link id="header-bookmarks" href={`/${lang}/bookmarks`} className="hidden md:block text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-blue-600 transition-colors">
               {t.bookmarks}
             </Link>
             
             <div id="header-controls" className="flex items-center gap-2 md:gap-4 md:border-l border-gray-300 dark:border-zinc-700 md:pl-6">
-              {/* Dropdown Языка теперь доступен ВСЕМ */}
+              {/* Dropdown Языка теперь доступен и на ПК, и на Мобилках */}
               <LanguageSwitcher />
               
               {/* Темную тему прячем на мобилке, она есть в Mobile Menu */}
