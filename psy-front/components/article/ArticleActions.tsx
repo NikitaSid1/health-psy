@@ -1,8 +1,10 @@
-// === НАЧАЛО БЛОКА: Article Actions (Audio & Share) ===
+// C:\Users\Admin\Desktop\psy\psy-front\components\article\ArticleActions.tsx
+// === НАЧАЛО БЛОКА: Article Actions (Audio, Share, Font) ===
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { triggerHaptic } from "@/lib/haptic";
+import { Type } from "lucide-react"; // <-- Добавили иконку для шрифта
 
 interface ArticleActionsProps {
   title: string;
@@ -11,16 +13,17 @@ interface ArticleActionsProps {
 }
 
 const translations = {
-  ru: { listen: "🎧 Слушать статью", stop: "⏹ Остановить", share: "↗ Поделиться", copied: "Ссылка скопирована!", recommend: "Рекомендую прочитать эту статью: ", error: "Ваш браузер не поддерживает аудио-чтение.", noVoice: "На вашем устройстве не установлен голосовой пакет для этого языка. Добавьте его в настройках системы." },
-  en: { listen: "🎧 Listen to article", stop: "⏹ Stop", share: "↗ Share", copied: "Link copied!", recommend: "I recommend reading this article: ", error: "Your browser does not support audio reading.", noVoice: "No voice package installed for this language on your device. Please add it in your system settings." },
-  ua: { listen: "🎧 Слухати статтю", stop: "⏹ Зупинити", share: "↗ Поділитися", copied: "Посилання скопійовано!", recommend: "Рекомендую прочитати цю статтю: ", error: "Ваш браузер не підтримує аудіо-читання.", noVoice: "На вашому пристрої не встановлено голосовий пакет для української мови. Додайте його в налаштуваннях системи." },
-  pl: { listen: "🎧 Posłuchaj artykułu", stop: "⏹ Zatrzymaj", share: "↗ Udostępnij", copied: "Link skopiowany!", recommend: "Polecam przeczytać ten artykuł: ", error: "Twoja przeglądarka nie obsługuje czytania audio.", noVoice: "Brak pakietu głosowego dla tego języka na Twoim urządzeniu. Dodaj go w ustawieniach systemu." },
-  de: { listen: "🎧 Artikel anhören", stop: "⏹ Stoppen", share: "↗ Teilen", copied: "Link kopiert!", recommend: "Ich empfehle diesen Artikel zu lesen: ", error: "Ihr Browser unterstützt kein Audio-Lesen.", noVoice: "Auf Ihrem Gerät ist kein Sprachpaket für diese Sprache installiert. Bitte fügen Sie es in Ihren Systemeinstellungen hinzu." },
+  ru: { listen: "🎧 Слушать статью", stop: "⏹ Остановить", share: "↗ Поделиться", copied: "Ссылка скопирована!", recommend: "Рекомендую прочитать эту статью: ", error: "Ваш браузер не поддерживает аудио-чтение.", noVoice: "На вашем устройстве не установлен голосовой пакет для этого языка. Добавьте его в настройках системы.", font: "Шрифт" },
+  en: { listen: "🎧 Listen to article", stop: "⏹ Stop", share: "↗ Share", copied: "Link copied!", recommend: "I recommend reading this article: ", error: "Your browser does not support audio reading.", noVoice: "No voice package installed for this language on your device. Please add it in your system settings.", font: "Font" },
+  ua: { listen: "🎧 Слухати статтю", stop: "⏹ Зупинити", share: "↗ Поділитися", copied: "Посилання скопійовано!", recommend: "Рекомендую прочитати цю статтю: ", error: "Ваш браузер не підтримує аудіо-читання.", noVoice: "На вашому пристрої не встановлено голосовий пакет для української мови. Додайте його в налаштуваннях системи.", font: "Шрифт" },
+  pl: { listen: "🎧 Posłuchaj artykułu", stop: "⏹ Zatrzymaj", share: "↗ Udostępnij", copied: "Link skopiowany!", recommend: "Polecam przeczytać ten artykuł: ", error: "Twoja przeglądarka nie obsługuje czytania audio.", noVoice: "Brak pakietu głosowego dla tego języka na Twoim urządzeniu. Dodaj go w ustawieniach systemu.", font: "Czcionka" },
+  de: { listen: "🎧 Artikel anhören", stop: "⏹ Stoppen", share: "↗ Teilen", copied: "Link kopiert!", recommend: "Ich empfehle diesen Artikel zu lesen: ", error: "Ihr Browser unterstützt kein Audio-Lesen.", noVoice: "Auf Ihrem Gerät ist kein Sprachpaket für diese Sprache installiert. Bitte fügen Sie es in Ihren Systemeinstellungen hinzu.", font: "Schriftart" },
 };
 
 export default function ArticleActions({ title, textToRead, lang = "ru" }: ArticleActionsProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [url, setUrl] = useState("");
+  const [fontSize, setFontSize] = useState<"normal" | "large" | "xlarge">("normal");
   const isComponentMounted = useRef(true);
   
   const isUk = lang === 'ua' || lang === 'uk';
@@ -46,6 +49,26 @@ export default function ArticleActions({ title, textToRead, lang = "ru" }: Artic
       }
     };
   }, []);
+
+  // Логика изменения размера шрифта (Accessibility)
+  const toggleFontSize = () => {
+    triggerHaptic('light');
+    const article = document.getElementById("article-content");
+    if (!article) return;
+
+    article.classList.remove("prose-base", "prose-lg", "prose-xl", "md:prose-lg", "md:prose-xl", "md:prose-2xl");
+
+    if (fontSize === "normal") {
+      article.classList.add("prose-lg", "md:prose-xl");
+      setFontSize("large");
+    } else if (fontSize === "large") {
+      article.classList.add("prose-xl", "md:prose-2xl");
+      setFontSize("xlarge");
+    } else {
+      article.classList.add("prose-base", "md:prose-lg");
+      setFontSize("normal");
+    }
+  };
 
   const handleShare = async () => {
     triggerHaptic('medium'); 
@@ -87,55 +110,34 @@ export default function ArticleActions({ title, textToRead, lang = "ru" }: Artic
 
   const handleAudio = () => {
     triggerHaptic('light');
-    
     if (typeof window !== "undefined" && !window.speechSynthesis) {
       alert(t.error);
       return;
     }
-
     if (isPlaying) {
       window.speechSynthesis.cancel();
       setIsPlaying(false);
     } else {
       window.speechSynthesis.cancel();
-      
       const utterance = new SpeechSynthesisUtterance(textToRead);
       const langCode = isUk ? 'uk-UA' : lang === 'pl' ? 'pl-PL' : lang === 'de' ? 'de-DE' : lang === 'en' ? 'en-US' : 'ru-RU';
       utterance.lang = langCode;
-      
       const voices = window.speechSynthesis.getVoices();
-      
       if (voices.length > 0) {
         const searchLang = langCode.split('-')[0].toLowerCase();
         const matchingVoices = voices.filter(v => v.lang.toLowerCase().includes(searchLang));
-        
-        // ВАЖНАЯ ПРОВЕРКА: Если голосов для нужного языка НЕТ
         if (matchingVoices.length === 0) {
           alert(t.noVoice);
-          return; // Останавливаем выполнение, чтобы не читал английским голосом!
+          return; 
         }
-        
         const bestVoice = matchingVoices.find(v => 
-          v.name.includes("Natural") || 
-          v.name.includes("Premium") || 
-          v.name.includes("Google") ||
-          v.name.includes("Microsoft online") ||
-          v.name.includes("Lesya")
+          v.name.includes("Natural") || v.name.includes("Premium") || v.name.includes("Google") || v.name.includes("Microsoft online") || v.name.includes("Lesya")
         );
-
         utterance.voice = bestVoice || matchingVoices[0];
       }
-
       utterance.rate = 1.05; 
-      
-      utterance.onend = () => {
-        if (isComponentMounted.current) setIsPlaying(false);
-      };
-      
-      utterance.onerror = (e) => {
-        console.error("Ошибка воспроизведения аудио:", e);
-        if (isComponentMounted.current) setIsPlaying(false);
-      };
+      utterance.onend = () => { if (isComponentMounted.current) setIsPlaying(false); };
+      utterance.onerror = (e) => { console.error("Ошибка воспроизведения аудио:", e); if (isComponentMounted.current) setIsPlaying(false); };
       
       window.speechSynthesis.speak(utterance);
       setIsPlaying(true);
@@ -143,11 +145,23 @@ export default function ArticleActions({ title, textToRead, lang = "ru" }: Artic
   };
 
   return (
-    <div id="article-interactive-actions" className="flex flex-col sm:flex-row items-center gap-4 my-10 border-y border-gray-100 dark:border-zinc-800 py-6">
-      <button onClick={handleAudio} className="btn-secondary w-full sm:w-1/2">
+    <div id="article-interactive-actions" className="flex flex-wrap items-center gap-3 my-10 border-y border-gray-100 dark:border-zinc-800 py-6">
+      <button onClick={handleAudio} className="btn-secondary flex-1 min-w-[140px] flex justify-center">
         {isPlaying ? t.stop : t.listen}
       </button>
-      <button onClick={handleShare} className="btn-primary w-full sm:w-1/2">
+      
+      {/* НОВАЯ КНОПКА: Управление шрифтом */}
+      <button 
+        onClick={toggleFontSize} 
+        className="btn-secondary px-4 flex-shrink-0 flex items-center justify-center"
+        aria-label="Изменить размер шрифта"
+        title={t.font}
+      >
+        <Type size={20} className="text-gray-700 dark:text-gray-300" />
+        <span className="ml-1 text-sm font-bold">±</span>
+      </button>
+
+      <button onClick={handleShare} className="btn-primary flex-1 min-w-[140px] flex justify-center">
         {t.share}
       </button>
     </div>

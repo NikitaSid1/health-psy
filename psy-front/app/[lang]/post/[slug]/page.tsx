@@ -8,11 +8,11 @@ import Image from "next/image";
 import ProgressBar from "@/components/ui/ProgressBar"; 
 import ArticleActions from "@/components/article/ArticleActions"; 
 import BookmarkButton from "@/components/ui/BookmarkButton";
+import TableOfContents from "@/components/article/TableOfContents"; // <-- Добавлен импорт ToC
 import { Metadata } from "next";
 import TranslationProvider from "./TranslationProvider"; 
 import QuizBlock from "@/components/article/QuizBlock";
 
-// Словари для локализации
 const postTranslations = {
   ru: { notFoundTitle: "Статья не найдена", backHome: "Вернуться на главную", backBtn: "← Назад к статьям", categoryDefault: "Психология", minRead: "мин чтения", verified: "Проверено экспертом", footerTitle: "Понравился материал?", footerText: "Подпишитесь на наши обновления, чтобы не пропустить новые советы экспертов.", tagsTitle: "Теги:" },
   en: { notFoundTitle: "Article not found", backHome: "Back to home", backBtn: "← Back to articles", categoryDefault: "Psychology", minRead: "min read", verified: "Verified by expert", footerTitle: "Did you like this article?", footerText: "Subscribe to our updates so you don't miss new expert advice.", tagsTitle: "Tags:" },
@@ -21,7 +21,6 @@ const postTranslations = {
   de: { notFoundTitle: "Artikel nicht gefunden", backHome: "Zurück zur Startseite", backBtn: "← Zurück zu den Artikeln", categoryDefault: "Psychologie", minRead: "Minuten Lesezeit", verified: "Von Experten geprüft", footerTitle: "Hat Ihnen der Artikel gefallen?", footerText: "Abonnieren Sie unsere Updates, um keine neuen Experten-Tipps zu verpassen.", tagsTitle: "Tags:" },
 };
 
-// 👇 ИЗМЕНЕНИЕ ЗДЕСЬ: Добавлено извлечение "tags"
 const postQuery = groq`*[_type == "post" && slug.current == $slug && language == $lang][0] {
   _id,
   title,
@@ -153,10 +152,7 @@ export default async function PostPage({ params }: PostPageProps) {
     headline: post.title,
     image: post.mainImage ? [post.mainImage] : [],
     datePublished: post.publishedAt,
-    author: {
-      "@type": "Person",
-      name: post.expert || "Редакция",
-    },
+    author: { "@type": "Person", name: post.expert || "Редакция" },
     timeRequired: `PT${post.readTime || 5}M`,
   };
 
@@ -172,87 +168,106 @@ export default async function PostPage({ params }: PostPageProps) {
       <TranslationProvider translations={translationMap} currentLang={lang} />
       
       <main id="post-main-content" className="font-sans">
-        <article id="post-article" className="layout-container max-w-3xl mx-auto">
+        
+        {/* 👇 ИЗМЕНЕНИЕ ЗДЕСЬ: Flex-контейнер для статьи (слева) и Оглавления (справа) */}
+        <div className="layout-container max-w-6xl mx-auto flex flex-col lg:flex-row gap-12 items-start pt-4">
           
-          <nav id="post-navigation" className="mb-8">
-            <Link href={`/${lang}`} className="text-sm font-bold text-zinc-500 hover:text-blue-600 transition-colors flex items-center gap-2">
-              {t.backBtn}
-            </Link>
-          </nav>
+          <article id="post-article" className="flex-1 w-full max-w-3xl mx-auto lg:mx-0">
+            
+            <nav id="post-navigation" className="mb-8">
+              <Link href={`/${lang}`} className="text-sm font-bold text-zinc-500 hover:text-blue-600 transition-colors flex items-center gap-2">
+                {t.backBtn}
+              </Link>
+            </nav>
 
-          <header id="post-header">
-            <h1 id="post-title" className="text-3xl md:text-5xl font-black text-gray-900 dark:text-zinc-50 mb-6 leading-tight">
-              {post.title}
-            </h1>
+            <header id="post-header">
+              <h1 id="post-title" className="text-3xl md:text-5xl font-black text-[#111827] dark:text-zinc-50 mb-6 leading-tight">
+                {post.title}
+              </h1>
 
-            <div className="flex items-center justify-between mb-10">
-              <div id="post-meta" className="flex flex-wrap items-center gap-4 text-sm font-medium">
-                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                  {post.category || t.categoryDefault}
-                </span>
-                <span className="text-gray-400 dark:text-zinc-500">
-                  {post.readTime || 5} {t.minRead}
-                </span>
-                <time className="text-gray-400 dark:text-zinc-500 hidden sm:inline-block">
-                  {new Date(post.publishedAt).toLocaleDateString(lang === "en" ? "en-US" : "ru-RU")}
-                </time>
-                {post.expert && (
-                  <span className="text-green-600 dark:text-green-400 font-bold flex items-center gap-1">
-                    ✓ <span className="hidden sm:inline-block">{t.verified}</span>
+              <div className="flex items-center justify-between mb-10">
+                <div id="post-meta" className="flex flex-wrap items-center gap-4 text-sm font-medium">
+                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    {post.category || t.categoryDefault}
                   </span>
-                )}
+                  <span className="text-gray-400 dark:text-zinc-500">
+                    {post.readTime || 5} {t.minRead}
+                  </span>
+                  <time className="text-gray-400 dark:text-zinc-500 hidden sm:inline-block">
+                    {new Date(post.publishedAt).toLocaleDateString(lang === "en" ? "en-US" : "ru-RU")}
+                  </time>
+                  {post.expert && (
+                    <span className="text-green-600 dark:text-green-400 font-bold flex items-center gap-1">
+                      ✓ <span className="hidden sm:inline-block">{t.verified}</span>
+                    </span>
+                  )}
+                </div>
+                <div className="shrink-0 pl-4">
+                  <BookmarkButton articleId={post._id} />
+                </div>
               </div>
-              <div className="shrink-0 pl-4">
-                <BookmarkButton articleId={post._id} />
+            </header>
+
+            {post.mainImage && (
+              <div id="post-hero-image" className="relative w-full aspect-video rounded-[24px] overflow-hidden mb-12 shadow-md dark:shadow-none">
+                <Image 
+                  src={post.mainImage} 
+                  alt={post.title} 
+                  fill priority sizes="(max-width: 768px) 100vw, 768px"
+                  className="object-cover w-full h-full"
+                />
               </div>
+            )}
+
+            <ArticleActions title={post.title} textToRead={textForAudio} lang={lang} />
+
+            {/* 👇 ВЫЗОВ TOC ДЛЯ МОБИЛЬНЫХ (Скрыт на ПК) 👇 */}
+            <div className="block lg:hidden w-full mb-8">
+              <TableOfContents lang={lang} />
             </div>
-          </header>
 
-          {post.mainImage && (
-            <div id="post-hero-image" className="relative w-full aspect-video rounded-3xl overflow-hidden mb-12 shadow-2xl">
-              <Image 
-                src={post.mainImage} 
-                alt={post.title} 
-                fill priority sizes="(max-width: 768px) 100vw, 768px"
-                className="object-cover w-full h-full"
-              />
+            {/* 👇 ВАЖНО: Добавлен id="article-content" и transition для плавной смены шрифта 👇 */}
+            <div 
+              id="article-content" 
+              className="prose prose-base md:prose-lg dark:prose-invert max-w-none transition-all duration-500 prose-p:text-gray-700 dark:prose-p:text-zinc-200 prose-p:leading-relaxed prose-headings:font-black prose-a:text-blue-600 dark:prose-a:text-blue-400"
+            >
+              <PortableText value={post.body} components={portableTextComponents} />
             </div>
-          )}
 
-          <ArticleActions title={post.title} textToRead={textForAudio} lang={lang} />
-
-          <div id="post-body" className="prose prose-zinc dark:prose-invert max-w-none prose-lg prose-p:text-gray-700 dark:prose-p:text-zinc-200 prose-p:leading-relaxed prose-headings:font-black prose-a:text-blue-600 dark:prose-a:text-blue-400">
-            <PortableText value={post.body} components={portableTextComponents} />
-          </div>
-
-          {/* 👇 ИЗМЕНЕНИЕ ЗДЕСЬ: Блок вывода динамических тегов внизу статьи 👇 */}
-          {post.tags && post.tags.length > 0 && (
-            <div id="post-tags" className="mt-16 pt-8 border-t border-gray-100 dark:border-zinc-800/50">
-              <h4 className="text-sm font-extrabold uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-4">
-                {t.tagsTitle}
-              </h4>
-              <div className="flex flex-wrap gap-3">
-                {post.tags.map((tag: any) => (
-                  <Link 
-                    key={tag.slug} 
-                    href={`/${lang}?tag=${tag.slug}`} 
-                    className="bg-gray-100 dark:bg-zinc-800/80 text-gray-600 dark:text-zinc-300 px-4 py-2 rounded-full text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    #{tag.name}
-                  </Link>
-                ))}
+            {post.tags && post.tags.length > 0 && (
+              <div id="post-tags" className="mt-16 pt-8 border-t border-gray-100 dark:border-zinc-800/50">
+                <h4 className="text-sm font-extrabold uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-4">
+                  {t.tagsTitle}
+                </h4>
+                <div className="flex flex-wrap gap-3">
+                  {post.tags.map((tag: any) => (
+                    <Link 
+                      key={tag.slug} 
+                      href={`/${lang}?tag=${tag.slug}`} 
+                      className="bg-gray-100 dark:bg-zinc-800/80 text-gray-600 dark:text-zinc-300 px-4 py-2 rounded-full text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    >
+                      #{tag.name}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <footer id="post-footer" className="p-8 bg-gray-50 dark:bg-zinc-900 rounded-3xl border border-gray-200 dark:border-zinc-800 mt-12 text-center">
-              <h3 className="text-lg font-bold mb-2">{t.footerTitle}</h3>
-              <p className="text-gray-500 dark:text-zinc-400 text-sm">
-                {t.footerText}
-              </p>
-          </footer>
+            <footer id="post-footer" className="p-8 bg-gray-50 dark:bg-zinc-900 rounded-[24px] border border-gray-200 dark:border-zinc-800 mt-12 text-center">
+                <h3 className="text-lg font-bold mb-2">{t.footerTitle}</h3>
+                <p className="text-gray-500 dark:text-zinc-400 text-sm">
+                  {t.footerText}
+                </p>
+            </footer>
 
-        </article>
+          </article>
+
+          {/* 👇 ВЫЗОВ TOC ДЛЯ ПК (Прилипает сбоку) 👇 */}
+          <aside className="hidden lg:block w-[280px] shrink-0 sticky top-28">
+            <TableOfContents lang={lang} />
+          </aside>
+
+        </div>
       </main>
     </>
   );
