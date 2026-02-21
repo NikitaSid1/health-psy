@@ -96,15 +96,16 @@ const portableTextComponents = {
         science: { icon: "🔬", bg: "bg-purple-50 dark:bg-purple-900/10", border: "border-purple-200 dark:border-purple-800", title: "Научный факт" }
       }[type as string] || { icon: "💡", bg: "bg-gray-50 dark:bg-zinc-800", border: "border-gray-200 dark:border-zinc-700", title: "Информация" };
 
+      // ИСПРАВЛЕНИЕ: Убраны жесткие text-lg / text-xl, теперь масштабируется вместе со всем текстом
       return (
         <div className={`my-10 p-6 md:p-8 rounded-[24px] border ${config.bg} ${config.border}`}>
           <div className="flex items-center gap-3 mb-4">
             <span className="text-2xl" aria-hidden="true">{config.icon}</span>
-            <h4 className="font-bold text-lg md:text-xl text-gray-900 dark:text-white">
+            <h4 className="font-bold text-gray-900 dark:text-white m-0">
               {author ? `${config.title}: ${author}` : config.title}
             </h4>
           </div>
-          <p className="text-gray-700 dark:text-zinc-300 italic m-0 text-lg leading-relaxed">
+          <p className="text-gray-700 dark:text-zinc-300 italic m-0 leading-relaxed">
             «{text}»
           </p>
         </div>
@@ -115,12 +116,13 @@ const portableTextComponents = {
     },
   },
   block: {
-    normal: ({ children }: any) => <p className="mb-6 text-lg leading-relaxed text-gray-700 dark:text-zinc-300">{children}</p>,
-    h2: ({ children }: any) => <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-12 mb-6 text-gray-900 dark:text-white">{children}</h2>,
-    h3: ({ children }: any) => <h3 className="text-xl sm:text-2xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">{children}</h3>,
-    blockquote: ({ children }: any) => <blockquote className="border-l-4 border-blue-600 pl-6 py-2 my-8 italic text-xl text-gray-800 dark:text-zinc-200 bg-gray-50 dark:bg-zinc-800/50 rounded-r-xl">{children}</blockquote>,
-    ul: ({ children }: any) => <ul className="list-disc pl-6 mb-6 space-y-2 text-lg text-gray-700 dark:text-zinc-300 marker:text-blue-500">{children}</ul>,
-    ol: ({ children }: any) => <ol className="list-decimal pl-6 mb-6 space-y-2 text-lg text-gray-700 dark:text-zinc-300 marker:font-bold">{children}</ol>,
+    // ИСПРАВЛЕНИЕ: Убраны жесткие text-lg, text-2xl, text-xl. Оставлены только отступы и цвета.
+    normal: ({ children }: any) => <p className="mb-6 leading-relaxed text-gray-700 dark:text-zinc-300 transition-all duration-500">{children}</p>,
+    h2: ({ children }: any) => <h2 className="font-extrabold tracking-tight mt-12 mb-6 text-gray-900 dark:text-white transition-all duration-500">{children}</h2>,
+    h3: ({ children }: any) => <h3 className="font-bold mt-8 mb-4 text-gray-900 dark:text-white transition-all duration-500">{children}</h3>,
+    blockquote: ({ children }: any) => <blockquote className="border-l-4 border-blue-600 pl-6 py-2 my-8 italic text-gray-800 dark:text-zinc-200 bg-gray-50 dark:bg-zinc-800/50 rounded-r-xl transition-all duration-500">{children}</blockquote>,
+    ul: ({ children }: any) => <ul className="list-disc pl-6 mb-6 space-y-2 text-gray-700 dark:text-zinc-300 marker:text-blue-500 transition-all duration-500">{children}</ul>,
+    ol: ({ children }: any) => <ol className="list-decimal pl-6 mb-6 space-y-2 text-gray-700 dark:text-zinc-300 marker:font-bold transition-all duration-500">{children}</ol>,
   },
 };
 
@@ -169,13 +171,10 @@ export default async function PostPage({ params }: PostPageProps) {
       
       <main id="post-main-content" className="font-sans">
         
-        {/* 👇 ИСПРАВЛЕНИЕ 1: Вернул жесткий каркас (w-full max-w-[1440px] px-4), чтобы вёрстка не ломалась 👇 */}
         <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row justify-center xl:justify-between items-start pt-4 gap-8 lg:gap-12">
           
-          {/* 👇 ИСПРАВЛЕНИЕ 2: Пустой блок-распорка. Он нужен, чтобы уравновесить правое меню, тогда статья встанет ИДЕАЛЬНО по центру монитора 👇 */}
           <div className="hidden xl:block w-[280px] shrink-0"></div>
 
-          {/* Центральная колонка (Статья) */}
           <article id="post-article" className="w-full max-w-3xl mx-auto lg:mx-0 xl:mx-auto">
             
             <nav id="post-navigation" className="mb-8">
@@ -264,7 +263,6 @@ export default async function PostPage({ params }: PostPageProps) {
 
           </article>
 
-          {/* Правая колонка (Боковое меню) */}
           <aside className="hidden lg:block w-[280px] shrink-0 sticky top-28">
             <TableOfContents lang={lang} />
           </aside>
