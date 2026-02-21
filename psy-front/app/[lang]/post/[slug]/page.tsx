@@ -8,7 +8,7 @@ import Image from "next/image";
 import ProgressBar from "@/components/ui/ProgressBar"; 
 import ArticleActions from "@/components/article/ArticleActions"; 
 import BookmarkButton from "@/components/ui/BookmarkButton";
-import TableOfContents from "@/components/article/TableOfContents"; // <-- Добавлен импорт ToC
+import TableOfContents from "@/components/article/TableOfContents"; 
 import { Metadata } from "next";
 import TranslationProvider from "./TranslationProvider"; 
 import QuizBlock from "@/components/article/QuizBlock";
@@ -169,10 +169,11 @@ export default async function PostPage({ params }: PostPageProps) {
       
       <main id="post-main-content" className="font-sans">
         
-        {/* 👇 ИЗМЕНЕНИЕ ЗДЕСЬ: Flex-контейнер для статьи (слева) и Оглавления (справа) */}
-        <div className="layout-container max-w-6xl mx-auto flex flex-col lg:flex-row gap-12 items-start pt-4">
+        {/* 👇 ИСПРАВЛЕНИЕ: justify-center идеально центрирует статью и сайдбар по центру экрана 👇 */}
+        <div className="layout-container mx-auto flex flex-col lg:flex-row justify-center gap-8 lg:gap-12 items-start pt-4">
           
-          <article id="post-article" className="flex-1 w-full max-w-3xl mx-auto lg:mx-0">
+          {/* 👇 Убран класс flex-1, чтобы статья не растягивалась и не прилипала влево 👇 */}
+          <article id="post-article" className="w-full max-w-3xl mx-auto lg:mx-0">
             
             <nav id="post-navigation" className="mb-8">
               <Link href={`/${lang}`} className="text-sm font-bold text-zinc-500 hover:text-blue-600 transition-colors flex items-center gap-2">
@@ -221,12 +222,10 @@ export default async function PostPage({ params }: PostPageProps) {
 
             <ArticleActions title={post.title} textToRead={textForAudio} lang={lang} />
 
-            {/* 👇 ВЫЗОВ TOC ДЛЯ МОБИЛЬНЫХ (Скрыт на ПК) 👇 */}
             <div className="block lg:hidden w-full mb-8">
               <TableOfContents lang={lang} />
             </div>
 
-            {/* 👇 ВАЖНО: Добавлен id="article-content" и transition для плавной смены шрифта 👇 */}
             <div 
               id="article-content" 
               className="prose prose-base md:prose-lg dark:prose-invert max-w-none transition-all duration-500 prose-p:text-gray-700 dark:prose-p:text-zinc-200 prose-p:leading-relaxed prose-headings:font-black prose-a:text-blue-600 dark:prose-a:text-blue-400"
@@ -262,7 +261,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
           </article>
 
-          {/* 👇 ВЫЗОВ TOC ДЛЯ ПК (Прилипает сбоку) 👇 */}
+          {/* Боковое оглавление для ПК */}
           <aside className="hidden lg:block w-[280px] shrink-0 sticky top-28">
             <TableOfContents lang={lang} />
           </aside>
