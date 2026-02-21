@@ -5,7 +5,13 @@
 import { useState, useEffect } from "react";
 import { Search, X } from "lucide-react"; 
 import ArticleCard from "./ArticleCard";
-import { client } from "@/lib/sanity"; // <-- Добавили клиент Sanity
+import { client } from "@/lib/sanity"; 
+
+// ИСПРАВЛЕНИЕ 1: Правильно типизируем тег (это объект, а не строка)
+interface Tag {
+  slug: string;
+  name: string;
+}
 
 interface Article {
   _id: string;
@@ -15,7 +21,7 @@ interface Article {
   readTime: number;
   expert: boolean;
   mainImage: string;
-  tags?: string[]; // <-- Добавили массив тегов для фильтрации
+  tags?: Tag[]; // <-- Массив объектов!
 }
 
 interface SearchAndFeedProps {
@@ -37,12 +43,9 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [results, setResults] = useState<Article[]>(initialArticles);
   
-  // Состояние для динамических тегов из Sanity
   const [featuredTags, setFeaturedTags] = useState<{slug: string, name: string}[]>([]);
-
   const t = componentTranslations[lang as keyof typeof componentTranslations] || componentTranslations.ru;
 
-  // Загружаем теги из Sanity при монтировании компонента
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -64,26 +67,29 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Фильтрация статей
+  // ИСПРАВЛЕНИЕ 2: Мощная логика фильтрации (ИЛИ категория, ИЛИ заголовок, ИЛИ теги)
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setResults(initialArticles);
       return;
     }
     const lowerQuery = debouncedQuery.toLowerCase();
-    const filtered = initialArticles.filter((article) => 
-      article.title.toLowerCase().includes(lowerQuery) || 
-      (article.category && article.category.toLowerCase().includes(lowerQuery)) ||
-      // Фильтруем также по тегам, если они есть в статье
-      (article.tags && article.tags.some(tag => tag.toLowerCase().includes(lowerQuery)))
-    );
+    
+    const filtered = initialArticles.filter((article) => {
+      const matchTitle = article.title?.toLowerCase().includes(lowerQuery);
+      const matchCategory = article.category?.toLowerCase().includes(lowerQuery);
+      // Достаем .name из объекта тега для проверки
+      const matchTags = article.tags?.some(tag => tag.name?.toLowerCase().includes(lowerQuery));
+      
+      return matchTitle || matchCategory || matchTags;
+    });
+    
     setResults(filtered);
   }, [debouncedQuery, initialArticles]);
 
   return (
     <div id="search-and-feed-container" className="space-y-10">
       
-      {/* 1. Блок Поиска и Тегов */}
       <section id="inline-search-section" className="space-y-6">
         <div className="relative w-full max-w-2xl mx-auto">
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
@@ -108,7 +114,6 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
           )}
         </div>
 
-        {/* Динамические Теги из Sanity */}
         {featuredTags.length > 0 && (
           <div id="inline-tags-carousel" className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory scroll-smooth w-full px-1">
             {featuredTags.map((tag) => {
@@ -116,7 +121,8 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
               return (
                 <button 
                   key={tag.slug} 
-                  onClick={() => setQuery(tag.name)} 
+                  // Улучшенный UX: повторный клик по тегу сбрасывает фильтр
+                  onClick={() => setQuery(isActive ? "" : tag.name)} 
                   className={`tag-pill whitespace-nowrap snap-center cursor-pointer transition-all px-5 py-2.5 rounded-full border text-sm font-bold ${
                     isActive 
                       ? 'bg-[#111827] text-white border-[#111827] dark:bg-white dark:text-[#0a0a0a] shadow-md' 
@@ -131,7 +137,6 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
         )}
       </section>
 
-      {/* 2. Лента Статей */}
       <section id="feed-results" className="space-y-8">
         <h2 className="text-2xl font-extrabold text-[#111827] dark:text-zinc-50 tracking-tight">
           {query ? `${t.resultsFor} (${results.length})` : t.latest}

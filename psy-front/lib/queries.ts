@@ -3,15 +3,19 @@ import { groq } from "next-sanity";
 
 // 1. Запрос для ленты и поиска (учитывает язык интерфейса)
 // Показывает посты текущего языка, либо посты без языка (старые), считая их русскими
-export const articlesQuery = groq`*[_type == "post" && (language == $lang || (!defined(language) && $lang == 'ru'))] | order(publishedAt desc) {
+export const articlesQuery = groq`*[_type == "post" && language == $lang] | order(publishedAt desc) {
   _id,
   title,
   "slug": slug.current,
   category,
-  "readTime": coalesce(readingTime, readTime),
-  "expert": coalesce(expertReview, expert),
+  readTime,
+  expert,
   "mainImage": mainImage.asset->url,
-  language
+  // ИСПРАВЛЕНИЕ: Вытягиваем массив тегов с переводами, чтобы поиск мог их прочитать
+  "tags": tags[]->{ 
+    "slug": slug.current, 
+    "name": coalesce(translations[$lang], title) 
+  }
 }`;
 
 // 2. ИСПРАВЛЕННЫЙ ЗАПРОС ЗАКЛАДОК

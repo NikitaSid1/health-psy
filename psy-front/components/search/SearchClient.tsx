@@ -8,13 +8,11 @@ import { Search, X } from "lucide-react";
 import Link from "next/link";
 import BookmarkButton from "@/components/ui/BookmarkButton";
 
-// Инициализация Algolia
 const searchClient = liteClient(
   process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || "APP_ID_MISSING",
   process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY || "API_KEY_MISSING"
 );
 
-// Мультиязычный словарь для самого поиска
 const searchTranslations = {
   ru: { placeholder: "Найти статью, тег или автора...", empty: "Ничего не найдено. Попробуйте другой запрос.", results: "Результаты поиска", article: "Статья" },
   en: { placeholder: "Search article, tag, or author...", empty: "No results found. Try another query.", results: "Search results", article: "Article" },
@@ -23,7 +21,6 @@ const searchTranslations = {
   de: { placeholder: "Artikel, Tag oder Autor suchen...", empty: "Nichts gefunden. Versuchen Sie eine andere Suchanfrage.", results: "Suchergebnisse", article: "Artikel" },
 };
 
-// --- Кастомный Инпут ---
 function CustomSearchBox({ t }: { t: any }) {
   const { query, refine } = useSearchBox();
 
@@ -37,7 +34,6 @@ function CustomSearchBox({ t }: { t: any }) {
         value={query}
         onChange={(e) => refine(e.target.value)}
         placeholder={t.placeholder}
-        // Формула отступов: py-4 pl-[48px] (16+20+12)
         className="w-full py-4 pl-[48px] pr-12 text-[16px] sm:text-[18px] bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-zinc-800 text-[#111827] dark:text-[#f3f4f6] rounded-[24px] focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm dark:shadow-none transition-all"
       />
       {query && (
@@ -53,7 +49,6 @@ function CustomSearchBox({ t }: { t: any }) {
   );
 }
 
-// --- Кастомный Вывод Результатов ---
 function CustomHits({ lang, t }: { lang: string, t: any }) {
   const { hits } = useHits();
 
@@ -69,7 +64,6 @@ function CustomHits({ lang, t }: { lang: string, t: any }) {
     <div id="algolia-hits-grid" className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
       {hits.map((article: any) => (
         <Link
-          // ВАЖНО: правильная ссылка с учетом языка!
           href={`/${lang}/post/${article.slug?.current || article.slug}`}
           key={article.objectID || article._id}
           className="flex flex-col justify-between p-6 bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-zinc-800 rounded-[24px] hover:border-gray-300 dark:hover:border-zinc-700 shadow-sm dark:shadow-none transition-colors"
@@ -79,12 +73,26 @@ function CustomHits({ lang, t }: { lang: string, t: any }) {
               {article.title}
             </h3>
           </div>
-          <div className="flex justify-between items-center mt-4">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-wide">
-              {article.category || t.article}
-            </span>
-            {/* Остановка всплытия клика, чтобы кнопка закладки не триггерила переход в статью */}
-            <div className="z-10" onClick={(e) => e.preventDefault()}>
+          <div className="flex justify-between items-start mt-4 gap-4">
+            
+            {/* ИСПРАВЛЕНИЕ: Вывод категории + красивый вывод новых тегов */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-blue-600 uppercase tracking-wide">
+                {article.category || t.article}
+              </span>
+              
+              {/* Проверяем, отдала ли Algolia теги. Если да — красиво рендерим */}
+              {article.tags && article.tags.map((tag: any, idx: number) => {
+                const tagName = typeof tag === 'object' ? tag.name : tag;
+                return tagName ? (
+                  <span key={idx} className="text-[10px] font-bold text-gray-500 uppercase tracking-wide bg-gray-50 dark:bg-zinc-800/50 px-2 py-1 rounded-md">
+                    #{tagName}
+                  </span>
+                ) : null;
+              })}
+            </div>
+
+            <div className="z-10 shrink-0" onClick={(e) => e.preventDefault()}>
               <BookmarkButton articleId={article.objectID || article._id} />
             </div>
           </div>
@@ -94,7 +102,6 @@ function CustomHits({ lang, t }: { lang: string, t: any }) {
   );
 }
 
-// --- Главная обертка ---
 export default function SearchClient({ lang }: { lang: string }) {
   const indexName = "posts_index"; 
   const t = searchTranslations[lang as keyof typeof searchTranslations] || searchTranslations.en;
@@ -103,9 +110,7 @@ export default function SearchClient({ lang }: { lang: string }) {
     <div id="search-client-algolia" className="space-y-8">
       <InstantSearch searchClient={searchClient} indexName={indexName}>
         <Configure hitsPerPage={10} />
-        
         <CustomSearchBox t={t} />
-        
         <div id="search-results-wrapper">
           <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 pl-2">
             {t.results}
