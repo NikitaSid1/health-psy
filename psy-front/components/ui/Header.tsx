@@ -5,17 +5,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu as MenuIcon } from "lucide-react";
+import { Menu as MenuIcon, Search } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle"; 
 import LanguageSwitcher from "../LanguageSwitcher";
 import DesktopMenu from "./DesktopMenu";
+import SearchClient from "@/components/search/SearchClient"; // <-- Подключаем поиск
 
 const translations = {
-  ru: { bookmarks: "Закладки" },
-  en: { bookmarks: "Bookmarks" },
-  ua: { bookmarks: "Закладки" },
-  pl: { bookmarks: "Zakładki" },
-  de: { bookmarks: "Lesezeichen" },
+  ru: { bookmarks: "Закладки", search: "Поиск" },
+  en: { bookmarks: "Bookmarks", search: "Search" },
+  ua: { bookmarks: "Закладки", search: "Пошук" },
+  pl: { bookmarks: "Zakładki", search: "Szukaj" },
+  de: { bookmarks: "Lesezeichen", search: "Suche" },
 };
 
 export default function Header() {
@@ -24,6 +25,7 @@ export default function Header() {
   const t = translations[lang as keyof typeof translations] || translations.ru;
 
   const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false); // <-- Состояние для модалки поиска
 
   return (
     <>
@@ -57,10 +59,18 @@ export default function Header() {
             </Link>
             
             <div id="header-controls" className="flex items-center gap-2 md:gap-4 md:border-l border-gray-300 dark:border-zinc-700 md:pl-6">
-              {/* Dropdown Языка теперь доступен и на ПК, и на Мобилках */}
+              
+              {/* Кнопка вызова глобального поиска */}
+              <button 
+                onClick={() => setIsSearchOpen(true)}
+                className="p-2 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors active:scale-95"
+                aria-label={t.search}
+              >
+                <Search size={20} strokeWidth={2.5} />
+              </button>
+
               <LanguageSwitcher />
               
-              {/* Темную тему прячем на мобилке, она есть в Mobile Menu */}
               <div className="hidden md:block">
                 <ThemeToggle />
               </div>
@@ -70,10 +80,18 @@ export default function Header() {
         </div>
       </header>
 
+      {/* Меню категорий */}
       <DesktopMenu 
         isOpen={isDesktopMenuOpen} 
         onClose={() => setIsDesktopMenuOpen(false)} 
         lang={lang} 
+      />
+
+      {/* Полноэкранная Модалка Поиска */}
+      <SearchClient 
+        lang={lang} 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
       />
     </>
   );
