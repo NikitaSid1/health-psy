@@ -6,11 +6,11 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import BottomBar from "@/components/ui/BottomBar"; 
 import Header from "@/components/ui/Header"; 
-import Footer from "@/components/ui/Footer"; // <-- Добавлен Футер
+import Footer from "@/components/ui/Footer"; 
 import { ToastProvider } from "@/components/ui/ToastProvider"; 
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
-import MarketingAnalytics from "@/components/marketing/Analytics"; // <-- Добавлены Маркетинговые Пиксели
-import NewsletterPopup from "@/components/marketing/NewsletterPopup"; // <-- Добавлен Поп-ап
+import MarketingAnalytics from "@/components/marketing/Analytics"; 
+import NewsletterPopup from "@/components/marketing/NewsletterPopup";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -46,12 +46,11 @@ export default function RootLayout({
                 {children}
               </div>
               
-              <Footer /> {/* Вставлен глобальный Футер */}
+              <Footer /> 
               <BottomBar />
               
             </div>
 
-            {/* Вспомогательные скрытые компоненты */}
             <NewsletterPopup />
             <MarketingAnalytics />
             <VercelAnalytics />

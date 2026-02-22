@@ -14,11 +14,11 @@ import TranslationProvider from "./TranslationProvider";
 import QuizBlock from "@/components/article/QuizBlock";
 
 const postTranslations = {
-  ru: { notFoundTitle: "Статья не найдена", backHome: "Вернуться на главную", backBtn: "← Назад к статьям", categoryDefault: "Психология", minRead: "мин чтения", verified: "Проверено экспертом", footerTitle: "Понравился материал?", footerText: "Подпишитесь на наши обновления, чтобы не пропустить новые советы экспертов.", tagsTitle: "Теги:" },
-  en: { notFoundTitle: "Article not found", backHome: "Back to home", backBtn: "← Back to articles", categoryDefault: "Psychology", minRead: "min read", verified: "Verified by expert", footerTitle: "Did you like this article?", footerText: "Subscribe to our updates so you don't miss new expert advice.", tagsTitle: "Tags:" },
-  ua: { notFoundTitle: "Статтю не знайдено", backHome: "Повернутися на головну", backBtn: "← Назад до статей", categoryDefault: "Психологія", minRead: "хв читання", verified: "Перевірено експертом", footerTitle: "Сподобався матеріал?", footerText: "Підпишіться на наші оновлення, щоб не пропустити нові поради експертів.", tagsTitle: "Теги:" },
-  pl: { notFoundTitle: "Nie znaleziono artykułu", backHome: "Wróć do strony głównej", backBtn: "← Wróć do artykułów", categoryDefault: "Psychologia", minRead: "min czytania", verified: "Sprawdzone przez eksperta", footerTitle: "Podobał Ci się materiał?", footerText: "Zapisz się na nasze aktualizacje, aby nie przegapić nowych porad ekspertów.", tagsTitle: "Tagi:" },
-  de: { notFoundTitle: "Artikel nicht gefunden", backHome: "Zurück zur Startseite", backBtn: "← Zurück zu den Artikeln", categoryDefault: "Psychologie", minRead: "Minuten Lesezeit", verified: "Von Experten geprüft", footerTitle: "Hat Ihnen der Artikel gefallen?", footerText: "Abonnieren Sie unsere Updates, um keine neuen Experten-Tipps zu verpassen.", tagsTitle: "Tags:" },
+  ru: { notFoundTitle: "Статья не найдена", backHome: "Вернуться на главную", backBtn: "← Назад к статьям", categoryDefault: "Психология", minRead: "мин чтения", verified: "Проверено экспертом", tagsTitle: "Теги:" },
+  en: { notFoundTitle: "Article not found", backHome: "Back to home", backBtn: "← Back to articles", categoryDefault: "Psychology", minRead: "min read", verified: "Verified by expert", tagsTitle: "Tags:" },
+  ua: { notFoundTitle: "Статтю не знайдено", backHome: "Повернутися на головну", backBtn: "← Назад до статей", categoryDefault: "Психологія", minRead: "хв читання", verified: "Перевірено експертом", tagsTitle: "Теги:" },
+  pl: { notFoundTitle: "Nie znaleziono artykułu", backHome: "Wróć do strony głównej", backBtn: "← Wróć do artykułów", categoryDefault: "Psychologia", minRead: "min czytania", verified: "Sprawdzone przez eksperta", tagsTitle: "Tagi:" },
+  de: { notFoundTitle: "Artikel nicht gefunden", backHome: "Zurück zur Startseite", backBtn: "← Zurück zu den Artikeln", categoryDefault: "Psychologie", minRead: "Minuten Lesezeit", verified: "Von Experten geprüft", tagsTitle: "Tags:" },
 };
 
 const postQuery = groq`*[_type == "post" && slug.current == $slug && language == $lang][0] {
@@ -96,7 +96,6 @@ const portableTextComponents = {
         science: { icon: "🔬", bg: "bg-purple-50 dark:bg-purple-900/10", border: "border-purple-200 dark:border-purple-800", title: "Научный факт" }
       }[type as string] || { icon: "💡", bg: "bg-gray-50 dark:bg-zinc-800", border: "border-gray-200 dark:border-zinc-700", title: "Информация" };
 
-      // ИСПРАВЛЕНИЕ: Убраны жесткие text-lg / text-xl, теперь масштабируется вместе со всем текстом
       return (
         <div className={`my-10 p-6 md:p-8 rounded-[24px] border ${config.bg} ${config.border}`}>
           <div className="flex items-center gap-3 mb-4">
@@ -116,7 +115,6 @@ const portableTextComponents = {
     },
   },
   block: {
-    // ИСПРАВЛЕНИЕ: Убраны жесткие text-lg, text-2xl, text-xl. Оставлены только отступы и цвета.
     normal: ({ children }: any) => <p className="mb-6 leading-relaxed text-gray-700 dark:text-zinc-300 transition-all duration-500">{children}</p>,
     h2: ({ children }: any) => <h2 className="font-extrabold tracking-tight mt-12 mb-6 text-gray-900 dark:text-white transition-all duration-500">{children}</h2>,
     h3: ({ children }: any) => <h3 className="font-bold mt-8 mb-4 text-gray-900 dark:text-white transition-all duration-500">{children}</h3>,
@@ -253,13 +251,6 @@ export default async function PostPage({ params }: PostPageProps) {
                 </div>
               </div>
             )}
-
-            <footer id="post-footer" className="p-8 bg-gray-50 dark:bg-zinc-900 rounded-[24px] border border-gray-200 dark:border-zinc-800 mt-12 text-center">
-                <h3 className="text-lg font-bold mb-2">{t.footerTitle}</h3>
-                <p className="text-gray-500 dark:text-zinc-400 text-sm">
-                  {t.footerText}
-                </p>
-            </footer>
 
           </article>
 

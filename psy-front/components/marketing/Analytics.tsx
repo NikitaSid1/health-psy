@@ -10,7 +10,7 @@ export default function Analytics() {
   const TIKTOK_ID = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
 
   return (
-    <div id="marketing-analytics-wrapper">
+    <>
       {/* 1. Google Analytics 4 */}
       {GA_ID && (
         <>
@@ -74,7 +74,7 @@ export default function Analytics() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }
 // === КОНЕЦ БЛОКА ===

@@ -24,14 +24,14 @@ export default function NewsletterPopup() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   useEffect(() => {
-    // Проверяем, показывали ли мы уже попап (флаг в localStorage)
+    // Проверка localStorage (чтобы не показывать повторно)
     const isClosed = localStorage.getItem("newsletter_closed");
     if (isClosed === "true") return;
 
-    // Триггер 1: Таймер 30 секунд
+    // Таймер на 30 секунд
     const timer = setTimeout(() => setIsOpen(true), 30000);
 
-    // Триггер 2: Exit Intent (пользователь уводит мышку вверх к вкладкам)
+    // Триггер Exit Intent (движение курсора к верхней границе окна)
     const handleMouseLeave = (e: MouseEvent) => {
       if (e.clientY <= 0) {
         setIsOpen(true);
@@ -48,7 +48,7 @@ export default function NewsletterPopup() {
 
   const closePopup = () => {
     setIsOpen(false);
-    localStorage.setItem("newsletter_closed", "true"); // Запоминаем, чтобы не бесить юзера
+    localStorage.setItem("newsletter_closed", "true");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,7 +65,7 @@ export default function NewsletterPopup() {
 
       if (res.ok) {
         setStatus("success");
-        setTimeout(closePopup, 3000); // Закрываем через 3 сек после успеха
+        setTimeout(closePopup, 3000);
       } else {
         setStatus("error");
       }
