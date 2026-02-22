@@ -6,8 +6,11 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import BottomBar from "@/components/ui/BottomBar"; 
 import Header from "@/components/ui/Header"; 
+import Footer from "@/components/ui/Footer"; // <-- Добавлен Футер
 import { ToastProvider } from "@/components/ui/ToastProvider"; 
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
+import MarketingAnalytics from "@/components/marketing/Analytics"; // <-- Добавлены Маркетинговые Пиксели
+import NewsletterPopup from "@/components/marketing/NewsletterPopup"; // <-- Добавлен Поп-ап
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -29,8 +32,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Комментарий перенесен сюда, чтобы не ломать JSX:
-  // Изменили lang="ru" на lang="en" для глобального SEO
   return (
     <html lang="en" suppressHydrationWarning>
       <body id="root-body" className={`${inter.className} bg-background text-foreground antialiased`}>
@@ -41,15 +42,19 @@ export default function RootLayout({
               
               <Header />
               
-              <div id="main-content" className="flex-1 pt-20 md:pt-28 pb-24 md:pb-12">
+              <div id="main-content" className="flex-1 pt-20 md:pt-28 pb-12">
                 {children}
               </div>
               
+              <Footer /> {/* Вставлен глобальный Футер */}
               <BottomBar />
               
             </div>
 
-            <Analytics />
+            {/* Вспомогательные скрытые компоненты */}
+            <NewsletterPopup />
+            <MarketingAnalytics />
+            <VercelAnalytics />
 
           </ToastProvider>
         </ThemeProvider>
