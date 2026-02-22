@@ -68,14 +68,19 @@ export default defineType({
       },
       validation: (Rule) => Rule.required(),
     }),
-    // Оставили только рабочую категорию, по которой ищет сайт
+
+    // === ИЗМЕНЕНИЕ ЗДЕСЬ: Категория стала Reference (строгая привязка) ===
     defineField({
       name: 'category',
-      title: 'Категория (для поиска)',
-      type: 'string',
-      description: 'Введите название категории (по ней работает поиск на сайте)',
-      group: 'content'
+      title: 'Главная Категория',
+      type: 'reference',
+      to: [{ type: 'category' }],
+      description: 'Выберите рубрику. По ней будет работать фильтрация на главной.',
+      group: 'content',
+      validation: (Rule) => Rule.required(),
     }),
+    // ===================================================================
+
     // === НАЧАЛО БЛОКА: Post Tags Field ===
     defineField({
       name: 'tags',
@@ -86,14 +91,14 @@ export default defineType({
       options: {
         layout: 'tags', // Красивое отображение в виде "пилюль" в админке
       },
-      group: 'seo', // Или любая другая группа, где вам удобно это держать
+      group: 'seo', 
     }),
     // === КОНЕЦ БЛОКА: Post Tags Field ===
     defineField({
       name: 'author',
       title: 'Author',
       type: 'reference',
-      to: [{ type: 'author' }], // <-- ИСПРАВЛЕНИЕ: добавили квадратные скобки []
+      to: [{ type: 'author' }], 
       group: 'content'
     }),
     defineField({

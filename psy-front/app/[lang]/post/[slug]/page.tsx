@@ -189,7 +189,7 @@ export default async function PostPage({ params }: PostPageProps) {
               <div className="flex items-center justify-between mb-10">
                 <div id="post-meta" className="flex flex-wrap items-center gap-4 text-sm font-medium">
                   <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                    {post.category || t.categoryDefault}
+                    {post.category?.name || t.categoryDefault}
                   </span>
                   <span className="text-gray-400 dark:text-zinc-500">
                     {post.readTime || 5} {t.minRead}

@@ -36,7 +36,9 @@ interface ArticleCardProps {
     _id: string;
     title: string;
     slug: string;
-    category?: string;
+    // ИСПРАВЛЕНИЕ 1: Указываем, что категория может быть и объектом, и строкой
+    category?: { slug: string; name: string } | string;
+    tags?: { slug: string; name: string }[];
     readTime?: number;
     expert?: boolean;
     mainImage?: string;
@@ -50,6 +52,11 @@ export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
   const timeLabel = TIME_LABELS[articleLang] || "min";
   const expertLabel = EXPERT_LABELS[articleLang] || "Expert";
   const defaultCategory = DEFAULT_CATEGORIES[articleLang] || "Psychology";
+
+  // ИСПРАВЛЕНИЕ 2: Безопасное извлечение названия категории для рендера
+  const categoryName = typeof post.category === 'object' && post.category !== null 
+    ? post.category.name 
+    : post.category;
 
   return (
     <Link 
@@ -80,7 +87,8 @@ export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
         <div className="flex flex-col flex-1 p-6">
           <div className="flex items-start justify-between mb-3 gap-2">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider min-w-0">
-              <span className="text-blue-600 dark:text-blue-500 truncate">{post.category || defaultCategory}</span>
+              {/* ИСПРАВЛЕНИЕ 3: Выводим безопасную переменную categoryName */}
+              <span className="text-blue-600 dark:text-blue-500 truncate">{categoryName || defaultCategory}</span>
               <span className="text-gray-300 dark:text-zinc-700 shrink-0">•</span>
               <span className="text-gray-500 dark:text-zinc-400 shrink-0 whitespace-nowrap">{post.readTime || 5} {timeLabel}</span>
             </div>

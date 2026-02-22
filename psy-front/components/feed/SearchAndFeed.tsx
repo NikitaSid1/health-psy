@@ -1,5 +1,3 @@
-// C:\Users\Admin\Desktop\psy\psy-front\components\feed\SearchAndFeed.tsx
-// === НАЧАЛО БЛОКА: Feed with Inline Search ===
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,21 +5,18 @@ import { Search, X } from "lucide-react";
 import ArticleCard from "./ArticleCard";
 import { client } from "@/lib/sanity"; 
 
-// ИСПРАВЛЕНИЕ 1: Правильно типизируем тег (это объект, а не строка)
-interface Tag {
-  slug: string;
-  name: string;
-}
+// Типизация
+interface Taxonomy { slug: string; name: string; }
 
 interface Article {
   _id: string;
   title: string;
   slug: string;
-  category: string;
+  category?: Taxonomy; // Теперь категория - это объект
   readTime: number;
   expert: boolean;
   mainImage: string;
-  tags?: Tag[]; // <-- Массив объектов!
+  tags?: Taxonomy[]; 
 }
 
 interface SearchAndFeedProps {
@@ -31,11 +26,11 @@ interface SearchAndFeedProps {
 }
 
 const componentTranslations = {
-  ru: { placeholder: "Найти статью, тему или автора...", resultsFor: "Результаты поиска", latest: "Свежие материалы", notFound: "Ничего не найдено по запросу" },
-  en: { placeholder: "Search for article, topic or author...", resultsFor: "Search results", latest: "Latest articles", notFound: "Nothing found for" },
-  ua: { placeholder: "Знайти статтю, тему або автора...", resultsFor: "Результати пошуку", latest: "Свіжі матеріали", notFound: "Нічого не знайдено за запитом" },
-  pl: { placeholder: "Szukaj artykułu, tematu lub autora...", resultsFor: "Wyniki wyszukiwania", latest: "Najnowsze artykuły", notFound: "Nic nie znaleziono dla" },
-  de: { placeholder: "Artikel, Thema oder Autor suchen...", resultsFor: "Suchergebnisse", latest: "Neueste Artikel", notFound: "Nichts gefunden für" }
+  ru: { placeholder: "Найти статью, рубрику или автора...", resultsFor: "Результаты", latest: "Свежие материалы", notFound: "Ничего не найдено по запросу" },
+  en: { placeholder: "Search for article, category or author...", resultsFor: "Search results", latest: "Latest articles", notFound: "Nothing found for" },
+  ua: { placeholder: "Знайти статтю, рубрику або автора...", resultsFor: "Результати", latest: "Свіжі матеріали", notFound: "Нічого не знайдено за запитом" },
+  pl: { placeholder: "Szukaj artykułu, kategorii lub autora...", resultsFor: "Wyniki wyszukiwania", latest: "Najnowsze artykuły", notFound: "Nic nie znaleziono dla" },
+  de: { placeholder: "Artikel, Kategorie oder Autor suchen...", resultsFor: "Suchergebnisse", latest: "Neueste Artikel", notFound: "Nichts gefunden für" }
 };
 
 export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: SearchAndFeedProps) {
@@ -43,31 +38,34 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [results, setResults] = useState<Article[]>(initialArticles);
   
-  const [featuredTags, setFeaturedTags] = useState<{slug: string, name: string}[]>([]);
+  // Храним КАТЕГОРИИ для фильтра
+  const [categories, setCategories] = useState<Taxonomy[]>([]);
   const t = componentTranslations[lang as keyof typeof componentTranslations] || componentTranslations.ru;
 
+  // 1. Загружаем Категории (а не теги) для верхнего меню
   useEffect(() => {
-    const fetchTags = async () => {
+    const fetchCategories = async () => {
       try {
-        const query = `*[_type == "tag" && isFeatured == true] | order(_createdAt asc) { 
+        const catQuery = `*[_type == "category" && isFeatured == true] | order(_createdAt asc) { 
           "slug": slug.current, 
           "name": coalesce(translations[$lang], title) 
         }`;
-        const data = await client.fetch(query, { lang });
-        setFeaturedTags(data);
+        const data = await client.fetch(catQuery, { lang });
+        setCategories(data);
       } catch (error) {
-        console.error("Ошибка загрузки тегов:", error);
+        console.error("Ошибка загрузки категорий:", error);
       }
     };
-    fetchTags();
+    fetchCategories();
   }, [lang]);
 
+  // 2. Дебаунс ввода
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query), 300);
     return () => clearTimeout(timer);
   }, [query]);
 
-  // ИСПРАВЛЕНИЕ 2: Мощная логика фильтрации (ИЛИ категория, ИЛИ заголовок, ИЛИ теги)
+  // 3. Локальная фильтрация статей
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setResults(initialArticles);
@@ -77,8 +75,9 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
     
     const filtered = initialArticles.filter((article) => {
       const matchTitle = article.title?.toLowerCase().includes(lowerQuery);
-      const matchCategory = article.category?.toLowerCase().includes(lowerQuery);
-      // Достаем .name из объекта тега для проверки
+      // Категория теперь объект, ищем внутри .name
+      const matchCategory = article.category?.name?.toLowerCase().includes(lowerQuery);
+      // Теги тоже проверяем
       const matchTags = article.tags?.some(tag => tag.name?.toLowerCase().includes(lowerQuery));
       
       return matchTitle || matchCategory || matchTags;
@@ -89,13 +88,11 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
 
   return (
     <div id="search-and-feed-container" className="space-y-10">
-      
       <section id="inline-search-section" className="space-y-6">
         <div className="relative w-full max-w-2xl mx-auto">
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
             <Search size={20} />
           </div>
-          
           <input
             type="text"
             value={query}
@@ -103,7 +100,6 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
             placeholder={t.placeholder}
             className="w-full py-4 pl-[48px] pr-12 text-[16px] md:text-[18px] bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-zinc-800 text-[#111827] dark:text-[#f3f4f6] rounded-full focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm dark:shadow-none transition-all placeholder:text-gray-400"
           />
-
           {query && (
             <button
               onClick={() => setQuery("")}
@@ -114,22 +110,22 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
           )}
         </div>
 
-        {featuredTags.length > 0 && (
-          <div id="inline-tags-carousel" className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory scroll-smooth w-full px-1">
-            {featuredTags.map((tag) => {
-              const isActive = query.toLowerCase() === tag.name.toLowerCase();
+        {/* Вывод КАТЕГОРИЙ в карусель */}
+        {categories.length > 0 && (
+          <div id="inline-category-carousel" className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory scroll-smooth w-full px-1">
+            {categories.map((cat) => {
+              const isActive = query.toLowerCase() === cat.name.toLowerCase();
               return (
                 <button 
-                  key={tag.slug} 
-                  // Улучшенный UX: повторный клик по тегу сбрасывает фильтр
-                  onClick={() => setQuery(isActive ? "" : tag.name)} 
+                  key={cat.slug} 
+                  onClick={() => setQuery(isActive ? "" : cat.name)} 
                   className={`tag-pill whitespace-nowrap snap-center cursor-pointer transition-all px-5 py-2.5 rounded-full border text-sm font-bold ${
                     isActive 
                       ? 'bg-[#111827] text-white border-[#111827] dark:bg-white dark:text-[#0a0a0a] shadow-md' 
                       : 'bg-white dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-800 text-gray-600 dark:text-zinc-300 hover:border-gray-300 dark:hover:border-zinc-600'
                   }`}
                 >
-                  #{tag.name}
+                  {cat.name}
                 </button>
               )
             })}
@@ -157,8 +153,6 @@ export default function SearchAndFeed({ initialArticles, lang, minReadLabel }: S
           </div>
         )}
       </section>
-
     </div>
   );
 }
-// === КОНЕЦ БЛОКА ===
