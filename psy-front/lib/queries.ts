@@ -1,8 +1,6 @@
-// === НАЧАЛО БЛОКА: Sanity Queries ===
 import { groq } from "next-sanity";
 
 // 1. Запрос для ленты и поиска (учитывает язык интерфейса)
-// Показывает посты текущего языка, либо посты без языка (старые), считая их русскими
 export const articlesQuery = groq`*[_type == "post" && language == $lang] | order(publishedAt desc) {
   _id,
   title,
@@ -11,15 +9,13 @@ export const articlesQuery = groq`*[_type == "post" && language == $lang] | orde
   readTime,
   expert,
   "mainImage": mainImage.asset->url,
-  // ИСПРАВЛЕНИЕ: Вытягиваем массив тегов с переводами, чтобы поиск мог их прочитать
   "tags": tags[]->{ 
     "slug": slug.current, 
     "name": coalesce(translations[$lang], title) 
   }
 }`;
 
-// 2. ИСПРАВЛЕННЫЙ ЗАПРОС ЗАКЛАДОК
-// ВАЖНО: Убрана фильтрация по языку. Ищем просто по ID.
+// 2. Запрос закладок (Ищем просто по ID)
 export const bookmarkedArticlesQuery = groq`*[_type == "post" && _id in $ids] | order(publishedAt desc) {
   _id,
   title,
@@ -47,4 +43,22 @@ export const singlePostQuery = groq`*[_type == "post" && slug.current == $slug][
     "mainImage": mainImage.asset->url
   }
 }`;
-// === КОНЕЦ БЛОКА ===
+
+// 4. Запрос для страницы результатов поиска (Ищет по title и по тегам)
+export const searchArticlesQuery = groq`*[_type == "post" && language == $lang && (
+  title match $searchQuery || 
+  tags[]->title match $searchQuery || 
+  tags[]->translations[$lang] match $searchQuery
+)] | order(publishedAt desc) {
+  _id,
+  title,
+  "slug": slug.current,
+  category,
+  "readTime": coalesce(readingTime, readTime),
+  "expert": coalesce(expertReview, expert),
+  "mainImage": mainImage.asset->url,
+  "tags": tags[]->{ 
+    "slug": slug.current, 
+    "name": coalesce(translations[$lang], title) 
+  }
+}`;
