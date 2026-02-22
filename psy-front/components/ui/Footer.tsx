@@ -71,11 +71,11 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Ссылки обернуты в Link и учитывают текущий язык */}
-        <nav id="footer-links" className="flex flex-wrap justify-center gap-6 mb-8 text-sm font-bold text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-          <Link href={`/${lang}/about`} className="transition-colors">{t.about}</Link>
-          <Link href={`/${lang}/privacy`} className="transition-colors">{t.privacy}</Link>
-          <Link href={`/${lang}/terms`} className="transition-colors">{t.terms}</Link>
+        {/* Ссылки (ИСПРАВЛЕН БАГ: hover перенесен на элементы Link) */}
+        <nav id="footer-links" className="flex flex-wrap justify-center gap-6 mb-8 text-sm font-bold text-gray-500 dark:text-zinc-400">
+          <Link href={`/${lang}/about`} className="transition-colors hover:text-gray-900 dark:hover:text-zinc-100">{t.about}</Link>
+          <Link href={`/${lang}/privacy`} className="transition-colors hover:text-gray-900 dark:hover:text-zinc-100">{t.privacy}</Link>
+          <Link href={`/${lang}/terms`} className="transition-colors hover:text-gray-900 dark:hover:text-zinc-100">{t.terms}</Link>
         </nav>
 
         {/* Копирайт */}
