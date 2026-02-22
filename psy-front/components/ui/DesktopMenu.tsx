@@ -4,16 +4,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { X, ChevronRight, Home, Search } from "lucide-react";
+import { X, ChevronRight, Home } from "lucide-react"; // Удален импорт Search
 import { client } from "@/lib/sanity";
 
-// Расширенный словарь с навигацией
 const menuTranslations = {
-  ru: { tagsTitle: "Популярные темы", navTitle: "Навигация", home: "Главная", search: "Поиск" },
-  en: { tagsTitle: "Popular Topics", navTitle: "Navigation", home: "Home", search: "Search" },
-  ua: { tagsTitle: "Популярні теми", navTitle: "Навігація", home: "Головна", search: "Пошук" },
-  pl: { tagsTitle: "Popularne tematy", navTitle: "Nawigacja", home: "Strona główna", search: "Szukaj" },
-  de: { tagsTitle: "Beliebte Themen", navTitle: "Navigation", home: "Startseite", search: "Suche" },
+  ru: { tagsTitle: "Популярные темы", navTitle: "Навигация", home: "Главная" },
+  en: { tagsTitle: "Popular Topics", navTitle: "Navigation", home: "Home" },
+  ua: { tagsTitle: "Популярні теми", navTitle: "Навігація", home: "Головна" },
+  pl: { tagsTitle: "Popularne tematy", navTitle: "Nawigacja", home: "Strona główna" },
+  de: { tagsTitle: "Beliebte Themen", navTitle: "Navigation", home: "Startseite" },
 };
 
 interface DesktopMenuProps {
@@ -26,14 +25,12 @@ export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps)
   const t = menuTranslations[lang as keyof typeof menuTranslations] || menuTranslations.ru;
   const [featuredTags, setFeaturedTags] = useState<{slug: string, name: string}[]>([]);
 
-  // Блокировка скролла
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
 
-  // Загрузка тегов из Sanity
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -52,7 +49,6 @@ export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps)
 
   return (
     <div id="desktop-menu-wrapper" className="hidden md:block">
-      {/* Оверлей */}
       <div 
         id="desktop-menu-overlay"
         onClick={onClose}
@@ -62,7 +58,6 @@ export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps)
         aria-hidden="true"
       />
 
-      {/* Панель меню */}
       <aside
         id="desktop-menu-panel"
         className={`fixed top-0 left-0 bottom-0 z-[70] w-[320px] bg-white dark:bg-[#0a0a0a] border-r border-gray-200 dark:border-zinc-800 shadow-2xl dark:shadow-none transform transition-transform duration-500 ease-in-out flex flex-col ${
@@ -84,7 +79,6 @@ export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps)
 
         <div id="desktop-menu-content" className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
           
-          {/* Главная Навигация */}
           <div id="desktop-menu-main-nav">
             <span className="text-xs font-extrabold uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-4 block">
               {t.navTitle}
@@ -94,14 +88,10 @@ export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps)
                 <Home size={20} className="text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500 transition-colors" />
                 <span>{t.home}</span>
               </Link>
-              <Link href={`/${lang}/search`} onClick={onClose} className="group flex items-center gap-4 py-3 text-lg font-bold text-[#111827] dark:text-[#f3f4f6] hover:text-blue-600 dark:hover:text-blue-500 transition-colors">
-                <Search size={20} className="text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500 transition-colors" />
-                <span>{t.search}</span>
-              </Link>
+              {/* ССЫЛКА НА ПОИСК УДАЛЕНА ОТСЮДА */}
             </nav>
           </div>
 
-          {/* Теги / Категории */}
           <div id="desktop-menu-tags-nav">
             <span className="text-xs font-extrabold uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-4 block">
               {t.tagsTitle}
@@ -117,7 +107,7 @@ export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps)
                   <Link
                     key={tag.slug}
                     id={`desktop-menu-tag-${tag.slug}`}
-                    href={`/${lang}/tag/${tag.slug}`} // <-- Ссылка на новую страницу категории
+                    href={`/${lang}?tag=${tag.slug}`} 
                     onClick={onClose}
                     className="group flex items-center justify-between py-3 text-lg font-bold text-[#111827] dark:text-[#f3f4f6] hover:text-blue-600 dark:hover:text-blue-500 transition-colors"
                   >
