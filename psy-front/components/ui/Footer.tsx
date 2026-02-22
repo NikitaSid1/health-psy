@@ -51,7 +51,7 @@ export default function Footer() {
   return (
     <footer 
       id="global-footer" 
-      // pb-24 для мобилок из-за BottomBar, pb-8 для ПК. pb-[env(...)] для челки iPhone.
+      // pb-24 для мобилок из-за BottomBar, pb-8 для ПК. Отступ через safe-area-inset-bottom для челки iPhone.
       className="bg-white dark:bg-[#0a0a0a] border-t border-gray-200 dark:border-zinc-800 pt-12 pb-24 md:pb-8 px-4 md:px-8 mt-auto pb-[env(safe-area-inset-bottom)]"
     >
       <div className="max-w-[1440px] mx-auto flex flex-col items-center text-center">

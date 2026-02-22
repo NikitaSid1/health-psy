@@ -31,7 +31,7 @@ export default function BottomBar() {
   return (
     <nav 
       id="bottom-bar" 
-      // md:hidden скрывает бар на ПК. pb-[env(...)] дает правильный отступ на iPhone.
+      // md:hidden скрывает бар на ПК. Класс с safe-area-inset-bottom дает правильный отступ на iPhone.
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/90 dark:bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-gray-200 dark:border-zinc-800 transition-colors duration-500 ease-in-out pb-[env(safe-area-inset-bottom)]"
     >
       <div id="bottom-bar-container" className="flex items-center justify-around h-[64px] px-2">
