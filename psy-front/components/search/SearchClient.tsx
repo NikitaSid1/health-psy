@@ -6,14 +6,14 @@ import { Search, X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { client } from "@/lib/sanity";
-import { searchArticlesQuery } from "@/lib/queries";
+import { searchArticlesQuery, popularTagsQuery } from "@/lib/queries"; // <-- Импортируем новый запрос
 
 const searchTranslations = {
-  ru: { placeholder: "Найти статью, тег или автора...", empty: "Упс! Ничего не найдено.", popular: "Популярные категории", popularTags: ["Тревожность", "Саморазвитие", "Отношения", "Стресс"], results: "Результаты поиска", article: "Статья" },
-  en: { placeholder: "Search article, tag, or author...", empty: "Oops! Nothing found.", popular: "Popular Categories", popularTags: ["Anxiety", "Self-development", "Relationships", "Stress"], results: "Search results", article: "Article" },
-  ua: { placeholder: "Знайти статтю, тег або автора...", empty: "Упс! Нічого не знайдено.", popular: "Популярні категорії", popularTags: ["Тривожність", "Саморозвиток", "Стосунки", "Стрес"], results: "Результати пошуку", article: "Стаття" },
-  pl: { placeholder: "Szukaj artykułu, tagu lub autora...", empty: "Ups! Nic nie znaleziono.", popular: "Popularne kategorie", popularTags: ["Niepokój", "Samorozwój", "Relacje", "Stres"], results: "Wyniki wyszukiwania", article: "Artykuł" },
-  de: { placeholder: "Artikel, Tag oder Autor suchen...", empty: "Hoppla! Nichts gefunden.", popular: "Beliebte Kategorien", popularTags: ["Angst", "Selbstentwicklung", "Beziehungen", "Stress"], results: "Suchergebnisse", article: "Artikel" },
+  ru: { placeholder: "Найти статью, тег или автора...", empty: "Упс! Ничего не найдено.", popular: "Популярные категории", results: "Результаты поиска", article: "Статья" },
+  en: { placeholder: "Search article, tag, or author...", empty: "Oops! Nothing found.", popular: "Popular Categories", results: "Search results", article: "Article" },
+  ua: { placeholder: "Знайти статтю, тег або автора...", empty: "Упс! Нічого не знайдено.", popular: "Популярні категорії", results: "Результати пошуку", article: "Стаття" },
+  pl: { placeholder: "Szukaj artykułu, tagu lub autora...", empty: "Ups! Nic nie znaleziono.", popular: "Popularne kategorie", results: "Wyniki wyszukiwania", article: "Artykuł" },
+  de: { placeholder: "Artikel, Tag oder Autor suchen...", empty: "Hoppla! Nichts gefunden.", popular: "Beliebte Kategorien", results: "Suchergebnisse", article: "Artikel" },
 };
 
 interface SearchClientProps {
@@ -29,6 +29,7 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [popularTags, setPopularTags] = useState<{slug: string, name: string}[]>([]); 
 
   // Блокировка скролла и закрытие по Escape
   useEffect(() => {
@@ -47,7 +48,20 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
     }
   }, [isOpen, onClose]);
 
-  // Живой поиск с задержкой (Debounce), чтобы не спамить базу при каждой букве
+  // Загрузка популярных категорий из Sanity при открытии поиска
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const data = await client.fetch(popularTagsQuery, { lang });
+        setPopularTags(data);
+      } catch (error) {
+        console.error("Ошибка загрузки тегов для поиска:", error);
+      }
+    };
+    if (isOpen && popularTags.length === 0) fetchTags();
+  }, [isOpen, lang, popularTags.length]);
+
+  // Живой поиск с задержкой (Debounce)
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
@@ -68,7 +82,7 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
       } finally {
         setIsLoading(false);
       }
-    }, 500); // Ждем полсекунды после остановки печати
+    }, 500);
 
     return () => clearTimeout(delayDebounceFn);
   }, [query, lang]);
@@ -117,18 +131,19 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
             </div>
           )}
 
+          {/* ИСПРАВЛЕНИЕ: Выводим динамические теги из Sanity */}
           {!isLoading && !query.trim() && (
             <div className="text-center py-24 animate-in fade-in duration-500 max-w-2xl mx-auto">
               <div className="space-y-5 bg-white dark:bg-[#111827] p-8 rounded-[32px] border border-gray-100 dark:border-zinc-800 shadow-sm dark:shadow-none">
                 <h4 className="text-xs font-extrabold uppercase tracking-widest text-gray-400 dark:text-zinc-500">{t.popular}</h4>
                 <div className="flex flex-wrap justify-center gap-3">
-                  {t.popularTags.map((tag) => (
+                  {popularTags.map((tag) => (
                     <button
-                      key={tag}
-                      onClick={() => setQuery(tag)} // По клику на популярный тег сразу ищем его
+                      key={tag.slug}
+                      onClick={() => setQuery(tag.name)} // Ищем по названию тега
                       className="bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-[#111827] dark:text-[#f3f4f6] px-5 py-2.5 rounded-full text-sm font-bold hover:border-blue-500 hover:text-blue-600 dark:hover:border-blue-500 transition-colors"
                     >
-                      #{tag}
+                      #{tag.name}
                     </button>
                   ))}
                 </div>
