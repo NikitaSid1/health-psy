@@ -3,11 +3,31 @@
 import { Metadata } from "next";
 
 const pageTranslations = {
-  ru: { title: "О нас", content: "Добро пожаловать на HealthPsy — ваш надежный путеводитель в мире психологии и самопознания. Мы объединяем научный подход и практические советы экспертов, чтобы помочь вам улучшить качество жизни." },
-  en: { title: "About Us", content: "Welcome to HealthPsy — your reliable guide in the world of psychology and self-discovery. We combine a scientific approach and practical expert advice to help you improve your quality of life." },
-  ua: { title: "Про нас", content: "Ласкаво просимо на HealthPsy — ваш надійний путівник у світі психології та самопізнання. Ми об'єднуємо науковий підхід та практичні поради експертів, щоб допомогти вам покращити якість життя." },
-  pl: { title: "O nas", content: "Witamy w HealthPsy — Twoim niezawodnym przewodniku po świecie psychologii i samopoznania. Łączymy podejście naukowe i praktyczne porady ekspertów, aby pomóc Ci poprawić jakość życia." },
-  de: { title: "Über uns", content: "Willkommen bei HealthPsy — Ihrem zuverlässigen Begleiter in der Welt der Psychologie und Selbsterkenntnis. Wir kombinieren einen wissenschaftlichen Ansatz mit praktischen Expertentipps, um Ihre Lebensqualität zu verbessern." },
+  ru: { 
+    title: "О нас", 
+    content: "Добро пожаловать на HealthPsy — ваш надежный путеводитель в мире психологии и самопознания. Мы объединяем научный подход и практические советы экспертов, чтобы помочь вам улучшить качество жизни.",
+    conclusion: "Мы верим, что забота о ментальном здоровье не менее важна, чем физическое благополучие."
+  },
+  en: { 
+    title: "About Us", 
+    content: "Welcome to HealthPsy — your reliable guide in the world of psychology and self-discovery. We combine a scientific approach and practical expert advice to help you improve your quality of life.",
+    conclusion: "We believe that taking care of mental health is just as important as physical well-being."
+  },
+  ua: { 
+    title: "Про нас", 
+    content: "Ласкаво просимо на HealthPsy — ваш надійний путівник у світі психології та самопізнання. Ми об'єднуємо науковий підхід та практичні поради експертів, щоб допомогти вам покращити якість життя.",
+    conclusion: "Ми віримо, що турбота про ментальне здоров'я не менш важлива, ніж фізичне благополуччя."
+  },
+  pl: { 
+    title: "O nas", 
+    content: "Witamy w HealthPsy — Twoim niezawodnym przewodniku po świecie psychologii i samopoznania. Łączymy podejście naukowe i praktyczne porady ekspertów, aby pomóc Ci poprawić jakość życia.",
+    conclusion: "Wierzymy, że dbanie o zdrowie psychiczne jest równie ważne jak o dobre samopoczucie fizyczne."
+  },
+  de: { 
+    title: "Über uns", 
+    content: "Willkommen bei HealthPsy — Ihrem zuverlässigen Begleiter in der Welt der Psychologie und Selbsterkenntnis. Wir kombinieren einen wissenschaftlichen Ansatz mit praktischen Expertentipps, um Ihre Lebensqualität zu verbessern.",
+    conclusion: "Wir glauben, dass die Pflege der psychischen Gesundheit genauso wichtig ist wie das körperliche Wohlbefinden."
+  },
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
@@ -28,7 +48,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
         </h1>
         <div className="prose prose-base md:prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-zinc-300 leading-relaxed">
           <p>{t.content}</p>
-          <p>Мы верим, что забота о ментальном здоровье не менее важна, чем физическое благополучие.</p>
+          <p>{t.conclusion}</p>
         </div>
       </div>
     </main>
