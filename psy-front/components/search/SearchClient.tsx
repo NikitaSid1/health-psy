@@ -202,3 +202,4 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
     </div>
   );
 }
+// Конец блока
