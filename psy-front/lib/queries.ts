@@ -1,3 +1,4 @@
+// psy-front/lib/queries.ts
 import { groq } from "next-sanity";
 
 // 1. Запрос для ленты и поиска (учитывает язык интерфейса)
@@ -61,4 +62,10 @@ export const searchArticlesQuery = groq`*[_type == "post" && language == $lang &
     "slug": slug.current, 
     "name": coalesce(translations[$lang], title) 
   }
+}`;
+
+// 5. Запрос популярных тегов (категорий) для поиска и меню
+export const popularTagsQuery = groq`*[_type == "tag" && isFeatured == true] | order(_createdAt asc)[0..5] { 
+  "slug": slug.current, 
+  "name": coalesce(translations[$lang], title) 
 }`;
