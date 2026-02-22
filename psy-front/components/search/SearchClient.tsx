@@ -6,7 +6,7 @@ import { Search, X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import BookmarkButton from "@/components/ui/BookmarkButton";
 import { client } from "@/lib/sanity";
-import { searchArticlesQuery, popularTagsQuery } from "@/lib/queries"; // <-- Импортируем новый запрос
+import { searchArticlesQuery, popularTagsQuery } from "@/lib/queries";
 
 const searchTranslations = {
   ru: { placeholder: "Найти статью, тег или автора...", empty: "Упс! Ничего не найдено.", popular: "Популярные категории", results: "Результаты поиска", article: "Статья" },
@@ -31,7 +31,6 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
   const [isLoading, setIsLoading] = useState(false);
   const [popularTags, setPopularTags] = useState<{slug: string, name: string}[]>([]); 
 
-  // Блокировка скролла и закрытие по Escape
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -43,12 +42,11 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
       };
     } else {
       document.body.style.overflow = "unset";
-      setQuery(""); // Очищаем поиск при закрытии
+      setQuery(""); 
       setResults([]);
     }
   }, [isOpen, onClose]);
 
-  // Загрузка популярных категорий из Sanity при открытии поиска
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -61,7 +59,6 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
     if (isOpen && popularTags.length === 0) fetchTags();
   }, [isOpen, lang, popularTags.length]);
 
-  // Живой поиск с задержкой (Debounce)
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
@@ -93,7 +90,6 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
     <div className="fixed inset-0 z-[100] bg-gray-50/95 dark:bg-[#0a0a0a]/95 backdrop-blur-md overflow-y-auto" role="dialog" aria-modal="true">
       <div className="min-h-screen px-4 py-8 md:py-12" ref={modalRef}>
         
-        {/* Поле ввода */}
         <div className="relative w-full max-w-4xl mx-auto flex items-center gap-4">
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
@@ -122,7 +118,6 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
           </button>
         </div>
 
-        {/* Область результатов */}
         <div className="mt-8 max-w-6xl mx-auto">
           
           {isLoading && (
@@ -131,7 +126,6 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
             </div>
           )}
 
-          {/* ИСПРАВЛЕНИЕ: Выводим динамические теги из Sanity */}
           {!isLoading && !query.trim() && (
             <div className="text-center py-24 animate-in fade-in duration-500 max-w-2xl mx-auto">
               <div className="space-y-5 bg-white dark:bg-[#111827] p-8 rounded-[32px] border border-gray-100 dark:border-zinc-800 shadow-sm dark:shadow-none">
@@ -140,7 +134,7 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
                   {popularTags.map((tag) => (
                     <button
                       key={tag.slug}
-                      onClick={() => setQuery(tag.name)} // Ищем по названию тега
+                      onClick={() => setQuery(tag.name)} 
                       className="bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-[#111827] dark:text-[#f3f4f6] px-5 py-2.5 rounded-full text-sm font-bold hover:border-blue-500 hover:text-blue-600 dark:hover:border-blue-500 transition-colors"
                     >
                       #{tag.name}
@@ -161,38 +155,43 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
             <>
               <h2 className="text-sm font-extrabold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-6 pl-2">{t.results}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-24 animate-in fade-in duration-300">
-                {results.map((article: any) => (
-                  <Link
-                    href={`/${lang}/post/${article.slug}`}
-                    key={article._id}
-                    onClick={onClose} 
-                    className="flex flex-col justify-between p-6 bg-white dark:bg-[#111827] border border-gray-100 dark:border-zinc-800 rounded-[24px] hover:border-blue-500/50 dark:hover:border-blue-500/50 shadow-md hover:shadow-xl dark:shadow-none transition-all group"
-                  >
-                    <div>
-                      <h3 className="text-xl font-extrabold text-[#111827] dark:text-[#f3f4f6] tracking-tight leading-snug mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        {article.title}
-                      </h3>
-                    </div>
-                    <div className="flex justify-between items-start mt-6 gap-4">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-full uppercase tracking-wide">
-                          {article.category || t.article}
-                        </span>
-                        {article.tags && article.tags.map((tag: any, idx: number) => {
-                          const tagName = tag?.name;
-                          return tagName ? (
-                            <span key={idx} className="text-[10px] font-bold text-gray-500 uppercase tracking-wide bg-gray-100 dark:bg-zinc-800 px-2 py-1.5 rounded-md">
-                              #{tagName}
-                            </span>
-                          ) : null;
-                        })}
+                {results.map((article: any) => {
+                  // ИСПРАВЛЕНИЕ: Безопасное получение имени категории
+                  const catName = typeof article.category === 'object' ? article.category?.name : article.category;
+                  
+                  return (
+                    <Link
+                      href={`/${lang}/post/${article.slug}`}
+                      key={article._id}
+                      onClick={onClose} 
+                      className="flex flex-col justify-between p-6 bg-white dark:bg-[#111827] border border-gray-100 dark:border-zinc-800 rounded-[24px] hover:border-blue-500/50 dark:hover:border-blue-500/50 shadow-md hover:shadow-xl dark:shadow-none transition-all group"
+                    >
+                      <div>
+                        <h3 className="text-xl font-extrabold text-[#111827] dark:text-[#f3f4f6] tracking-tight leading-snug mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                          {article.title}
+                        </h3>
                       </div>
-                      <div className="z-10 shrink-0" onClick={(e) => e.preventDefault()}>
-                        <BookmarkButton articleId={article._id} />
+                      <div className="flex justify-between items-start mt-6 gap-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-full uppercase tracking-wide">
+                            {catName || t.article}
+                          </span>
+                          {article.tags && article.tags.map((tag: any, idx: number) => {
+                            const tagName = tag?.name;
+                            return tagName ? (
+                              <span key={idx} className="text-[10px] font-bold text-gray-500 uppercase tracking-wide bg-gray-100 dark:bg-zinc-800 px-2 py-1.5 rounded-md">
+                                #{tagName}
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                        <div className="z-10 shrink-0" onClick={(e) => e.preventDefault()}>
+                          <BookmarkButton articleId={article._id} />
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             </>
           )}
@@ -202,4 +201,3 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
     </div>
   );
 }
-// Конец блока

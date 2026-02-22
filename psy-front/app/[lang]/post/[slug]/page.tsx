@@ -1,5 +1,4 @@
 // C:\Users\Admin\Desktop\psy\psy-front\app\[lang]\post\[slug]\page.tsx
-// === НАЧАЛО БЛОКА: Single Post Page ===
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { PortableText } from "@portabletext/react";
@@ -21,12 +20,13 @@ const postTranslations = {
   de: { notFoundTitle: "Artikel nicht gefunden", backHome: "Zurück zur Startseite", backBtn: "← Zurück zu den Artikeln", categoryDefault: "Psychologie", minRead: "Minuten Lesezeit", verified: "Von Experten geprüft", tagsTitle: "Tags:" },
 };
 
+// ИСПРАВЛЕНИЕ: Теперь category разворачивается с помощью ->
 const postQuery = groq`*[_type == "post" && slug.current == $slug && language == $lang][0] {
   _id,
   title,
   body,
   publishedAt,
-  category,
+  "category": category->{ "slug": slug.current, "name": coalesce(translations[$lang], title) },
   readTime,
   expert,
   translationId,
@@ -161,6 +161,9 @@ export default async function PostPage({ params }: PostPageProps) {
     return acc;
   }, {}) || {};
 
+  // ИСПРАВЛЕНИЕ: Безопасное получение категории
+  const categoryName = typeof post.category === 'object' ? post.category?.name : post.category;
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -189,7 +192,8 @@ export default async function PostPage({ params }: PostPageProps) {
               <div className="flex items-center justify-between mb-10">
                 <div id="post-meta" className="flex flex-wrap items-center gap-4 text-sm font-medium">
                   <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                    {post.category?.name || t.categoryDefault}
+                    {/* ИСПРАВЛЕНИЕ: Используем переменную categoryName */}
+                    {categoryName || t.categoryDefault}
                   </span>
                   <span className="text-gray-400 dark:text-zinc-500">
                     {post.readTime || 5} {t.minRead}
@@ -263,4 +267,3 @@ export default async function PostPage({ params }: PostPageProps) {
     </>
   );
 }
-// === КОНЕЦ БЛОКА ===
