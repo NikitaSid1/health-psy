@@ -1,6 +1,7 @@
+// psy-front/lib/sanity.ts
 // === НАЧАЛО БЛОКА: Sanity Client & Image Builder ===
 import { createClient } from "next-sanity";
-import imageUrlBuilder from "@sanity/image-url";
+import { createImageUrlBuilder } from "@sanity/image-url"; // <-- ИСПРАВЛЕНИЕ: Именованный импорт
 
 export const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "dp2yjc73", // Твой ID
@@ -10,7 +11,7 @@ export const client = createClient({
 });
 
 // Настраиваем строитель ссылок на картинки
-const builder = imageUrlBuilder(client);
+const builder = createImageUrlBuilder(client);
 
 // Экспортируем функцию, которую ищет компонент картинок
 export function urlFor(source: any) {

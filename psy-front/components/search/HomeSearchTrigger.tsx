@@ -2,7 +2,6 @@
 // === НАЧАЛО БЛОКА: Home Search Trigger ===
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
 const translations = {
@@ -14,14 +13,18 @@ const translations = {
 };
 
 export default function HomeSearchTrigger({ lang = "en" }: { lang: string }) {
-  const router = useRouter();
   const t = translations[lang as keyof typeof translations] || translations.en;
+
+  // ИСПРАВЛЕНИЕ: Больше никаких router.push('/search') !
+  // Мы просто вызываем событие, которое открывает модалку поиска из Хедера
+  const openGlobalSearch = () => {
+    window.dispatchEvent(new Event("open-search"));
+  };
 
   return (
     <div 
       id="home-search-trigger"
-      // Перенаправляем на страницу поиска с правильным языком!
-      onClick={() => router.push(`/${lang}/search`)} 
+      onClick={openGlobalSearch} 
       className="relative w-full cursor-text group"
     >
       {/* Отступ иконки от края 16px (left-4) */}
