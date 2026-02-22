@@ -4,45 +4,46 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    // ИЗМЕНЕНИЕ: Принимаем email и lang из запроса
+    const { email, lang } = await req.json();
 
     if (!email || !email.includes('@')) {
       return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
     }
 
-    // Достаем ключи из .env.local
     const API_KEY = process.env.MAILCHIMP_API_KEY;
     const API_SERVER = process.env.MAILCHIMP_API_SERVER; // например us21
     const AUDIENCE_ID = process.env.MAILCHIMP_AUDIENCE_ID;
 
-    // Проверяем, что ключи реально загрузились
     if (!API_KEY || !API_SERVER || !AUDIENCE_ID) {
       console.error('Mailchimp API keys are missing in .env.local!');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
-    // Формируем запрос к Mailchimp
+    // ИЗМЕНЕНИЕ: Формируем тег языка (по умолчанию EN, если язык не определен)
+    const languageTag = lang ? `Lang: ${lang.toUpperCase()}` : 'Lang: EN';
+
     const url = `https://${API_SERVER}.api.mailchimp.com/3.0/lists/${AUDIENCE_ID}/members`;
+    
+    // ИЗМЕНЕНИЕ: Добавляем теги в payload для Mailchimp
     const data = { 
       email_address: email, 
-      status: 'subscribed' 
+      status: 'subscribed',
+      tags: ['Website Subscriber', languageTag] // Эти теги автоматически появятся у контакта
     };
 
     const response = await fetch(url, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json', 
-        // Стандартная авторизация Mailchimp
         'Authorization': `Basic ${Buffer.from(`anystring:${API_KEY}`).toString('base64')}`
       },
       body: JSON.stringify(data),
     });
 
-    // Обрабатываем ответ
     if (response.status >= 400) {
       const errorData = await response.json();
       
-      // Если пользователь уже подписан, не пугаем его ошибкой, а говорим, что всё ок
       if (errorData.title === 'Member Exists') {
         return NextResponse.json({ success: true, message: 'Already subscribed' }, { status: 200 });
       }

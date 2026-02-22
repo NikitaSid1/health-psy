@@ -60,7 +60,8 @@ export default function NewsletterPopup() {
       const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        // ИЗМЕНЕНИЕ: Теперь мы передаем не только email, но и текущий язык (lang)
+        body: JSON.stringify({ email, lang }),
       });
 
       if (res.ok) {
