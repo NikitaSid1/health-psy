@@ -1,42 +1,16 @@
 // C:\Users\Admin\Desktop\psy\psy-front\components\feed\ArticleCard.tsx
-// === НАЧАЛО БЛОКА: Article Card (Final) ===
 "use client";
 
 import Link from "next/link";
 import Image from "next/image";
 import BookmarkButton from "@/components/ui/BookmarkButton";
-
-// Словари
-const TIME_LABELS: Record<string, string> = {
-  ru: "мин",
-  en: "min",
-  ua: "хв",
-  pl: "min",
-  de: "Min",
-};
-
-const EXPERT_LABELS: Record<string, string> = {
-  ru: "Проверено экспертом",
-  en: "Verified by expert",
-  ua: "Перевірено експертом",
-  pl: "Sprawdzone przez eksperta",
-  de: "Von Experten geprüft",
-};
-
-const DEFAULT_CATEGORIES: Record<string, string> = {
-  ru: "Психология",
-  en: "Psychology",
-  ua: "Психологія",
-  pl: "Psychologia",
-  de: "Psychologie",
-};
+import { useEffect, useState } from "react";
 
 interface ArticleCardProps {
   post: {
     _id: string;
     title: string;
     slug: string;
-    // ИСПРАВЛЕНИЕ 1: Указываем, что категория может быть и объектом, и строкой
     category?: { slug: string; name: string } | string;
     tags?: { slug: string; name: string }[];
     readTime?: number;
@@ -49,11 +23,14 @@ interface ArticleCardProps {
 
 export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
   const articleLang = post.language || lang || "ru";
-  const timeLabel = TIME_LABELS[articleLang] || "min";
-  const expertLabel = EXPERT_LABELS[articleLang] || "Expert";
-  const defaultCategory = DEFAULT_CATEGORIES[articleLang] || "Psychology";
+  const [dict, setDict] = useState<any>(null);
 
-  // ИСПРАВЛЕНИЕ 2: Безопасное извлечение названия категории для рендера
+  useEffect(() => {
+    import(`@/dictionaries/${articleLang}.json`)
+      .then((m) => setDict(m.default.articleCard))
+      .catch(() => import(`@/dictionaries/ru.json`).then((m) => setDict(m.default.articleCard)));
+  }, [articleLang]);
+
   const categoryName = typeof post.category === 'object' && post.category !== null 
     ? post.category.name 
     : post.category;
@@ -66,7 +43,6 @@ export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
     >
       <article className="h-full flex flex-col bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-zinc-800 rounded-[24px] overflow-hidden shadow-sm dark:shadow-none hover:border-gray-300 dark:hover:border-zinc-700 transition-colors duration-300">
         
-        {/* Картинка */}
         <div className="relative w-full aspect-[4/3] bg-gray-50 dark:bg-zinc-900 overflow-hidden">
           {post.mainImage ? (
             <Image 
@@ -83,14 +59,16 @@ export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
           )}
         </div>
 
-        {/* Текстовая часть (p-6 по ТЗ = 24px) */}
         <div className="flex flex-col flex-1 p-6">
           <div className="flex items-start justify-between mb-3 gap-2">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider min-w-0">
-              {/* ИСПРАВЛЕНИЕ 3: Выводим безопасную переменную categoryName */}
-              <span className="text-blue-600 dark:text-blue-500 truncate">{categoryName || defaultCategory}</span>
+              <span className="text-blue-600 dark:text-blue-500 truncate">
+                {categoryName || dict?.defaultCategory || "..."}
+              </span>
               <span className="text-gray-300 dark:text-zinc-700 shrink-0">•</span>
-              <span className="text-gray-500 dark:text-zinc-400 shrink-0 whitespace-nowrap">{post.readTime || 5} {timeLabel}</span>
+              <span className="text-gray-500 dark:text-zinc-400 shrink-0 whitespace-nowrap">
+                {post.readTime || 5} {dict?.timeLabel || ""}
+              </span>
             </div>
             
             <div className="z-10 relative shrink-0" onClick={(e) => e.preventDefault()}>
@@ -105,7 +83,7 @@ export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
           {post.expert && (
             <div className="mt-auto pt-4 flex items-center gap-2 border-t border-gray-50 dark:border-zinc-800/50">
                 <span className="text-[11px] font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full whitespace-nowrap">
-                  ✓ {expertLabel}
+                  ✓ {dict?.expertLabel || ""}
                 </span>
             </div>
           )}
@@ -114,4 +92,3 @@ export default function ArticleCard({ post, lang = "ru" }: ArticleCardProps) {
     </Link>
   );
 }
-// === КОНЕЦ БЛОКА ===

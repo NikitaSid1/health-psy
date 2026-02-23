@@ -6,14 +6,7 @@ import Link from "next/link";
 import ArticleCard from "@/components/feed/ArticleCard";
 import { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
-
-const pageTranslations = {
-  ru: { back: "На главную", notFound: "Тег не найден", empty: "В этой категории пока нет статей." },
-  en: { back: "Back Home", notFound: "Tag not found", empty: "No articles in this category yet." },
-  ua: { back: "На головну", notFound: "Тег не знайдено", empty: "У цій категорії поки немає статей." },
-  pl: { back: "Na stronę główną", notFound: "Nie znaleziono tagu", empty: "Brak artykułów w tej kategorii." },
-  de: { back: "Zur Startseite", notFound: "Tag nicht gefunden", empty: "Noch keine Artikel in dieser Kategorie." },
-};
+import { getDictionary } from "@/dictionaries/getDictionary";
 
 // Динамические метаданные для SEO
 export async function generateMetadata({ params }: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
@@ -34,7 +27,8 @@ interface TagPageProps {
 
 export default async function TagPage({ params }: TagPageProps) {
   const { lang, slug } = await params;
-  const t = pageTranslations[lang as keyof typeof pageTranslations] || pageTranslations.ru;
+  const dictionary = await getDictionary(lang as any);
+  const t = dictionary.tag;
   
   // 1. Сначала получаем сам тег, его системное имя и перевод
   const tag = await client.fetch(`*[_type == "tag" && slug.current == $slug][0]{ 
@@ -56,19 +50,19 @@ export default async function TagPage({ params }: TagPageProps) {
   // 2. УМНЫЙ ЗАПРОС: Ищем статьи по новому массиву (tags) ИЛИ по старому текстовому полю (category)
   const articlesQuery = groq`*[_type == "post" && language == $lang && (
     $slug in tags[]->slug.current || 
-    category match $tagName || 
-    category match $tagTitle
+    category->title match $tagName || 
+    category->translations[$lang] match $tagTitle ||
+    category match $tagName 
   )] | order(publishedAt desc) {
     _id,
     title,
     "slug": slug.current,
-    category,
+    "category": category->{ "slug": slug.current, "name": coalesce(translations[$lang], title) },
     readTime,
     expert,
     "mainImage": mainImage.asset->url
   }`;
 
-  // Выполняем запрос, передавая и системное имя тега, и его локализованное имя
   const articles = await client.fetch(articlesQuery, { 
     lang, 
     slug, 
@@ -94,7 +88,7 @@ export default async function TagPage({ params }: TagPageProps) {
           {tag.name}
         </h1>
         <p className="mt-4 text-lg text-gray-500 dark:text-zinc-400 font-medium">
-          {articles.length} {articles.length === 1 ? 'статья' : 'статей'}
+          {articles.length}
         </p>
       </header>
 

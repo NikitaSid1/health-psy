@@ -33,6 +33,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+    // Язык по умолчанию. В Next.js App Router для динамического lang на <html>
+    // лучше использовать вложенные layout, но здесь оставляем базовый "en" для корня.
     <html lang="en" suppressHydrationWarning>
       <body id="root-body" className={`${inter.className} bg-background text-foreground antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>

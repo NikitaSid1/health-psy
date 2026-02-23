@@ -11,16 +11,8 @@ import TableOfContents from "@/components/article/TableOfContents";
 import { Metadata } from "next";
 import TranslationProvider from "./TranslationProvider"; 
 import QuizBlock from "@/components/article/QuizBlock";
+import { getDictionary } from "@/dictionaries/getDictionary"; // <-- Импорт загрузчика словаря
 
-const postTranslations = {
-  ru: { notFoundTitle: "Статья не найдена", backHome: "Вернуться на главную", backBtn: "← Назад к статьям", categoryDefault: "Психология", minRead: "мин чтения", verified: "Проверено экспертом", tagsTitle: "Теги:" },
-  en: { notFoundTitle: "Article not found", backHome: "Back to home", backBtn: "← Back to articles", categoryDefault: "Psychology", minRead: "min read", verified: "Verified by expert", tagsTitle: "Tags:" },
-  ua: { notFoundTitle: "Статтю не знайдено", backHome: "Повернутися на головну", backBtn: "← Назад до статей", categoryDefault: "Психологія", minRead: "хв читання", verified: "Перевірено експертом", tagsTitle: "Теги:" },
-  pl: { notFoundTitle: "Nie znaleziono artykułu", backHome: "Wróć do strony głównej", backBtn: "← Wróć do artykułów", categoryDefault: "Psychologia", minRead: "min czytania", verified: "Sprawdzone przez eksperta", tagsTitle: "Tagi:" },
-  de: { notFoundTitle: "Artikel nicht gefunden", backHome: "Zurück zur Startseite", backBtn: "← Zurück zu den Artikeln", categoryDefault: "Psychologie", minRead: "Minuten Lesezeit", verified: "Von Experten geprüft", tagsTitle: "Tags:" },
-};
-
-// ИСПРАВЛЕНИЕ: Теперь category разворачивается с помощью ->
 const postQuery = groq`*[_type == "post" && slug.current == $slug && language == $lang][0] {
   _id,
   title,
@@ -42,7 +34,10 @@ const postQuery = groq`*[_type == "post" && slug.current == $slug && language ==
 export async function generateMetadata({ params }: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
   const { lang, slug } = await params;
   const post = await client.fetch(postQuery, { lang, slug });
-  const t = postTranslations[lang as keyof typeof postTranslations] || postTranslations.ru;
+  
+  // Получаем словарь для метаданных
+  const dictionary = await getDictionary(lang as any);
+  const t = dictionary.post;
 
   if (!post) return { title: t.notFoundTitle };
 
@@ -61,6 +56,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 }
 
 const portableTextComponents = {
+  // ... (здесь остается без изменений ваш объект portableTextComponents)
   types: {
     youtube: ({ value }: any) => {
       const { url } = value;
@@ -130,7 +126,11 @@ interface PostPageProps {
 
 export default async function PostPage({ params }: PostPageProps) {
   const { lang, slug } = await params;
-  const t = postTranslations[lang as keyof typeof postTranslations] || postTranslations.ru;
+  
+  // Получаем словарь
+  const dictionary = await getDictionary(lang as any);
+  const t = dictionary.post;
+  
   const post = await client.fetch(postQuery, { lang, slug });
 
   if (!post) {
@@ -161,7 +161,6 @@ export default async function PostPage({ params }: PostPageProps) {
     return acc;
   }, {}) || {};
 
-  // ИСПРАВЛЕНИЕ: Безопасное получение категории
   const categoryName = typeof post.category === 'object' ? post.category?.name : post.category;
 
   return (
@@ -171,7 +170,6 @@ export default async function PostPage({ params }: PostPageProps) {
       <TranslationProvider translations={translationMap} currentLang={lang} />
       
       <main id="post-main-content" className="font-sans">
-        
         <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row justify-center xl:justify-between items-start pt-4 gap-8 lg:gap-12">
           
           <div className="hidden xl:block w-[280px] shrink-0"></div>
@@ -192,7 +190,6 @@ export default async function PostPage({ params }: PostPageProps) {
               <div className="flex items-center justify-between mb-10">
                 <div id="post-meta" className="flex flex-wrap items-center gap-4 text-sm font-medium">
                   <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                    {/* ИСПРАВЛЕНИЕ: Используем переменную categoryName */}
                     {categoryName || t.categoryDefault}
                   </span>
                   <span className="text-gray-400 dark:text-zinc-500">

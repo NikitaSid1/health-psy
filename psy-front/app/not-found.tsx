@@ -1,41 +1,29 @@
+// C:\Users\Admin\Desktop\psy\psy-front\app\not-found.tsx
 // === НАЧАЛО БЛОКА: Страница 404 ===
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const notFoundTranslations = {
-  ru: {
-    message: "Кажется, вы свернули не туда. Но в психологии нет неправильных путей — есть только новый опыт.",
-    btnText: "Вернуться на главную"
-  },
-  en: {
-    message: "Looks like you took a wrong turn. But in psychology, there are no wrong paths — only new experiences.",
-    btnText: "Back to Home"
-  },
-  ua: {
-    message: "Здається, ви звернули не туди. Але в психології немає неправильних шляхів — є лише новий досвід.",
-    btnText: "Повернутися на головну"
-  },
-  pl: {
-    message: "Wygląda na to, że skręciłeś w złą stronę. Ale w psychologii nie ma złych ścieżek — są tylko nowe doświadczenia.",
-    btnText: "Wróć do strony głównej"
-  },
-  de: {
-    message: "Sieht so aus, als wären Sie falsch abgebogen. Aber in der Psychologie gibt es keine falschen Wege — nur neue Erfahrungen.",
-    btnText: "Zurück zur Startseite"
-  }
-};
+import { useEffect, useState } from "react";
 
 export default function NotFound() {
   const pathname = usePathname();
+  const [dict, setDict] = useState<any>(null);
   
-  // Извлекаем код языка из URL (например, 'en' из '/en/something')
+  // Извлекаем код языка из URL
   const langMatch = pathname?.split('/')[1];
   const isValidLang = ['ru', 'en', 'ua', 'pl', 'de'].includes(langMatch || "");
-  const lang = isValidLang ? (langMatch as keyof typeof notFoundTranslations) : "ru";
-  
-  const t = notFoundTranslations[lang];
+  const lang = isValidLang ? langMatch : "ru";
+
+  // Динамически подтягиваем нужный JSON словарь на клиенте
+  useEffect(() => {
+    import(`@/dictionaries/${lang}.json`)
+      .then((module) => setDict(module.default.notFound))
+      .catch(() => import(`@/dictionaries/ru.json`).then((module) => setDict(module.default.notFound)));
+  }, [lang]);
+
+  // Пока словарь загружается, не показываем ничего (чтобы избежать мерцания текста)
+  if (!dict) return null;
 
   return (
     <main id="global-not-found" className="min-h-screen flex items-center justify-center py-16">
@@ -46,11 +34,11 @@ export default function NotFound() {
         </h1>
         
         <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-md leading-relaxed font-medium">
-          {t.message}
+          {dict.message}
         </p>
         
         <Link href={`/${lang}`} className="btn-primary">
-          {t.btnText}
+          {dict.btnText}
         </Link>
 
       </div>

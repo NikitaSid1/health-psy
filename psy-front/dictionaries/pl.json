@@ -1,0 +1,102 @@
+{
+    "notFound": {
+    "message": "Wygląda na to, że źle skręciłeś...",
+    "btnText": "Powrót do strony głównej"
+    },
+    "home": {
+    "h1": "Poznaj siebie.",
+    "sub": "#Samorozwój. #Toksyczność #Granice osobiste #Lęk",
+    "minRead": "min",
+    "err": "Ups! Baza danych niedostępna",
+    "errSub": "Sprawdź ustawienia Sanity lub połączenie."
+    },
+    "post": {
+    "notFoundTitle": "Artykuł nie został znaleziony",
+    "backHome": "Powrót do strony głównej",
+    "backBtn": "← Powrót do artykułów",
+    "categoryDefault": "Psychologia",
+    "minRead": "min czytania",
+    "verified": "Zweryfikowane przez eksperta",
+    "tagsTitle": "Tagi:"
+    },
+    "about": {
+    "title": "O nas",
+    "content": "Witamy w HealthPsy — Twoim zaufanym przewodniku po psychologii i samopoznaniu. Łączymy naukowe podejście z praktycznymi poradami ekspertów, aby pomóc Ci poprawić jakość życia.",
+    "conclusion": "Wierzymy, że dbanie o zdrowie psychiczne jest równie ważne, jak dobre samopoczucie fizyczne." },
+    "bookmarks": {
+    "title": "Ulubione",
+    "empty": "Nie masz jeszcze żadnych zapisanych artykułów",
+    "loading": "Ładowanie...",
+    "back": "Powrót do strony głównej",
+    "timeLabel": "min",
+    "defaultCategory": "Psychologia"
+    },
+    "menu": {
+    "title": "Menu",
+    "settings": "Ustawienia",
+    "darkTheme": "Ciemny motyw",
+    "categories": "Kategorie",
+    "empty": "Brak dostępnych kategorii"
+    },
+    "privacy": {
+    "title": "Polityka prywatności",
+    "date": "Ostatnia aktualizacja: listopad 2023 r.",
+    "text": "Twoja prywatność jest dla nas bardzo ważna. Ten dokument opisuje, jak gromadzimy, wykorzystujemy i chronimy Twoje dane osobowe.",
+    "collectionTitle": "Dane Kolekcja",
+    "collectionText": "Gromadzimy tylko informacje niezbędne do poprawy jakości usługi (na przykład pliki cookie do celów analitycznych i przechowywania preferencji językowych).",
+    "usageTitle": "Wykorzystanie informacji",
+    "usageText": "Zebrane dane nie są przekazywane osobom trzecim bez Twojej zgody, z wyjątkiem przypadków wymaganych przez prawo."
+    },
+    "tag": {
+    "back": "Strona główna",
+    "notFound": "Nie znaleziono tagu",
+    "empty": "W tej kategorii nie ma jeszcze żadnych artykułów."
+    },
+    "terms": {
+    "title": "Umowa użytkownika",
+    "date": "Ostatnia aktualizacja: listopad 2023 r.",
+    "text": "Korzystając ze strony internetowej HealthPsy, akceptujesz poniższe warunki. Prosimy o ich uważne przeczytanie.",
+    "disclaimerTitle": "Zastrzeżenie medyczne",
+    "disclaimerText": "Treści publikowane na stronie internetowej HealthPsy mają wyłącznie charakter informacyjny i edukacyjny i nie zastępują profesjonalnej porady medycznej, psychologicznej lub psychiatrycznej, diagnozy ani leczenia.",
+    "ipTitle": "Własność intelektualna",
+    "ipText": "Wszystkie materiały, artykuły i elementy projektu są własnością projektu HealthPsy. Kopiowanie bez aktywnego linku jest zabronione."
+    },
+    "desktopMenu": {
+    "tagsTitle": "Popularne tematy",
+    "navTitle": "Nawigacja",
+    "home": "Strona główna"
+    },
+    "header": {
+    "bookmarks": "Zakładki",
+    "search": "Szukaj"
+    },
+    "footer": {
+    "disclaimer": "Wszystkie informacje na stronie internetowej HealthPsy służą wyłącznie celom edukacyjnym i nie zastępują profesjonalnej opieki medycznej ani psychiatrycznej. W razie kryzysu prosimy o kontakt ze specjalistą.",
+    "privacy": "Polityka prywatności",
+    "terms": "Umowa użytkownika",
+    "about": "O nas",
+    "rights": "Wszelkie prawa zastrzeżone."
+    },
+    "homeSearchTrigger": {
+    "placeholder": "Znajdź artykuł, temat lub autora..."
+    },
+    "searchClient": {
+    "placeholder": "Znajdź artykuł, tag lub autora...",
+    "empty": "Ups! Nic nie znaleziono.",
+    "popular": "Popularne kategorie",
+    "results": "Wyniki wyszukiwania",
+    "article": "Artykuł"
+    },
+    "articleCard": {
+    "timeLabel": "min",
+    "expertLabel": "Zweryfikowany przez eksperta",
+    "defaultCategory": "Psychologia"
+    },
+    "searchAndFeed": {
+    "placeholder": "Znajdź artykuł, kategorię lub autora...",
+    "resultsFor": "Wyniki",
+    "latest": "Najnowsze materiały",
+    "notFound": "Nic nie znaleziono dla tego zapytania",
+    "clearSearch": "Wyczyść wyszukiwanie"
+    }
+}

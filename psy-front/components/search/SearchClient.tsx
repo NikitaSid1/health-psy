@@ -8,14 +8,6 @@ import BookmarkButton from "@/components/ui/BookmarkButton";
 import { client } from "@/lib/sanity";
 import { searchArticlesQuery, popularTagsQuery } from "@/lib/queries";
 
-const searchTranslations = {
-  ru: { placeholder: "Найти статью, тег или автора...", empty: "Упс! Ничего не найдено.", popular: "Популярные категории", results: "Результаты поиска", article: "Статья" },
-  en: { placeholder: "Search article, tag, or author...", empty: "Oops! Nothing found.", popular: "Popular Categories", results: "Search results", article: "Article" },
-  ua: { placeholder: "Знайти статтю, тег або автора...", empty: "Упс! Нічого не знайдено.", popular: "Популярні категорії", results: "Результати пошуку", article: "Стаття" },
-  pl: { placeholder: "Szukaj artykułu, tagu lub autora...", empty: "Ups! Nic nie znaleziono.", popular: "Popularne kategorie", results: "Wyniki wyszukiwania", article: "Artykuł" },
-  de: { placeholder: "Artikel, Tag oder Autor suchen...", empty: "Hoppla! Nichts gefunden.", popular: "Beliebte Kategorien", results: "Suchergebnisse", article: "Artikel" },
-};
-
 interface SearchClientProps {
   lang: string;
   isOpen: boolean;
@@ -23,13 +15,19 @@ interface SearchClientProps {
 }
 
 export default function SearchClient({ lang, isOpen, onClose }: SearchClientProps) {
-  const t = searchTranslations[lang as keyof typeof searchTranslations] || searchTranslations.ru;
   const modalRef = useRef<HTMLDivElement>(null);
   
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [popularTags, setPopularTags] = useState<{slug: string, name: string}[]>([]); 
+  const [dict, setDict] = useState<any>(null);
+
+  useEffect(() => {
+    import(`@/dictionaries/${lang}.json`)
+      .then((m) => setDict(m.default.searchClient))
+      .catch(() => import(`@/dictionaries/ru.json`).then((m) => setDict(m.default.searchClient)));
+  }, [lang]);
 
   useEffect(() => {
     if (isOpen) {
@@ -84,7 +82,7 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
     return () => clearTimeout(delayDebounceFn);
   }, [query, lang]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !dict) return null;
 
   return (
     <div className="fixed inset-0 z-[100] bg-gray-50/95 dark:bg-[#0a0a0a]/95 backdrop-blur-md overflow-y-auto" role="dialog" aria-modal="true">
@@ -99,7 +97,7 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={t.placeholder}
+              placeholder={dict.placeholder}
               autoFocus
               className="w-full py-5 pl-[56px] pr-12 text-[18px] sm:text-[22px] bg-white dark:bg-[#111827] border border-gray-200 dark:border-zinc-800 text-[#111827] dark:text-[#f3f4f6] rounded-[24px] focus:outline-none focus:ring-4 focus:ring-blue-600/20 shadow-lg dark:shadow-none transition-all"
             />
@@ -129,7 +127,7 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
           {!isLoading && !query.trim() && (
             <div className="text-center py-24 animate-in fade-in duration-500 max-w-2xl mx-auto">
               <div className="space-y-5 bg-white dark:bg-[#111827] p-8 rounded-[32px] border border-gray-100 dark:border-zinc-800 shadow-sm dark:shadow-none">
-                <h4 className="text-xs font-extrabold uppercase tracking-widest text-gray-400 dark:text-zinc-500">{t.popular}</h4>
+                <h4 className="text-xs font-extrabold uppercase tracking-widest text-gray-400 dark:text-zinc-500">{dict.popular}</h4>
                 <div className="flex flex-wrap justify-center gap-3">
                   {popularTags.map((tag) => (
                     <button
@@ -147,16 +145,15 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
 
           {!isLoading && query.trim() && results.length === 0 && (
             <div className="text-center py-24 animate-in fade-in duration-500 max-w-2xl mx-auto">
-              <p className="text-gray-500 dark:text-zinc-400 font-medium text-xl mb-8">{t.empty}</p>
+              <p className="text-gray-500 dark:text-zinc-400 font-medium text-xl mb-8">{dict.empty}</p>
             </div>
           )}
 
           {!isLoading && results.length > 0 && (
             <>
-              <h2 className="text-sm font-extrabold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-6 pl-2">{t.results}</h2>
+              <h2 className="text-sm font-extrabold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-6 pl-2">{dict.results}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-24 animate-in fade-in duration-300">
                 {results.map((article: any) => {
-                  // ИСПРАВЛЕНИЕ: Безопасное получение имени категории
                   const catName = typeof article.category === 'object' ? article.category?.name : article.category;
                   
                   return (
@@ -174,7 +171,7 @@ export default function SearchClient({ lang, isOpen, onClose }: SearchClientProp
                       <div className="flex justify-between items-start mt-6 gap-4">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-full uppercase tracking-wide">
-                            {catName || t.article}
+                            {catName || dict.article}
                           </span>
                           {article.tags && article.tags.map((tag: any, idx: number) => {
                             const tagName = tag?.name;

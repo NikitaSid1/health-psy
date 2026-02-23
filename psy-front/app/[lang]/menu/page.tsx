@@ -10,26 +10,26 @@ import { triggerHaptic } from "@/lib/haptic";
 import { client } from "@/lib/sanity";
 import { ChevronRight } from "lucide-react";
 
-const dictionary = {
-  ru: { title: "Меню", settings: "Настройки", darkTheme: "Темная тема", categories: "Категории" },
-  en: { title: "Menu", settings: "Settings", darkTheme: "Dark mode", categories: "Categories" },
-  ua: { title: "Меню", settings: "Налаштування", darkTheme: "Темна тема", categories: "Категорії" },
-  pl: { title: "Menu", settings: "Ustawienia", darkTheme: "Tryb ciemny", categories: "Kategorie" },
-  de: { title: "Menü", settings: "Einstellungen", darkTheme: "Dunkler Modus", categories: "Kategorien" }
-};
-
 export default function MenuPage() {
   const [mounted, setMounted] = useState(false);
   const [tags, setTags] = useState<{slug: string, name: string}[]>([]);
   const [isLoadingTags, setIsLoadingTags] = useState(true);
+  const [dict, setDict] = useState<any>(null);
   
   const { theme, setTheme, systemTheme } = useTheme();
   const pathname = usePathname();
 
-  const currentLang = (pathname?.split("/")[1] || "ru") as keyof typeof dictionary;
-  const t = dictionary[currentLang] || dictionary.ru;
+  const langMatch = pathname?.split("/")[1];
+  const currentLang = ['ru', 'en', 'ua', 'pl', 'de'].includes(langMatch || "") ? langMatch : "ru";
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Динамически загружаем словарь
+  useEffect(() => {
+    import(`@/dictionaries/${currentLang}.json`)
+      .then((module) => setDict(module.default.menu))
+      .catch(() => import(`@/dictionaries/ru.json`).then((module) => setDict(module.default.menu)));
+  }, [currentLang]);
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -53,22 +53,24 @@ export default function MenuPage() {
     setTheme(currentTheme === "dark" ? "light" : "dark");
   };
 
+  if (!dict) return null;
+
   return (
     <main id="menu-page" className="pb-24">
       <div className="layout-container space-y-8 pt-4">
         
         <h1 className="text-4xl md:text-5xl font-black text-[#111827] dark:text-[#f3f4f6] tracking-tight px-2">
-          {t.title}
+          {dict.title}
         </h1>
 
         <section id="menu-settings" className="bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-zinc-800 rounded-[24px] p-6 shadow-sm dark:shadow-none space-y-6">
           <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">
-            {t.settings}
+            {dict.settings}
           </h2>
 
           <div className="flex items-center justify-between">
             <span className="text-lg font-bold text-[#111827] dark:text-zinc-200">
-              {t.darkTheme}
+              {dict.darkTheme}
             </span>
             
             {!mounted ? (
@@ -94,7 +96,7 @@ export default function MenuPage() {
         <section id="menu-categories" className="bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-zinc-800 rounded-[24px] overflow-hidden shadow-sm dark:shadow-none">
           <div className="p-6 border-b border-gray-100 dark:border-zinc-800/50">
             <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">
-              {t.categories}
+              {dict.categories}
             </h2>
           </div>
           
@@ -107,7 +109,7 @@ export default function MenuPage() {
                 </div>
               ))
             ) : tags.length === 0 ? (
-              <div className="p-6 text-center text-gray-500 font-medium">Нет доступных категорий</div>
+              <div className="p-6 text-center text-gray-500 font-medium">{dict.empty}</div>
             ) : (
               tags.map((tag) => (
                 <Link

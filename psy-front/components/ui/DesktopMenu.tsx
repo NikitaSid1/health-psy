@@ -1,19 +1,10 @@
 // C:\Users\Admin\Desktop\psy\psy-front\components\ui\DesktopMenu.tsx
-// === НАЧАЛО БЛОКА: Desktop Categories Menu ===
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { X, ChevronRight, Home } from "lucide-react"; // Удален импорт Search
+import { X, ChevronRight, Home } from "lucide-react"; 
 import { client } from "@/lib/sanity";
-
-const menuTranslations = {
-  ru: { tagsTitle: "Популярные темы", navTitle: "Навигация", home: "Главная" },
-  en: { tagsTitle: "Popular Topics", navTitle: "Navigation", home: "Home" },
-  ua: { tagsTitle: "Популярні теми", navTitle: "Навігація", home: "Головна" },
-  pl: { tagsTitle: "Popularne tematy", navTitle: "Nawigacja", home: "Strona główna" },
-  de: { tagsTitle: "Beliebte Themen", navTitle: "Navigation", home: "Startseite" },
-};
 
 interface DesktopMenuProps {
   isOpen: boolean;
@@ -22,8 +13,15 @@ interface DesktopMenuProps {
 }
 
 export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps) {
-  const t = menuTranslations[lang as keyof typeof menuTranslations] || menuTranslations.ru;
   const [featuredTags, setFeaturedTags] = useState<{slug: string, name: string}[]>([]);
+  const [dict, setDict] = useState<any>(null);
+
+  // Подгрузка словаря
+  useEffect(() => {
+    import(`@/dictionaries/${lang}.json`)
+      .then((module) => setDict(module.default.desktopMenu))
+      .catch(() => import(`@/dictionaries/ru.json`).then((m) => setDict(m.default.desktopMenu)));
+  }, [lang]);
 
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
@@ -81,20 +79,19 @@ export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps)
           
           <div id="desktop-menu-main-nav">
             <span className="text-xs font-extrabold uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-4 block">
-              {t.navTitle}
+              {dict?.navTitle || "..."}
             </span>
             <nav className="space-y-1">
               <Link href={`/${lang}`} onClick={onClose} className="group flex items-center gap-4 py-3 text-lg font-bold text-[#111827] dark:text-[#f3f4f6] hover:text-blue-600 dark:hover:text-blue-500 transition-colors">
                 <Home size={20} className="text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500 transition-colors" />
-                <span>{t.home}</span>
+                <span>{dict?.home || "..."}</span>
               </Link>
-              {/* ССЫЛКА НА ПОИСК УДАЛЕНА ОТСЮДА */}
             </nav>
           </div>
 
           <div id="desktop-menu-tags-nav">
             <span className="text-xs font-extrabold uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-4 block">
-              {t.tagsTitle}
+              {dict?.tagsTitle || "..."}
             </span>
             <nav className="space-y-1">
               {featuredTags.length === 0 ? (
@@ -124,4 +121,3 @@ export default function DesktopMenu({ isOpen, onClose, lang }: DesktopMenuProps)
     </div>
   );
 }
-// === КОНЕЦ БЛОКА ===

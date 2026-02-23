@@ -1,0 +1,102 @@
+{
+    "notFound": {
+    "message": "It seems you've taken a wrong turn...",
+    "btnText": "Return to homepage"
+    },
+    "home": {
+    "h1": "Know yourself.",
+    "sub": "#Self-development. #Toxicity #Personal boundaries #Anxiety",
+    "minRead": "min",
+    "err": "Oops! Database unavailable",
+    "errSub": "Check your Sanity settings or connection."
+    },
+    "post": {
+    "notFoundTitle": "Article not found",
+    "backHome": "Return to home page",
+    "backBtn": "← Back to articles",
+    "categoryDefault": "Psychology",
+    "minRead": "min read",
+    "verified": "Verified by an expert",
+    "tagsTitle": "Tags:"
+    },
+    "about": {
+    "title": "About us",
+    "content": "Welcome to HealthPsy—your trusted guide to psychology and self-knowledge. We combine scientific approaches with practical expert advice to help you improve your quality of life.",
+    "conclusion": "We believe that taking care of your mental health is just as important as your physical well-being." },
+    "bookmarks": {
+    "title": "Favorites",
+    "empty": "You don't have any saved articles yet",
+    "loading": "Loading...",
+    "back": "Return to home page",
+    "timeLabel": "min",
+    "defaultCategory": "Psychology"
+    },
+    "menu": {
+    "title": "Menu",
+    "settings": "Settings",
+    "darkTheme": "Dark theme",
+    "categories": "Categories",
+    "empty": "No categories available"
+    },
+    "privacy": {
+    "title": "Privacy Policy",
+    "date": "Last updated: November 2023",
+    "text": "Your privacy is very important to us. This document describes how we collect, use, and protect your personal data.",
+    "collectionTitle": "Data Collection",
+    "collectionText": "We only collect Information necessary to improve the quality of the service (for example, cookies for analytics and storing language preferences).",
+    "usageTitle": "Use of Information",
+    "usageText": "Collected data is not transferred to third parties without your consent, except in cases required by law."
+    },
+    "tag": {
+    "back": "Home",
+    "notFound": "Tag not found",
+    "empty": "There are no articles in this category yet."
+    },
+    "terms": {
+    "title": "User Agreement",
+    "date": "Last updated: November 2023",
+    "text": "By using the HealthPsy website, you agree to the terms and conditions below. Please read them carefully.",
+    "disclaimerTitle": "Medical Disclaimer",
+    "disclaimerText": "The content posted on the HealthPsy website is for informational and educational purposes only and is not a substitute for professional medical, psychological, or psychiatric advice, diagnosis, or treatment.",
+    "ipTitle": "Intellectual Property",
+    "ipText": "All materials, articles, and design elements are the property of the HealthPsy project. Copying without an active link is prohibited."
+    },
+    "desktopMenu": {
+    "tagsTitle": "Popular Topics",
+    "navTitle": "Navigation",
+    "home": "Home"
+    },
+    "header": {
+    "bookmarks": "Bookmarks",
+    "search": "Search"
+    },
+    "footer": {
+    "disclaimer": "All information on the HealthPsy website is provided for educational purposes only and is not a substitute for professional medical or mental health care. If you are in a crisis, please contact a professional.",
+    "privacy": "Privacy Policy",
+    "terms": "User Agreement",
+    "about": "About Us",
+    "rights": "All rights reserved."
+    },
+    "homeSearchTrigger": {
+    "placeholder": "Find an article, topic, or author..."
+    },
+    "searchClient": {
+    "placeholder": "Find an article, tag, or author...",
+    "empty": "Oops! Nothing found.",
+    "popular": "Popular categories",
+    "results": "Search results",
+    "article": "Article"
+    },
+    "articleCard": {
+    "timeLabel": "min",
+    "expertLabel": "Expert verified",
+    "defaultCategory": "Psychology"
+    },
+    "searchAndFeed": {
+    "placeholder": "Find an article, category, or author...",
+    "resultsFor": "Results",
+    "latest": "Newest materials",
+    "notFound": "Nothing found for this query",
+    "clearSearch": "Clear search"
+    }
+}

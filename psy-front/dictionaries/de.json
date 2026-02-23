@@ -1,0 +1,103 @@
+{
+    "notFound": {
+    "message": "Sie scheinen falsch abgebogen zu sein...",
+    "btnText": "Zurück zur Startseite"
+    },
+    "home": {
+    "h1": "Erkenne dich selbst.",
+    "sub": "#Selbstentwicklung #Toxizität #Persönliche Grenzen #Angst",
+    "minRead": "min",
+    "err": "Hoppla! Datenbank nicht verfügbar",
+    "errSub": "Überprüfe deine Sanity-Einstellungen oder deine Verbindung."
+    },
+    "post": {
+    "notFoundTitle": "Artikel nicht gefunden",
+    "backHome": "Zurück zur Startseite",
+    "backBtn": "← Zurück zu den Artikeln",
+    "categoryDefault": "Psychologie",
+    "minRead": "Mindestlesezeit",
+    "verified": "Von einem Experten geprüft",
+    "tagsTitle": "Schlagwörter:"
+    },
+    "about": {
+    "title": "Über uns",
+    "content": "Willkommen bei HealthPsy – Ihrem vertrauenswürdigen Ratgeber für Psychologie und Selbsterkenntnis. Wir kombinieren wissenschaftliche Ansätze mit praktischen Expertenratschlägen, um Ihnen zu helfen, Ihre Lebensqualität zu verbessern.",
+    "conclusion": "Wir glauben, dass die Pflege Ihrer psychischen Gesundheit genauso wichtig ist wie Ihr körperliches Wohlbefinden." },
+    "bookmarks": {
+    "title": "Favoriten",
+    "empty": "Sie haben noch keine Artikel gespeichert",
+    "loading": "Wird geladen...",
+    "back": "Zurück zur Startseite",
+    "timeLabel": "min",
+    "defaultCategory": "Psychologie"
+    },
+    "menu": {
+    "title": "Menü",
+    "settings": "Einstellungen",
+    "darkTheme": "Dunkles Design",
+    "categories": "Kategorien",
+    "empty": "Keine Kategorien verfügbar"
+    },
+    "privacy": {
+    "title": "Datenschutzrichtlinie",
+    "date": "Letzte Aktualisierung: November 2023",
+    "text": "Ihre Privatsphäre ist uns sehr wichtig. Dieses Dokument beschreibt, wie wir Ihre personenbezogenen Daten erfassen, verwenden und schützen.",
+    "collectionTitle": "Datenerfassung",
+    "collectionText": "Wir erfassen nur Informationen, die zur Verbesserung der Servicequalität erforderlich sind (z. B. Cookies für Analysen und zum Speichern von Spracheinstellungen). preferences).",
+    "usageTitle": "Nutzung von Informationen",
+    "usageText": "Die erhobenen Daten werden ohne Ihre Einwilligung nicht an Dritte weitergegeben, außer in gesetzlich vorgeschriebenen Fällen."
+    },
+    "tag": {
+    "back": "Startseite",
+    "notFound": "Tag nicht gefunden",
+    "empty": "In dieser Kategorie sind noch keine Artikel vorhanden."
+    },
+    "terms": {
+    "title": "Nutzungsvereinbarung",
+    "date": "Letzte Aktualisierung: November 2023",
+    "text": "Durch die Nutzung der HealthPsy-Website stimmen Sie den nachfolgenden Nutzungsbedingungen zu. Bitte lesen Sie diese sorgfältig durch.",
+    "disclaimerTitle": "Medizinischer Haftungsausschluss",
+    "disclaimerText": "Die auf der HealthPsy-Website veröffentlichten Inhalte dienen ausschließlich Informations- und Bildungszwecken und ersetzen keine professionelle medizinische, psychologische oder psychiatrische Beratung, Diagnose oder Behandlung.",
+    "ipTitle": "Geistiges Eigentum",
+    "ipText": "Alle Materialien, Artikel und Designelemente sind Eigentum des HealthPsy-Projekts. Das Kopieren ohne aktiven Link ist untersagt."
+    },
+    "desktopMenu": {
+    "tagsTitle": "Beliebte Themen",
+    "navTitle": "Navigation",
+    "home": "Startseite"
+    },
+    "header": {
+    "bookmarks": "Lesezeichen",
+    "search": "Suche"
+    },
+    "footer": {
+    "disclaimer": "Alle Informationen auf der HealthPsy-Website dienen ausschließlich Bildungszwecken und ersetzen keine professionelle medizinische oder psychologische Betreuung. Wenn Sie sich in einer Krise befinden, wenden Sie sich bitte an einen Experten.",
+    "privacy": "Datenschutzrichtlinie",
+    "terms": "Nutzungsbedingungen",
+    "about": "Über uns",
+    "rights": "Alle Rechte vorbehalten."
+
+    },
+    "homeSearchTrigger": {
+    "placeholder": "Suche einen Artikel, ein Thema oder einen Autor..."
+    },
+    "searchClient": {
+    "placeholder": "Suche einen Artikel, ein Schlagwort oder einen Autor...",
+    "empty": "Hoppla! Nichts gefunden.",
+    "popular": "Beliebte Kategorien",
+    "results": "Suchergebnisse",
+    "article": "Artikel"
+    },
+    "articleCard": {
+    "timeLabel": "min",
+    "expertLabel": "Vom Experten geprüft",
+    "defaultCategory": "Psychologie"
+    },
+    "searchAndFeed": {
+    "placeholder": "Suche einen Artikel, eine Kategorie oder einen Autor...",
+    "resultsFor": "Ergebnisse",
+    "latest": "Neueste Inhalte",
+    "notFound": "Keine Ergebnisse für diese Suchanfrage",
+    "clearSearch": "Suche löschen"
+    }
+}

@@ -10,23 +10,21 @@ import LanguageSwitcher from "../LanguageSwitcher";
 import DesktopMenu from "./DesktopMenu";
 import SearchClient from "@/components/search/SearchClient";
 
-const translations = {
-  ru: { bookmarks: "Закладки", search: "Поиск" },
-  en: { bookmarks: "Bookmarks", search: "Search" },
-  ua: { bookmarks: "Закладки", search: "Пошук" },
-  pl: { bookmarks: "Zakładki", search: "Szukaj" },
-  de: { bookmarks: "Lesezeichen", search: "Suche" },
-};
-
 export default function Header() {
   const pathname = usePathname();
-  const lang = (pathname?.split("/")[1] || "ru") as keyof typeof translations;
-  const t = translations[lang as keyof typeof translations] || translations.ru;
+  const langMatch = pathname?.split("/")[1];
+  const lang = ['ru', 'en', 'ua', 'pl', 'de'].includes(langMatch || "") ? langMatch as string : "ru";
 
   const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [dict, setDict] = useState<any>(null);
 
-  // Слушаем событие открытия поиска из других компонентов (например, с главной страницы)
+  useEffect(() => {
+    import(`@/dictionaries/${lang}.json`)
+      .then((m) => setDict(m.default.header))
+      .catch(() => import(`@/dictionaries/ru.json`).then((m) => setDict(m.default.header)));
+  }, [lang]);
+
   useEffect(() => {
     const handleOpenSearch = () => setIsSearchOpen(true);
     window.addEventListener("open-search", handleOpenSearch);
@@ -49,11 +47,15 @@ export default function Header() {
 
           <nav className="flex items-center gap-2 md:gap-6">
             <Link href={`/${lang}/bookmarks`} className="hidden md:block text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-blue-600 transition-colors">
-              {t.bookmarks}
+              {dict?.bookmarks || "..."}
             </Link>
             
             <div className="flex items-center gap-2 md:gap-4 md:border-l border-gray-300 dark:border-zinc-700 md:pl-6">
-              <button onClick={() => setIsSearchOpen(true)} className="p-2 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors active:scale-95">
+              <button 
+                onClick={() => setIsSearchOpen(true)} 
+                className="p-2 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors active:scale-95"
+                aria-label={dict?.search || "Search"}
+              >
                 <Search size={20} strokeWidth={2.5} />
               </button>
               <LanguageSwitcher />
