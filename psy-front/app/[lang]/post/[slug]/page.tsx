@@ -11,8 +11,9 @@ import TableOfContents from "@/components/article/TableOfContents";
 import { Metadata } from "next";
 import TranslationProvider from "./TranslationProvider"; 
 import QuizBlock from "@/components/article/QuizBlock";
-import { getDictionary } from "@/dictionaries/getDictionary"; // <-- Импорт загрузчика словаря
+import { getDictionary } from "@/dictionaries/getDictionary"; 
 
+// === ИЗМЕНЕНИЕ ЗДЕСЬ: "translations" ищет по articleGroup ===
 const postQuery = groq`*[_type == "post" && slug.current == $slug && language == $lang][0] {
   _id,
   title,
@@ -21,11 +22,10 @@ const postQuery = groq`*[_type == "post" && slug.current == $slug && language ==
   "category": category->{ "slug": slug.current, "name": coalesce(translations[$lang], title) },
   readTime,
   expert,
-  translationId,
   "mainImage": mainImage.asset->url,
   "plainText": pt::text(body),
   "tags": tags[]->{ "slug": slug.current, "name": coalesce(translations[$lang], title) },
-  "translations": *[_type == "post" && translationId == ^.translationId] {
+  "translations": *[_type == "post" && articleGroup._ref == ^.articleGroup._ref] {
     language,
     "slug": slug.current
   }
@@ -35,7 +35,6 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang, slug } = await params;
   const post = await client.fetch(postQuery, { lang, slug });
   
-  // Получаем словарь для метаданных
   const dictionary = await getDictionary(lang as any);
   const t = dictionary.post;
 
@@ -56,7 +55,6 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 }
 
 const portableTextComponents = {
-  // ... (здесь остается без изменений ваш объект portableTextComponents)
   types: {
     youtube: ({ value }: any) => {
       const { url } = value;
@@ -127,7 +125,6 @@ interface PostPageProps {
 export default async function PostPage({ params }: PostPageProps) {
   const { lang, slug } = await params;
   
-  // Получаем словарь
   const dictionary = await getDictionary(lang as any);
   const t = dictionary.post;
   

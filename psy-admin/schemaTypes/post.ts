@@ -1,3 +1,4 @@
+// C:\Users\Admin\Desktop\psy\psy-admin\schemaTypes\post.ts
 // === НАЧАЛО БЛОКА: Sanity Post Schema ===
 import { defineField, defineType } from 'sanity'
 
@@ -20,13 +21,19 @@ export default defineType({
       hidden: true,
       group: 'settings'
     }),
+    
+    // === ИЗМЕНЕНИЕ 1: Заменили translationId на строгую ссылку ===
     defineField({
-      name: 'translationId',
-      title: 'Translation ID (Group ID)',
-      type: 'string',
-      description: 'Придумайте одинаковый ID для всех версий одной статьи (например: "anxiety-01"). Это свяжет их переключателем.',
-      group: 'settings'
+      name: 'articleGroup',
+      title: '🔗 Группа статьи (Связь переводов)',
+      type: 'reference',
+      to: [{ type: 'articleGroup' }],
+      description: 'Выберите группу, чтобы связать все языковые версии этой статьи.',
+      group: 'settings',
+      validation: (Rule) => Rule.required(),
     }),
+    // ===============================================================
+
     defineField({
       name: 'publishedAt',
       title: 'Published at',
@@ -69,7 +76,6 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
 
-    // === ИЗМЕНЕНИЕ ЗДЕСЬ: Категория стала Reference (строгая привязка) ===
     defineField({
       name: 'category',
       title: 'Главная Категория',
@@ -79,21 +85,17 @@ export default defineType({
       group: 'content',
       validation: (Rule) => Rule.required(),
     }),
-    // ===================================================================
 
-    // === НАЧАЛО БЛОКА: Post Tags Field ===
     defineField({
       name: 'tags',
       title: 'Теги статьи',
       description: 'Выберите теги, которые появятся внизу статьи',
       type: 'array',
       of: [{ type: 'reference', to: { type: 'tag' } }],
-      options: {
-        layout: 'tags', // Красивое отображение в виде "пилюль" в админке
-      },
+      options: { layout: 'tags' },
       group: 'seo', 
     }),
-    // === КОНЕЦ БЛОКА: Post Tags Field ===
+    
     defineField({
       name: 'author',
       title: 'Author',
@@ -115,11 +117,11 @@ export default defineType({
       group: 'content'
     }),
 
-    // --- ВКЛАДКА: SEO & META (И E-E-A-T) ---
+    // --- ВКЛАДКА: SEO & META ---
     defineField({
       name: 'seoTitle',
       title: 'SEO Заголовок (Title)',
-      description: 'Оставь пустым, чтобы использовать обычный заголовок. Идеально: 50-60 символов.',
+      description: 'Оставь пустым, чтобы использовать обычный заголовок.',
       type: 'string',
       group: 'seo',
     }),
@@ -134,23 +136,14 @@ export default defineType({
     defineField({
       name: 'ogImage',
       title: 'Картинка для соцсетей (OG Image)',
-      description: 'Специальная картинка для репостов в Telegram/WhatsApp (рекомендуется 1200x630). Если пусто — возьмет главную.',
       type: 'image',
       group: 'seo',
     }),
     defineField({
       name: 'expert',
       title: '🧠 Мнение психолога (E-E-A-T)',
-      description: 'Поставь галочку, если статью проверял или писал эксперт',
       type: 'boolean',
       initialValue: false,
-      group: 'seo'
-    }),
-    defineField({
-      name: 'expertReview',
-      title: '[УСТАРЕЛО] Мнение психолога',
-      type: 'boolean',
-      hidden: true,
       group: 'seo'
     }),
     defineField({
@@ -160,27 +153,22 @@ export default defineType({
       validation: (Rule) => Rule.min(1).max(60),
       group: 'seo'
     }),
-    defineField({
-      name: 'readingTime',
-      title: '[УСТАРЕЛО] Время чтения',
-      type: 'number',
-      hidden: true,
-      group: 'seo'
-    }),
   ],
 
+  // === ИЗМЕНЕНИЕ 2: Улучшаем превью, чтобы было видно группу ===
   preview: {
     select: {
       title: 'title',
       author: 'author.name',
       media: 'mainImage',
       lang: 'language',
+      group: 'articleGroup.title' // Подтягиваем название группы
     },
     prepare(selection) {
-      const { author, title, media, lang } = selection;
+      const { author, title, media, lang, group } = selection;
       return {
         title: title,
-        subtitle: `${lang ? lang.toUpperCase() : 'RU'} ${author ? `| by ${author}` : ''}`,
+        subtitle: `[${lang ? lang.toUpperCase() : 'RU'}] ${group ? `📂 ${group}` : 'Без группы'}`,
         media: media,
       }
     },
