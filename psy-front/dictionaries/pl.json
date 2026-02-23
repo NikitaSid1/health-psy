@@ -98,5 +98,29 @@
     "latest": "Najnowsze materiały",
     "notFound": "Nic nie znaleziono dla tego zapytania",
     "clearSearch": "Wyczyść wyszukiwanie"
+    },
+    "bookmarkButton": {
+    "add": "Dodaj do zakładek",
+    "remove": "Usuń z zakładek"
+    },
+    "articleActions": {
+    "listen": "🎧 Posłuchaj tego artykułu",
+    "stop": "⏹ Zatrzymaj",
+    "share": "↗ Udostępnij",
+    "copied": "Link skopiowany!",
+    "remend": "Zalecam przeczytanie tego artykułu:",
+    "error": "Twoja przeglądarka nie obsługuje czytania audio.",
+    "noVoice": "Twoje urządzenie nie ma zainstalowanego pakietu głosowego dla tego języka. Dodaj go w ustawieniach systemu.",
+    "font": "Czcionka",
+    "copyManual": "Skopiuj link ręcznie:\n\n"
+    },
+    "tableOfContents": {
+    "title": "Spis treści"
+    },
+    "quiz": {
+    "finishedTitle": "Quiz Zakończono!",
+    "finishedText": "Dziękuję za odpowiedzi. Autorefleksja to pierwszy krok do lepszego zrozumienia siebie.",
+    "question": "Pytanie",
+    "of": "from"
     }
 }

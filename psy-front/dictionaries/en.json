@@ -98,5 +98,29 @@
     "latest": "Newest materials",
     "notFound": "Nothing found for this query",
     "clearSearch": "Clear search"
+    },
+    "bookmarkButton": {
+    "add": "Add to bookmarks",
+    "remove": "Remove from bookmarks"
+    },
+    "articleActions": {
+    "listen": "🎧 Listen to this article",
+    "stop": "⏹ Stop",
+    "share": "↗ Share",
+    "copied": "Link copied!",
+    "recommend": "I recommend reading this article:",
+    "error": "Your browser does not support audio reading.",
+    "noVoice": "Your device does not have a voice pack for this language installed. Add it in your system settings.",
+    "font": "Font",
+    "copyManual": "Copy the link manually:\n\n"
+    },
+    "tableOfContents": {
+    "title": "Contents"
+    },
+    "quiz": {
+    "finishedTitle": "Quiz completed!",
+    "finishedText": "Thank you for your answers. Self-reflection is the first step to better understanding yourself.",
+    "question": "Question",
+    "of": "from"
     }
 }

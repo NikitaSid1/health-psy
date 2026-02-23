@@ -99,5 +99,29 @@
     "latest": "Neueste Inhalte",
     "notFound": "Keine Ergebnisse für diese Suchanfrage",
     "clearSearch": "Suche löschen"
+    },
+    "bookmarkButton": {
+    "add": "Zu den Lesezeichen hinzufügen",
+    "remove": "Aus den Lesezeichen entfernen"
+    },
+    "articleActions": {
+    "listen": "🎧 Diesen Artikel anhören",
+    "stop": "⏹ Stopp",
+    "share": "↗ Teilen",
+    "copied": "Link kopiert!",
+    "recommend": "Ich empfehle, diesen Artikel zu lesen:",
+    "error": "Ihr Browser unterstützt keine Audioausgabe.",
+    "noVoice": "Auf Ihrem Gerät ist kein Sprachpaket für diese Sprache installiert. Fügen Sie es in Ihren Systemeinstellungen hinzu.",
+    "font": "Schriftart",
+    "copyManual": "Link manuell kopieren:\n\n"
+    },
+    "tableOfContents": {
+    "title": "Inhalt"
+    },
+    "quiz": {
+    "finishedTitle": "Quiz abgeschlossen!",
+    "finishedText": "Vielen Dank für Ihre Antworten. Selbstreflexion ist der erste Schritt zu einem besseren Verständnis dich.",
+    "Frage": "Frage",
+    "von": "von"
     }
 }

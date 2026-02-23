@@ -16,20 +16,21 @@ export default function TableOfContents({ lang }: { lang: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeId, setActiveId] = useState("");
   const [headings, setHeadings] = useState<Heading[]>([]);
-
-  const title = {
-    ru: "Содержание", en: "Table of Contents", ua: "Зміст", pl: "Spis treści", de: "Inhaltsverzeichnis"
-  }[lang] || "Content";
+  const [dict, setDict] = useState<any>(null);
 
   useEffect(() => {
-    // Автоматический сбор заголовков из статьи на клиенте
+    import(`@/dictionaries/${lang}.json`)
+      .then((m) => setDict(m.default.tableOfContents))
+      .catch(() => import(`@/dictionaries/ru.json`).then((m) => setDict(m.default.tableOfContents)));
+  }, [lang]);
+
+  useEffect(() => {
     const articleContent = document.getElementById("article-content");
     if (!articleContent) return;
 
     const elements = Array.from(articleContent.querySelectorAll("h2, h3"));
     
     const parsedHeadings = elements.map((el, index) => {
-      // Генерируем ID, если его нет (кириллица тоже поддерживается)
       if (!el.id) {
         const generatedId = el.textContent?.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-а-я]/g, '') || `heading-${index}`;
         el.id = generatedId;
@@ -44,7 +45,6 @@ export default function TableOfContents({ lang }: { lang: string }) {
 
     setHeadings(parsedHeadings);
 
-    // Observer для подсветки активного пункта
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -69,9 +69,10 @@ export default function TableOfContents({ lang }: { lang: string }) {
     }
   };
 
+  const title = dict?.title || "Content";
+
   return (
     <nav className="mb-8 lg:mb-0 w-full">
-      {/* MOBILE: Раскрывашка */}
       <div className="lg:hidden border border-gray-200 dark:border-zinc-800 rounded-[24px] overflow-hidden bg-gray-50 dark:bg-zinc-900/50">
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -101,7 +102,6 @@ export default function TableOfContents({ lang }: { lang: string }) {
         )}
       </div>
 
-      {/* DESKTOP: Sticky Sidebar */}
       <div className="hidden lg:block sticky top-28 max-w-[280px]">
         <h4 className="text-xs font-extrabold uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
            <List size={16} /> {title}
@@ -120,7 +120,6 @@ export default function TableOfContents({ lang }: { lang: string }) {
                  {h.text}
                </button>
                
-               {/* Активный маркер слева */}
                {activeId === h.slug && (
                  <div className="absolute -left-[2px] top-0 bottom-0 w-[2px] bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]" />
                )}
